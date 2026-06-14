@@ -217,7 +217,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-6 dashboard-white-text" data-testid="dashboard">
+    <div className="space-y-6" data-testid="dashboard">
       <div className="card border border-border/80 shadow-sm dark:border-border/80 p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-4">
@@ -607,7 +607,7 @@ export default function Dashboard() {
                 className="flex items-center gap-3 p-2 rounded-xl hover:bg-surface dark:hover:bg-surface-strong transition"
               >
                 <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${t.type === "INCOME" ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"}`}
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${t.type === "INCOME" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300"}`}
                 >
                   {t.type === "INCOME" ? (
                     <ArrowUpRight className="w-4 h-4" />
@@ -624,7 +624,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div
-                  className={`font-bold text-sm ${t.type === "INCOME" ? "text-emerald-600" : "text-rose-600"}`}
+                  className={`font-bold text-sm ${t.type === "INCOME" ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300"}`}
                 >
                   {t.type === "INCOME" ? "+" : "-"}
                   {currency(t.amount)}

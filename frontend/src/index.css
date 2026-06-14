@@ -32,24 +32,6 @@
     --color-overlay: rgba(15, 23, 42, 0.04);
   }
 
-  /* Dark theme scoped to dashboard only */
-  .dashboard-theme.dark {
-    color-scheme: dark;
-    --color-background: #050814;
-    --color-surface: #0b1529;
-    --color-surface-strong: #111b35;
-    --color-border: #334155;
-    --color-border-strong: #475569;
-    --color-text: #f8fafc;
-    --color-text-muted: #cbd5e1;
-    --color-text-low: #94a3b8;
-    --color-primary: #60a5fa;
-    --color-primary-soft: rgba(96, 165, 250, 0.22);
-    --color-secondary: #c084fc;
-    --color-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.75);
-    --color-overlay: rgba(15, 23, 42, 0.85);
-  }
-
   body {
     font-family:
       "Inter",
@@ -64,39 +46,42 @@
     overflow-x: hidden;
   }
 
-  .dark,
+  .dashboard-theme {
+    color: var(--color-text);
+  }
+
   .dashboard-theme.dark {
-    color: #ffffff !important;
+    color-scheme: dark;
+    --color-background: #050814;
+    --color-surface: #0b1529;
+    --color-surface-strong: #111b35;
+    --color-border: #334155;
+    --color-border-strong: #475569;
+    --color-text: #ffffff;
+    --color-text-muted: #cbd5e1;
+    --color-text-low: #94a3b8;
+    --color-primary: #60a5fa;
+    --color-primary-soft: rgba(96, 165, 250, 0.22);
+    --color-secondary: #c084fc;
+    --color-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.75);
+    --color-overlay: rgba(15, 23, 42, 0.85);
   }
 
-  .dark *,
-  .dashboard-theme.dark * {
-    color: #ffffff !important;
-  }
-
-  .public-theme:not(.dark),
   .dashboard-theme:not(.dark) {
-    color: var(--color-text) !important;
-  }
-
-  .public-theme:not(.dark) *,
-  .dashboard-theme:not(.dark) * {
-    color: var(--color-text) !important;
-  }
-
-  .dashboard-white-text {
-    color: #ffffff;
-  }
-
-  .dashboard-white-text .text-muted {
-    color: rgba(255, 255, 255, 0.78) !important;
-  }
-
-  .dashboard-white-text .text-muted.text-xs,
-  .dashboard-white-text .text-muted.text-sm,
-  .dashboard-white-text .text-muted.text-base,
-  .dashboard-white-text .text-muted.text-lg {
-    color: rgba(255, 255, 255, 0.72) !important;
+    color-scheme: light;
+    --color-background: #f8fafc;
+    --color-surface: #ffffff;
+    --color-surface-strong: #f8fafc;
+    --color-border: #e2e8f0;
+    --color-border-strong: #cbd5e1;
+    --color-text: #0f172a;
+    --color-text-muted: #475569;
+    --color-text-low: #64748b;
+    --color-primary: #2563eb;
+    --color-primary-soft: rgba(37, 99, 235, 0.12);
+    --color-secondary: #7c3aed;
+    --color-shadow: 0 24px 60px -30px rgba(15, 23, 42, 0.12);
+    --color-overlay: rgba(15, 23, 42, 0.04);
   }
 
   h1,

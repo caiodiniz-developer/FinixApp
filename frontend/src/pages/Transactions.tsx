@@ -314,7 +314,7 @@ export default function Transactions() {
                   data-testid={`tx-row-${t.id}`}
                 >
                   <div
-                    className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center ${t.type === "INCOME" ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"}`}
+                    className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center ${t.type === "INCOME" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300"}`}
                   >
                     {t.type === "INCOME" ? (
                       <ArrowUpRight className="w-5 h-5" />
@@ -385,7 +385,7 @@ export default function Transactions() {
                   </div>
 
                   <div
-                    className={`min-w-[104px] text-right font-bold ${t.type === "INCOME" ? "text-emerald-600" : "text-rose-600"} flex flex-col items-end`}
+                    className={`min-w-[104px] text-right font-bold ${t.type === "INCOME" ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300"} flex flex-col items-end`}
                   >
                     <span className="text-base sm:text-lg">
                       {t.type === "INCOME" ? "+" : "-"}
