@@ -17,7 +17,6 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Signup from "./pages/Signup";
-import VerifyEmail from "./pages/VerifyEmail";
 import OAuthCallback from "./pages/OAuthCallback";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
@@ -150,14 +149,6 @@ export default function App() {
               element={
                 <PublicOnly>
                   <Signup />
-                </PublicOnly>
-              }
-            />
-            <Route
-              path="/verify-email"
-              element={
-                <PublicOnly>
-                  <VerifyEmail />
                 </PublicOnly>
               }
             />

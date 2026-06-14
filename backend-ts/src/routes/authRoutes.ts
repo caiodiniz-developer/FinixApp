@@ -3,8 +3,6 @@ import { authenticate } from "../middlewares/auth";
 import { authRateLimit } from "../middlewares/rateLimit";
 import {
   signupController,
-  verifyEmailController,
-  resendCodeController,
   loginController,
   getMeController,
 } from "../controllers/authController";
@@ -30,12 +28,6 @@ router.post("/signup", signupController);
 
 // Rota de Cadastro (Caso o front use /register)
 router.post("/register", signupController);
-
-// Verificação de E-mail
-router.post("/verify", verifyEmailController);
-
-// Reenviar código de verificação
-router.post("/resend-code", resendCodeController);
 
 // Rota de Login
 router.post("/login", loginController);

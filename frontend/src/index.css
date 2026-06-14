@@ -74,6 +74,16 @@
     color: #ffffff !important;
   }
 
+  .public-theme:not(.dark),
+  .dashboard-theme:not(.dark) {
+    color: var(--color-text) !important;
+  }
+
+  .public-theme:not(.dark) *,
+  .dashboard-theme:not(.dark) * {
+    color: var(--color-text) !important;
+  }
+
   .dashboard-white-text {
     color: #ffffff;
   }

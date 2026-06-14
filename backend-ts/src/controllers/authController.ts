@@ -1,10 +1,5 @@
 import { Request, Response } from "express";
-import {
-  signup,
-  verifyEmail,
-  resendVerificationCode,
-  login,
-} from "../services/authService";
+import { signup, login } from "../services/authService";
 import {
   accessTokenCookieOptions,
   refreshTokenCookieOptions,
@@ -29,36 +24,6 @@ export const signupController = async (req: Request, res: Response) => {
     res.status(201).json(result);
   } catch (error: any) {
     console.error("[AUTH] Signup error:", error.message);
-    res.status(400).json({ error: error.message });
-  }
-};
-
-export const verifyEmailController = async (req: Request, res: Response) => {
-  try {
-    const { email, code } = req.body;
-
-    if (!email || !code) {
-      return res.status(400).json({ error: "Email e código são obrigatórios" });
-    }
-
-    const result = await verifyEmail(email, code);
-    res.json(result);
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
-export const resendCodeController = async (req: Request, res: Response) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ error: "Email é obrigatório" });
-    }
-
-    const result = await resendVerificationCode(email);
-    res.json(result);
-  } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
 };

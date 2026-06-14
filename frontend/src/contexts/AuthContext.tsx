@@ -75,13 +75,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       storeToken(data.token, remember);
       setUser(data.user);
-
-      if (!data.user.isVerified) {
-        console.warn("[AuthContext] User email not verified");
-        throw new Error(
-          "E-mail não verificado. Verifique seu e-mail antes de continuar.",
-        );
-      }
       console.log("[AuthContext] Login completed successfully");
     } catch (e) {
       console.error("[AuthContext] Login error:", e);

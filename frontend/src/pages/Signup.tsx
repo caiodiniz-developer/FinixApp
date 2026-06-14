@@ -45,8 +45,8 @@ export default function Signup() {
         throw new Error(data.error || data.message || "Erro ao criar conta");
       }
 
-      toast.success("Conta criada! Verifique seu e-mail para ativar.");
-      navigate("/verify-email", { state: { email: formData.email } });
+      toast.success("Conta criada! Faça login para continuar.");
+      navigate("/login");
     } catch (error: any) {
       toast.error(error.message);
     } finally {
