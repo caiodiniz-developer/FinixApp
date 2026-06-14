@@ -4,17 +4,27 @@ import nodemailer from "nodemailer";
 const resendClient = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
-const SMTP_USER = process.env.SMTP_USER || process.env.GMAIL_USER;
-const SMTP_PASS = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
-const SMTP_HOST =
-  process.env.SMTP_HOST || process.env.GMAIL_HOST || "smtp.gmail.com";
+const normalizeEnvString = (value?: string) => String(value || "").trim();
+const normalizeAppPassword = (value?: string) =>
+  String(value || "")
+    .replace(/\s+/g, "")
+    .trim();
+const SMTP_USER = normalizeEnvString(
+  process.env.SMTP_USER || process.env.GMAIL_USER,
+);
+const SMTP_PASS = normalizeAppPassword(
+  process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD,
+);
+const SMTP_HOST = normalizeEnvString(
+  process.env.SMTP_HOST || process.env.GMAIL_HOST || "smtp.gmail.com",
+);
 const SMTP_PORT = Number(
-  process.env.SMTP_PORT || process.env.GMAIL_PORT || 587,
+  normalizeEnvString(process.env.SMTP_PORT || process.env.GMAIL_PORT || "587"),
 );
 const EMAIL_FROM =
-  process.env.EMAIL_FROM ||
+  normalizeEnvString(process.env.EMAIL_FROM) ||
   (SMTP_USER ? `Finix <${SMTP_USER}>` : "Finix <onboarding@finix.app>");
-const REPLY_TO = process.env.EMAIL_REPLY_TO || SMTP_USER || EMAIL_FROM;
+const REPLY_TO = process.env.EMAIL_REPLY_TO?.trim() || SMTP_USER || EMAIL_FROM;
 const EMAIL_SUBJECT = "🔐 Seu código de verificação – Finix";
 
 const isValidEmail = (email: string) => {
@@ -283,6 +293,15 @@ export const sendVerificationEmail = async (rawEmail: string, code: string) => {
     }
   }
 
+  if (!SMTP_USER || !SMTP_PASS) {
+    console.error(
+      "[EMAIL] SMTP não configurado corretamente. SMTP_USER ou SMTP_PASS ausente.",
+    );
+    lastError = new Error(
+      "Serviço de e-mail não configurado corretamente. Configure SMTP_USER e SMTP_PASS ou RESEND_API_KEY.",
+    );
+  }
+
   if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
     const isGmail =
       SMTP_USER.toLowerCase().includes("@gmail.com") ||
@@ -292,6 +311,7 @@ export const sendVerificationEmail = async (rawEmail: string, code: string) => {
     try {
       console.log("[EMAIL] Tentando envio via SMTP", {
         to: email,
+        from: smtpFrom,
         host: SMTP_HOST,
         port: SMTP_PORT,
         secure: SMTP_PORT === 465,
