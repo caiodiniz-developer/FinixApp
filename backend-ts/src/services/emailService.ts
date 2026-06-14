@@ -227,25 +227,30 @@ const buildMailData = (email: string, code: string, from: string) => ({
   },
 });
 
-const createSmtpTransport = (isGmail: boolean) => {
+const createGmailTransport = (port: number) => {
+  const auth = { user: SMTP_USER, pass: SMTP_PASS };
+  return nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port,
+    secure: port === 465,
+    auth,
+    requireTLS: port === 587,
+    tls: { rejectUnauthorized: false },
+  });
+};
+
+const createSmtpTransport = (isGmail: boolean, port: number = SMTP_PORT) => {
   const auth = { user: SMTP_USER, pass: SMTP_PASS };
 
   if (isGmail) {
-    return nodemailer.createTransport({
-      service: "gmail",
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_PORT === 465,
-      auth,
-      requireTLS: SMTP_PORT === 587,
-      tls: { rejectUnauthorized: false },
-    });
+    return createGmailTransport(port);
   }
 
   return nodemailer.createTransport({
     host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
+    port,
+    secure: port === 465,
     auth,
   });
 };
@@ -333,34 +338,35 @@ export const sendVerificationEmail = async (rawEmail: string, code: string) => {
       console.error("[EMAIL] Falha ao enviar via SMTP:", err);
       lastError = lastError || err;
 
-      if (isGmail && SMTP_PORT === 465) {
-        console.log("[EMAIL] Tentando fallback SMTP Gmail na porta 587");
-        const fallbackTransporter = nodemailer.createTransport({
-          service: "gmail",
-          host: "smtp.gmail.com",
-          port: 587,
-          secure: false,
-          auth: {
-            user: SMTP_USER,
-            pass: SMTP_PASS,
-          },
-          tls: { rejectUnauthorized: false },
-        });
-        try {
-          await fallbackTransporter.verify();
-          const fallbackInfo = await fallbackTransporter.sendMail(mailData);
-          logDeliveryResult(email, fallbackInfo, "SMTP Fallback 587");
+      if (isGmail) {
+        const fallbackPorts = [587, 465].filter((p) => p !== SMTP_PORT);
+        for (const port of fallbackPorts) {
+          console.log(`[EMAIL] Tentando fallback SMTP Gmail na porta ${port}`);
+          const fallbackTransporter = createSmtpTransport(true, port);
+          try {
+            await fallbackTransporter.verify();
+            const fallbackInfo = await fallbackTransporter.sendMail(mailData);
+            logDeliveryResult(email, fallbackInfo, `SMTP Fallback ${port}`);
 
-          if (!fallbackInfo.accepted?.length || fallbackInfo.rejected?.length) {
-            const rejectReason = fallbackInfo.rejected?.length
-              ? fallbackInfo.rejected.join(", ")
-              : "nenhum endereço aceito";
-            throw new Error(`SMTP fallback retornou rejeição: ${rejectReason}`);
+            if (
+              !fallbackInfo.accepted?.length ||
+              fallbackInfo.rejected?.length
+            ) {
+              const rejectReason = fallbackInfo.rejected?.length
+                ? fallbackInfo.rejected.join(", ")
+                : "nenhum endereço aceito";
+              throw new Error(
+                `SMTP fallback retornou rejeição: ${rejectReason}`,
+              );
+            }
+            return;
+          } catch (fallbackErr) {
+            console.error(
+              `[EMAIL] Falha no fallback SMTP ${port}:`,
+              fallbackErr,
+            );
+            lastError = lastError || fallbackErr;
           }
-          return;
-        } catch (fallbackErr) {
-          console.error("[EMAIL] Falha no fallback SMTP 587:", fallbackErr);
-          lastError = lastError || fallbackErr;
         }
       }
     }

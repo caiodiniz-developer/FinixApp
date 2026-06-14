@@ -64,6 +64,21 @@
     overflow-x: hidden;
   }
 
+  .dashboard-white-text {
+    color: #ffffff;
+  }
+
+  .dashboard-white-text .text-muted {
+    color: rgba(255, 255, 255, 0.78) !important;
+  }
+
+  .dashboard-white-text .text-muted.text-xs,
+  .dashboard-white-text .text-muted.text-sm,
+  .dashboard-white-text .text-muted.text-base,
+  .dashboard-white-text .text-muted.text-lg {
+    color: rgba(255, 255, 255, 0.72) !important;
+  }
+
   h1,
   h2,
   h3,

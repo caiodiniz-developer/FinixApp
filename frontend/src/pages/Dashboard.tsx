@@ -217,7 +217,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-6" data-testid="dashboard">
+    <div className="space-y-6 dashboard-white-text" data-testid="dashboard">
       <div className="card border border-border/80 shadow-sm dark:border-border/80 p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-4">
