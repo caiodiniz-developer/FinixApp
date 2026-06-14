@@ -64,6 +64,16 @@
     overflow-x: hidden;
   }
 
+  .dark,
+  .dashboard-theme.dark {
+    color: #ffffff !important;
+  }
+
+  .dark *,
+  .dashboard-theme.dark * {
+    color: #ffffff !important;
+  }
+
   .dashboard-white-text {
     color: #ffffff;
   }

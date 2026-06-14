@@ -1,30 +1,16 @@
 import { Resend } from "resend";
-import nodemailer from "nodemailer";
 
-const resendClient = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
-const normalizeEnvString = (value?: string) => String(value || "").trim();
-const normalizeAppPassword = (value?: string) =>
-  String(value || "")
-    .replace(/\s+/g, "")
-    .trim();
-const SMTP_USER = normalizeEnvString(
-  process.env.SMTP_USER || process.env.GMAIL_USER,
-);
-const SMTP_PASS = normalizeAppPassword(
-  process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD,
-);
-const SMTP_HOST = normalizeEnvString(
-  process.env.SMTP_HOST || process.env.GMAIL_HOST || "smtp.gmail.com",
-);
-const SMTP_PORT = Number(
-  normalizeEnvString(process.env.SMTP_PORT || process.env.GMAIL_PORT || "587"),
-);
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+if (!RESEND_API_KEY) {
+  throw new Error(
+    "RESEND_API_KEY não configurado. Defina a variável de ambiente RESEND_API_KEY.",
+  );
+}
+
+const resendClient = new Resend(RESEND_API_KEY);
 const EMAIL_FROM =
-  normalizeEnvString(process.env.EMAIL_FROM) ||
-  (SMTP_USER ? `Finix <${SMTP_USER}>` : "Finix <onboarding@finix.app>");
-const REPLY_TO = process.env.EMAIL_REPLY_TO?.trim() || SMTP_USER || EMAIL_FROM;
+  process.env.EMAIL_FROM?.trim() || "Finix <onboarding@finix.app>";
+const REPLY_TO = process.env.EMAIL_REPLY_TO?.trim() || EMAIL_FROM;
 const EMAIL_SUBJECT = "🔐 Seu código de verificação – Finix";
 
 const isValidEmail = (email: string) => {
@@ -227,42 +213,13 @@ const buildMailData = (email: string, code: string, from: string) => ({
   },
 });
 
-const createGmailTransport = (port: number) => {
-  const auth = { user: SMTP_USER, pass: SMTP_PASS };
-  return nodemailer.createTransport({
-    service: "gmail",
-    host: "smtp.gmail.com",
-    port,
-    secure: port === 465,
-    auth,
-    requireTLS: port === 587,
-    tls: { rejectUnauthorized: false },
-  });
-};
-
-const createSmtpTransport = (isGmail: boolean, port: number = SMTP_PORT) => {
-  const auth = { user: SMTP_USER, pass: SMTP_PASS };
-
-  if (isGmail) {
-    return createGmailTransport(port);
-  }
-
-  return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port,
-    secure: port === 465,
-    auth,
-  });
-};
-
-const logDeliveryResult = (email: string, info: any, channel: string) => {
-  console.log(`[EMAIL] ${channel} send result`, {
+const logDeliveryResult = (email: string, result: any) => {
+  console.log("[EMAIL] Resend send result", {
     to: email,
-    accepted: info.accepted,
-    rejected: info.rejected,
-    response: info.response,
-    messageId: info.messageId,
-    envelope: info.envelope,
+    id: result.id,
+    status: result.status,
+    recipient: result.to,
+    response: result.raw,
   });
 };
 
@@ -275,108 +232,20 @@ export const sendVerificationEmail = async (rawEmail: string, code: string) => {
     throw new Error("Email inválido para envio de código de verificação.");
   }
 
-  const smtpFrom = SMTP_USER ? `Finix <${SMTP_USER}>` : EMAIL_FROM;
-  const mailData = buildMailData(
-    email,
-    code,
-    resendClient ? EMAIL_FROM : smtpFrom,
-  );
-  let lastError: any = null;
+  const mailData = buildMailData(email, code, EMAIL_FROM);
 
-  if (resendClient) {
-    try {
-      console.log("[EMAIL] Tentando envio via Resend", {
-        to: email,
-        from: EMAIL_FROM,
-      });
-      const result = await resendClient.emails.send(mailData as any);
-      console.log("[EMAIL] Resend response", { result, to: email });
-      return;
-    } catch (err) {
-      console.error("[EMAIL] Falha ao enviar via Resend:", err);
-      lastError = err;
-    }
-  }
-
-  if (!SMTP_USER || !SMTP_PASS) {
-    console.error(
-      "[EMAIL] SMTP não configurado corretamente. SMTP_USER ou SMTP_PASS ausente.",
-    );
-    lastError = new Error(
-      "Serviço de e-mail não configurado corretamente. Configure SMTP_USER e SMTP_PASS ou RESEND_API_KEY.",
+  try {
+    console.log("[EMAIL] Tentando envio via Resend", {
+      to: email,
+      from: EMAIL_FROM,
+    });
+    const result = await resendClient.emails.send(mailData as any);
+    logDeliveryResult(email, result);
+    return;
+  } catch (err: any) {
+    console.error("[EMAIL] Falha ao enviar via Resend:", err);
+    throw new Error(
+      err?.message || "Falha ao enviar código de verificação via Resend.",
     );
   }
-
-  if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-    const isGmail =
-      SMTP_USER.toLowerCase().includes("@gmail.com") ||
-      SMTP_HOST.includes("gmail");
-    const transporter = createSmtpTransport(isGmail);
-
-    try {
-      console.log("[EMAIL] Tentando envio via SMTP", {
-        to: email,
-        from: smtpFrom,
-        host: SMTP_HOST,
-        port: SMTP_PORT,
-        secure: SMTP_PORT === 465,
-        service: isGmail ? "gmail" : "custom",
-      });
-      await transporter.verify();
-      const info = await transporter.sendMail(mailData);
-      logDeliveryResult(email, info, "SMTP");
-
-      if (!info.accepted?.length || info.rejected?.length) {
-        const rejectReason = info.rejected?.length
-          ? info.rejected.join(", ")
-          : "nenhum endereço aceito";
-        throw new Error(`SMTP retornou rejeição: ${rejectReason}`);
-      }
-
-      return;
-    } catch (err) {
-      console.error("[EMAIL] Falha ao enviar via SMTP:", err);
-      lastError = lastError || err;
-
-      if (isGmail) {
-        const fallbackPorts = [587, 465].filter((p) => p !== SMTP_PORT);
-        for (const port of fallbackPorts) {
-          console.log(`[EMAIL] Tentando fallback SMTP Gmail na porta ${port}`);
-          const fallbackTransporter = createSmtpTransport(true, port);
-          try {
-            await fallbackTransporter.verify();
-            const fallbackInfo = await fallbackTransporter.sendMail(mailData);
-            logDeliveryResult(email, fallbackInfo, `SMTP Fallback ${port}`);
-
-            if (
-              !fallbackInfo.accepted?.length ||
-              fallbackInfo.rejected?.length
-            ) {
-              const rejectReason = fallbackInfo.rejected?.length
-                ? fallbackInfo.rejected.join(", ")
-                : "nenhum endereço aceito";
-              throw new Error(
-                `SMTP fallback retornou rejeição: ${rejectReason}`,
-              );
-            }
-            return;
-          } catch (fallbackErr) {
-            console.error(
-              `[EMAIL] Falha no fallback SMTP ${port}:`,
-              fallbackErr,
-            );
-            lastError = lastError || fallbackErr;
-          }
-        }
-      }
-    }
-  }
-
-  if (lastError) {
-    throw lastError;
-  }
-
-  throw new Error(
-    "Serviço de e-mail não configurado. Defina RESEND_API_KEY ou SMTP_USER/GMAIL_USER + SMTP_PASS/GMAIL_APP_PASSWORD.",
-  );
 };
