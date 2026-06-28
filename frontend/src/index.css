@@ -52,19 +52,19 @@
 
   .dashboard-theme.dark {
     color-scheme: dark;
-    --color-background: #050814;
-    --color-surface: #0b1529;
-    --color-surface-strong: #111b35;
-    --color-border: #334155;
-    --color-border-strong: #475569;
-    --color-text: #ffffff;
-    --color-text-muted: #cbd5e1;
-    --color-text-low: #94a3b8;
-    --color-primary: #60a5fa;
-    --color-primary-soft: rgba(96, 165, 250, 0.22);
-    --color-secondary: #c084fc;
-    --color-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.75);
-    --color-overlay: rgba(15, 23, 42, 0.85);
+    --color-background: #09090b;
+    --color-surface: #111113;
+    --color-surface-strong: #1c1c1f;
+    --color-border: rgba(255,255,255,0.08);
+    --color-border-strong: rgba(255,255,255,0.14);
+    --color-text: #fafafa;
+    --color-text-muted: #a1a1aa;
+    --color-text-low: #71717a;
+    --color-primary: #a78bfa;
+    --color-primary-soft: rgba(167,139,250,0.12);
+    --color-secondary: #818cf8;
+    --color-shadow: 0 24px 60px -30px rgba(0,0,0,0.85);
+    --color-overlay: rgba(0,0,0,0.7);
   }
 
   .dashboard-theme:not(.dark) {
@@ -147,13 +147,13 @@
   }
 
   .dashboard-theme.dark .input {
-    background: #1f2536;
-    border-color: #3a4556;
+    background: #1c1c1f;
+    border-color: rgba(255,255,255,0.1);
   }
 
   .dashboard-theme.dark .input:focus {
-    border-color: #60a5fa;
-    background: #252f3f;
+    border-color: #a78bfa;
+    background: #222226;
   }
 
   .input::placeholder {
@@ -195,8 +195,11 @@
 }
 
 .dashboard-theme.dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #3f3f46;
 }
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Gradient background helper */
 .bg-auth-side {

@@ -18,6 +18,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Signup from "./pages/Signup";
 import OAuthCallback from "./pages/OAuthCallback";
+import VerifyEmail from "./pages/VerifyEmail";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
@@ -152,6 +153,7 @@ export default function App() {
                 </PublicOnly>
               }
             />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route
               path="/oauth-callback"
               element={

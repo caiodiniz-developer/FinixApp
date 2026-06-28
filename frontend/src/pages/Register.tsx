@@ -41,8 +41,8 @@ export default function Register() {
   const onSubmit = async (data: Form) => {
     try {
       await signup(data.name, data.email, data.password);
-      toast.success("Conta criada! Faça login para continuar.");
-      nav("/login");
+      toast.success("Conta criada! Verifique seu e-mail.");
+      nav("/verify-email", { state: { email: data.email } });
     } catch (e: any) {
       toast.error(e.message || "Falha ao cadastrar");
     }
