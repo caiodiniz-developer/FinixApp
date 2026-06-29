@@ -1,11 +1,17 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Mail, ArrowLeft, RefreshCw, Loader2, ShieldCheck, CheckCircle } from "lucide-react";
+import { Mail, ArrowLeft, RefreshCw, Loader2, ShieldCheck, CheckCircle, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "../components/Logo";
 import toast from "react-hot-toast";
 
 const API = import.meta.env.VITE_API_URL;
+
+const STEPS = [
+  { n: "1", t: "Abra seu e-mail", d: "Verifique a caixa de entrada" },
+  { n: "2", t: "Copie o código", d: "6 dígitos enviados por nós" },
+  { n: "3", t: "Cole aqui e confirme", d: "Conta ativa em segundos" },
+];
 
 export default function VerifyEmail() {
   const location = useLocation();
@@ -78,7 +84,6 @@ export default function VerifyEmail() {
     newCode[index] = clean;
     setCode(newCode);
     if (clean && index < 5) inputRefs.current[index + 1]?.focus();
-    // auto-submit on last digit
     if (clean && index === 5) {
       const full = [...newCode].join("");
       if (full.length === 6) setTimeout(() => document.getElementById("verify-submit")?.click(), 80);
@@ -94,9 +99,7 @@ export default function VerifyEmail() {
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
+    if (e.key === "Backspace" && !code[index] && index > 0) inputRefs.current[index - 1]?.focus();
     if (e.key === "ArrowLeft" && index > 0) inputRefs.current[index - 1]?.focus();
     if (e.key === "ArrowRight" && index < 5) inputRefs.current[index + 1]?.focus();
   };
@@ -106,23 +109,23 @@ export default function VerifyEmail() {
   // ── Success state ──────────────────────────────────────────────────────────
   if (isVerified) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "#040406" }}>
+      <div className="min-h-screen flex items-center justify-center p-6 bg-surface">
         <div className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.12) 0%, transparent 65%)" }} />
+          style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(16,185,129,0.08) 0%, transparent 65%)" }} />
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center relative z-10 max-w-sm">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", damping: 12, delay: 0.1 }}
             className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center"
-            style={{ background: "rgba(16,185,129,0.15)", border: "2px solid rgba(16,185,129,0.4)" }}>
+            style={{ background: "rgba(16,185,129,0.1)", border: "2px solid rgba(16,185,129,0.3)" }}>
             <CheckCircle className="w-10 h-10" style={{ color: "#10b981" }} />
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <h1 className="text-3xl font-black text-white mb-2">E-mail verificado!</h1>
-            <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Sua conta foi ativada com sucesso. Redirecionando…</p>
+            <h1 className="text-3xl font-black text-text mb-2">E-mail verificado!</h1>
+            <p className="text-sm text-muted">Sua conta foi ativada. Redirecionando para o login…</p>
             <div className="mt-6 flex items-center justify-center gap-1.5">
               {[0,1,2].map(i => (
                 <motion.div key={i} className="w-1.5 h-1.5 rounded-full"
                   style={{ background: "#10b981" }}
-                  animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
+                  animate={{ scale: [1,1.5,1], opacity: [0.3,1,0.3] }}
                   transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }} />
               ))}
             </div>
@@ -134,164 +137,187 @@ export default function VerifyEmail() {
 
   // ── Main ───────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex" style={{ background: "#040406" }}>
-      {/* Left panel */}
-      <div className="hidden lg:flex flex-col justify-between w-[46%] relative overflow-hidden p-12"
-        style={{ borderRight: "1px solid rgba(255,255,255,0.05)" }}>
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at 30% 40%, rgba(16,185,129,0.1) 0%, transparent 65%)" }} />
+    <div className="min-h-screen grid lg:grid-cols-2">
+
+      {/* ── Left panel — dark, igual ao Login/Register ──────────────── */}
+      <div className="hidden lg:flex flex-col justify-between relative overflow-hidden bg-auth-side p-12">
+        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-brand-green/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] rounded-full bg-brand-blue/15 blur-3xl pointer-events-none" />
+
         <div className="relative z-10">
           <Logo className="[&_span]:!text-white" />
         </div>
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="relative z-10 space-y-5">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-            style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)" }}>
-            <ShieldCheck className="w-8 h-8" style={{ color: "#10b981" }} />
+
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.65 }}
+          className="relative z-10 space-y-6">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+            style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.25)" }}>
+            <ShieldCheck className="w-7 h-7" style={{ color: "#34d399" }} />
           </div>
-          <h2 className="text-[40px] font-black leading-[1.1] tracking-tight text-white">
-            Proteja sua<br />
-            <span style={{ background: "linear-gradient(90deg,#10b981,#38bdf8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              conta.
+
+          <h2 className="text-[40px] font-display font-extrabold leading-tight text-white">
+            Confirme sua<br />
+            <span style={{ background: "linear-gradient(90deg,#34d399,#38bdf8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              identidade.
             </span>
           </h2>
-          <p className="text-base leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
-            A verificação de e-mail garante que somente você tem acesso à sua conta e aos seus dados financeiros.
+          <p className="text-base text-white/60 leading-relaxed max-w-sm">
+            Só mais um passo. Verificamos seu e-mail para proteger sua conta e seus dados financeiros.
           </p>
-          <div className="space-y-3 pt-2">
-            {[
-              { n: "1", t: "Abra seu e-mail", d: "Verifique a caixa de entrada" },
-              { n: "2", t: "Copie o código", d: "6 dígitos enviados por nós" },
-              { n: "3", t: "Cole aqui e confirme", d: "Conta ativa em segundos" },
-            ].map(step => (
-              <div key={step.n} className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full text-xs font-black flex items-center justify-center shrink-0"
-                  style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.25)", color: "#34d399" }}>
+
+          <div className="space-y-4 pt-1">
+            {STEPS.map((step, i) => (
+              <motion.div key={step.n} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 + i * 0.1 }}
+                className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full text-xs font-black flex items-center justify-center shrink-0"
+                  style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", color: "#34d399" }}>
                   {step.n}
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-white">{step.t}</div>
-                  <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.3)" }}>{step.d}</div>
+                  <div className="text-[11px] text-white/40">{step.d}</div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>
-        <div className="relative z-10 text-[11px]" style={{ color: "rgba(255,255,255,0.2)" }}>
-          A Finix jamais solicitará seu código por WhatsApp ou telefone.
+
+        <div className="relative z-10 flex items-center gap-2 rounded-2xl px-4 py-3"
+          style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}>
+          <Lock className="w-4 h-4 text-white/40" />
+          <p className="text-[11px] text-white/40">
+            A Finix jamais solicitará este código por WhatsApp ou telefone.
+          </p>
         </div>
       </div>
 
-      {/* Right panel */}
-      <div className="flex-1 flex items-center justify-center p-6 relative">
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(16,185,129,0.03) 0%, transparent 55%)" }} />
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-          className="relative w-full max-w-[380px]">
-          <div className="lg:hidden flex justify-center mb-8">
-            <Logo className="[&_span]:!text-white" />
+      {/* ── Right panel — light, igual ao Login/Register ─────────────── */}
+      <div className="flex items-center justify-center p-6 sm:p-12 bg-surface">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
+          className="w-full max-w-md">
+
+          {/* Mobile logo */}
+          <div className="lg:hidden mb-8">
+            <Logo />
           </div>
 
-          {/* Email chip */}
-          <AnimatePresence>
-            {email && (
-              <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 mb-6 px-3 py-2 rounded-full w-fit"
-                style={{ background: "rgba(56,189,248,0.08)", border: "1px solid rgba(56,189,248,0.18)" }}>
-                <Mail className="w-3.5 h-3.5" style={{ color: "#38bdf8" }} />
-                <span className="text-xs font-semibold" style={{ color: "#7dd3fc" }}>{email}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <h1 className="text-3xl font-display font-extrabold tracking-tight text-text">
+            Verifique seu e-mail
+          </h1>
+          <p className="text-muted mt-1 text-sm">
+            Enviamos um código de 6 dígitos para{" "}
+            {email ? <span className="font-semibold text-brand-blue">{email}</span> : "seu e-mail"}.
+          </p>
 
-          <div className="mb-7">
-            <h1 className="text-2xl font-black text-white tracking-tight">Digite seu código</h1>
-            <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.35)" }}>
-              Enviamos um código de 6 dígitos para seu e-mail.
-            </p>
-          </div>
+          <div className="mt-8 space-y-5">
 
-          <form onSubmit={handleVerify} className="space-y-5">
-            {/* Email input (if not pre-filled) */}
+            {/* Email input (se não vier do cadastro) */}
             {!location.state?.email && (
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  Seu e-mail
-                </label>
+                <label className="text-sm font-medium text-text block mb-1.5">E-mail</label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "rgba(255,255,255,0.25)" }} />
+                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
                   <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                    placeholder="voce@email.com"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition-all"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)" }} />
+                    className="input pl-10" placeholder="voce@email.com" />
                 </div>
               </div>
             )}
 
             {/* OTP boxes */}
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>
-                Código de verificação
-              </label>
-              <div className="flex gap-2.5" onPaste={handlePaste}>
-                {code.map((digit, index) => (
-                  <motion.input key={index}
-                    ref={el => { inputRefs.current[index] = el; }}
-                    id={`code-${index}`}
-                    value={digit}
-                    onChange={e => handleCodeChange(index, e.target.value)}
-                    onKeyDown={e => handleKeyDown(index, e)}
-                    className="flex-1 h-14 text-center text-2xl font-black text-white rounded-xl outline-none transition-all"
-                    style={{
-                      background: digit ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.04)",
-                      border: digit ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(255,255,255,0.09)",
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                    onFocus={e => { e.target.style.borderColor = "rgba(16,185,129,0.6)"; e.target.style.boxShadow = "0 0 0 3px rgba(16,185,129,0.1)"; }}
-                    onBlur={e => {
-                      if (!digit) { e.target.style.borderColor = "rgba(255,255,255,0.09)"; e.target.style.boxShadow = ""; }
-                      else { e.target.style.borderColor = "rgba(16,185,129,0.4)"; e.target.style.boxShadow = ""; }
-                    }}
-                    maxLength={1}
-                    inputMode="numeric"
-                    animate={digit ? { scale: [1, 1.08, 1] } : {}}
-                    transition={{ duration: 0.15 }}
-                  />
-                ))}
+            <form onSubmit={handleVerify}>
+              <div>
+                <label className="text-sm font-medium text-text block mb-3">
+                  Código de verificação
+                </label>
+
+                {/* Boxes com tamanho fixo e centralização — NÃO usa flex-1 */}
+                <div className="flex justify-center gap-2 sm:gap-3" onPaste={handlePaste}>
+                  {code.map((digit, index) => (
+                    <motion.input
+                      key={index}
+                      ref={el => { inputRefs.current[index] = el; }}
+                      id={`code-${index}`}
+                      value={digit}
+                      onChange={e => handleCodeChange(index, e.target.value)}
+                      onKeyDown={e => handleKeyDown(index, e)}
+                      className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-black rounded-xl outline-none transition-all"
+                      style={{
+                        background: digit ? "rgba(16,185,129,0.06)" : "var(--color-background)",
+                        border: digit ? "2px solid rgba(16,185,129,0.5)" : "2px solid var(--color-border)",
+                        color: "var(--color-text)",
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                      onFocus={e => {
+                        e.target.style.borderColor = "#10b981";
+                        e.target.style.boxShadow = "0 0 0 3px rgba(16,185,129,0.12)";
+                      }}
+                      onBlur={e => {
+                        e.target.style.borderColor = digit ? "rgba(16,185,129,0.5)" : "var(--color-border)";
+                        e.target.style.boxShadow = "";
+                      }}
+                      maxLength={1}
+                      inputMode="numeric"
+                      animate={digit ? { scale: [1, 1.08, 1] } : {}}
+                      transition={{ duration: 0.15 }}
+                    />
+                  ))}
+                </div>
+
+                {/* Progress bar */}
+                <div className="flex gap-1 mt-4">
+                  {code.map((d, i) => (
+                    <div key={i} className="flex-1 h-1 rounded-full transition-all"
+                      style={{ background: d ? "#10b981" : "var(--color-border)" }} />
+                  ))}
+                </div>
+                <p className="text-[11px] mt-1.5 text-right font-medium"
+                  style={{ color: filled === 6 ? "#10b981" : "var(--color-text-muted)" }}>
+                  {filled}/6 dígitos
+                </p>
               </div>
-              {/* Progress indicator */}
-              <div className="flex gap-1 mt-3">
-                {code.map((d, i) => (
-                  <div key={i} className="flex-1 h-0.5 rounded-full transition-all"
-                    style={{ background: d ? "#10b981" : "rgba(255,255,255,0.07)" }} />
-                ))}
-              </div>
-              <p className="text-[10px] mt-1.5 text-right font-medium"
-                style={{ color: filled === 6 ? "#34d399" : "rgba(255,255,255,0.25)" }}>
-                {filled}/6 dígitos
-              </p>
+
+              <button id="verify-submit" type="submit" disabled={isLoading || filled < 6}
+                className="btn-primary w-full !py-3 mt-2">
+                {isLoading
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : "Verificar e-mail"
+                }
+              </button>
+            </form>
+
+            {/* Resend + Back */}
+            <div className="flex gap-2">
+              <button onClick={handleResend} disabled={!canResend || isResending}
+                className="flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all disabled:opacity-40"
+                style={{ border: "1px solid var(--color-border)", color: "var(--color-text-muted)", background: "var(--color-surface)" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "var(--color-surface-strong)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "var(--color-surface)")}>
+                {isResending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                {canResend ? "Reenviar código" : `Reenviar em ${countdown}s`}
+              </button>
+              <button onClick={() => navigate("/register")}
+                className="flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                style={{ border: "1px solid var(--color-border)", color: "var(--color-text-muted)", background: "var(--color-surface)" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "var(--color-surface-strong)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "var(--color-surface)")}>
+                <ArrowLeft className="w-3.5 h-3.5" /> Voltar
+              </button>
             </div>
 
-            <button id="verify-submit" type="submit" disabled={isLoading || code.join("").length < 6}
-              className="w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40"
-              style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 4px 20px rgba(16,185,129,0.3)" }}>
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Verificar e-mail"}
-            </button>
-          </form>
-
-          {/* Resend + Back */}
-          <div className="flex gap-2 mt-4">
-            <button onClick={handleResend} disabled={!canResend || isResending}
-              className="flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all hover:bg-white/5 disabled:opacity-40"
-              style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }}>
-              {isResending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-              {canResend ? "Reenviar" : `Reenviar em ${countdown}s`}
-            </button>
-            <button onClick={() => navigate("/register")}
-              className="flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all hover:bg-white/5"
-              style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)" }}>
-              <ArrowLeft className="w-3.5 h-3.5" /> Voltar
-            </button>
+            {/* Email chip */}
+            <AnimatePresence>
+              {email && (
+                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-xl text-sm"
+                  style={{ background: "var(--color-background)", border: "1px solid var(--color-border)" }}>
+                  <div className="flex items-center gap-2 text-muted">
+                    <Mail className="w-3.5 h-3.5 shrink-0" />
+                    <span className="text-xs">Código enviado para <strong className="text-text">{email}</strong>. Verifique a caixa de entrada e spam.</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
       </div>

@@ -16,17 +16,16 @@ const getVerificationTemplate = (code: string) => {
   const digits = code.split("");
   const digitBoxes = digits
     .map(d => `
-      <td style="padding:0 5px;">
+      <td style="padding:0 4px;">
         <div style="
-          width:52px;height:68px;
-          background:rgba(255,255,255,0.05);
-          border:1.5px solid rgba(16,185,129,0.35);
-          border-radius:16px;
-          display:flex;align-items:center;justify-content:center;
-          font-size:32px;font-weight:900;color:#ecfdf5;
-          text-align:center;line-height:68px;
-          font-feature-settings:'tnum';
-          box-shadow:0 0 20px rgba(16,185,129,0.08);
+          width:50px;height:62px;
+          background:#ffffff;
+          border:2px solid #d1fae5;
+          border-radius:12px;
+          font-size:30px;font-weight:900;color:#111827;
+          text-align:center;line-height:62px;
+          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,monospace;
+          box-shadow:0 2px 8px rgba(16,185,129,0.1);
         ">${d}</div>
       </td>
     `)
@@ -39,103 +38,94 @@ const getVerificationTemplate = (code: string) => {
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Finix — Verificação de conta</title>
 </head>
-<body style="margin:0;padding:0;background:#040406;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#040406;padding:48px 16px 64px;">
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px 56px;">
     <tr><td align="center">
     <table width="100%" style="max-width:560px;" cellpadding="0" cellspacing="0">
 
       <!-- LOGO -->
       <tr>
-        <td align="center" style="padding-bottom:32px;">
-          <table cellpadding="0" cellspacing="0"><tr>
-            <td>
+        <td align="center" style="padding-bottom:24px;">
+          <table cellpadding="0" cellspacing="0"><tr><td>
+            <div style="display:inline-flex;align-items:center;gap:10px;">
               <div style="
-                display:inline-flex;align-items:center;gap:10px;
-                background:rgba(255,255,255,0.04);
-                border:1px solid rgba(255,255,255,0.08);
-                border-radius:14px;
-                padding:10px 18px;
-              ">
-                <div style="
-                  width:32px;height:32px;border-radius:8px;
-                  background:linear-gradient(135deg,#10b981,#059669);
-                  text-align:center;line-height:32px;
-                  font-size:16px;font-weight:900;color:#fff;
-                ">F</div>
-                <span style="font-size:18px;font-weight:900;letter-spacing:.12em;color:#fff;">FINIX</span>
-              </div>
-            </td>
-          </tr></table>
+                width:36px;height:36px;border-radius:10px;
+                background:linear-gradient(135deg,#10b981,#059669);
+                text-align:center;line-height:36px;
+                font-size:18px;font-weight:900;color:#fff;
+              ">F</div>
+              <span style="font-size:20px;font-weight:900;letter-spacing:.1em;color:#111827;">FINIX</span>
+            </div>
+          </td></tr></table>
         </td>
       </tr>
 
       <!-- CARD -->
       <tr>
         <td style="
-          background:#0a0a0d;
-          border:1px solid rgba(255,255,255,0.07);
-          border-radius:24px;
+          background:#ffffff;
+          border:1px solid #e5e7eb;
+          border-radius:20px;
           overflow:hidden;
-          box-shadow:0 40px 80px rgba(0,0,0,0.7);
+          box-shadow:0 4px 24px rgba(0,0,0,0.06);
         ">
           <table width="100%" cellpadding="0" cellspacing="0">
 
-            <!-- TOP GLOW BAR -->
+            <!-- TOP BAR -->
             <tr>
-              <td style="height:3px;background:linear-gradient(90deg,#10b981,#38bdf8,#10b981);" />
+              <td style="height:4px;background:linear-gradient(90deg,#10b981,#38bdf8,#10b981);" />
             </tr>
 
-            <!-- HEADER SECTION -->
+            <!-- HEADER -->
             <tr>
-              <td style="padding:48px 48px 36px;text-align:center;">
-                <!-- Shield icon -->
+              <td style="padding:44px 44px 32px;text-align:center;">
                 <div style="
-                  width:56px;height:56px;margin:0 auto 20px;
-                  background:rgba(16,185,129,0.1);
-                  border:1.5px solid rgba(16,185,129,0.25);
-                  border-radius:16px;
-                  text-align:center;line-height:56px;
-                  font-size:26px;
+                  width:60px;height:60px;margin:0 auto 20px;
+                  background:#ecfdf5;
+                  border:1.5px solid #a7f3d0;
+                  border-radius:18px;
+                  text-align:center;line-height:60px;
+                  font-size:28px;
                 ">🔐</div>
 
                 <div style="
                   display:inline-block;
-                  background:rgba(16,185,129,0.08);
-                  border:1px solid rgba(16,185,129,0.2);
+                  background:#ecfdf5;
+                  border:1px solid #6ee7b7;
                   border-radius:999px;
                   padding:4px 14px;
                   font-size:10px;font-weight:700;
-                  letter-spacing:.16em;text-transform:uppercase;
-                  color:#34d399;margin-bottom:20px;
+                  letter-spacing:.14em;text-transform:uppercase;
+                  color:#059669;margin-bottom:18px;
                 ">Verificação de conta</div>
 
-                <h1 style="margin:0 0 12px;font-size:30px;font-weight:900;line-height:1.15;color:#ffffff;letter-spacing:-.02em;">
+                <h1 style="margin:0 0 10px;font-size:28px;font-weight:900;line-height:1.2;color:#111827;letter-spacing:-.02em;">
                   Confirme seu e-mail
                 </h1>
-                <p style="margin:0 auto;max-width:380px;font-size:14px;color:rgba(255,255,255,0.4);line-height:1.75;">
+                <p style="margin:0 auto;max-width:380px;font-size:14px;color:#6b7280;line-height:1.75;">
                   Use o código abaixo para ativar sua conta Finix.
-                  <br/>Válido por <strong style="color:rgba(255,255,255,0.65);">10 minutos</strong>.
+                  Válido por <strong style="color:#111827;">10 minutos</strong>.
                 </p>
               </td>
             </tr>
 
             <!-- DIGIT BOXES -->
             <tr>
-              <td style="padding:0 48px 44px;">
+              <td style="padding:0 44px 40px;">
                 <div style="
-                  background:rgba(255,255,255,0.02);
-                  border:1px solid rgba(255,255,255,0.06);
-                  border-radius:18px;
-                  padding:32px 20px;
+                  background:#f9fafb;
+                  border:1px solid #e5e7eb;
+                  border-radius:16px;
+                  padding:28px 16px;
                   text-align:center;
                 ">
-                  <p style="margin:0 0 20px;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.3);">
+                  <p style="margin:0 0 18px;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#9ca3af;">
                     Código de verificação
                   </p>
                   <table cellpadding="0" cellspacing="0" align="center">
                     <tr>${digitBoxes}</tr>
                   </table>
-                  <p style="margin:20px 0 0;font-size:13px;color:rgba(255,255,255,0.25);">
+                  <p style="margin:18px 0 0;font-size:12px;color:#9ca3af;">
                     Não compartilhe este código com ninguém.
                   </p>
                 </div>
@@ -144,27 +134,23 @@ const getVerificationTemplate = (code: string) => {
 
             <!-- STEPS -->
             <tr>
-              <td style="padding:0 48px 40px;">
+              <td style="padding:0 44px 36px;">
+                <p style="margin:0 0 14px;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#9ca3af;">
+                  Como usar
+                </p>
                 <table width="100%" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td colspan="3" style="padding-bottom:16px;">
-                      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,0.25);">
-                        Como usar
-                      </p>
-                    </td>
-                  </tr>
                   ${[
                     ["1", "Acesse o Finix", "Vá para a página de verificação"],
                     ["2", "Digite o código", "Insira os 6 dígitos acima"],
-                    ["3", "Conta ativada", "Acesso liberado imediatamente"],
+                    ["3", "Conta ativada!", "Acesso liberado imediatamente"],
                   ].map(([n, t, d]) => `
                   <tr>
-                    <td style="padding:8px 12px 8px 0;vertical-align:top;width:32px;">
-                      <div style="width:28px;height:28px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:8px;text-align:center;line-height:28px;font-size:12px;font-weight:900;color:#34d399;">${n}</div>
+                    <td style="padding:6px 12px 6px 0;vertical-align:middle;width:36px;">
+                      <div style="width:28px;height:28px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;text-align:center;line-height:28px;font-size:12px;font-weight:900;color:#059669;">${n}</div>
                     </td>
-                    <td style="padding:8px 0;vertical-align:top;">
-                      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);margin-bottom:2px;">${t}</div>
-                      <div style="font-size:12px;color:rgba(255,255,255,0.3);">${d}</div>
+                    <td style="padding:6px 0;vertical-align:middle;border-bottom:1px solid #f3f4f6;">
+                      <div style="font-size:13px;font-weight:700;color:#111827;">${t}</div>
+                      <div style="font-size:12px;color:#6b7280;">${d}</div>
                     </td>
                   </tr>
                   `).join("")}
@@ -174,39 +160,36 @@ const getVerificationTemplate = (code: string) => {
 
             <!-- SECURITY NOTICE -->
             <tr>
-              <td style="padding:0 48px 40px;">
-                <table width="100%" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td style="
-                      background:rgba(239,68,68,0.05);
-                      border:1px solid rgba(239,68,68,0.15);
-                      border-left:3px solid #ef4444;
-                      border-radius:12px;
-                      padding:16px 20px;
-                    ">
-                      <p style="margin:0 0 4px;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#fca5a5;">
-                        ⚠ Aviso de segurança
-                      </p>
-                      <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.4);line-height:1.65;">
-                        A Finix <strong style="color:rgba(255,255,255,0.6);">jamais</strong> solicitará este código por WhatsApp, telefone ou e-mail adicional. Se você não criou uma conta, ignore esta mensagem.
-                      </p>
-                    </td>
-                  </tr>
-                </table>
+              <td style="padding:0 44px 36px;">
+                <div style="
+                  background:#fff7ed;
+                  border:1px solid #fed7aa;
+                  border-left:3px solid #f97316;
+                  border-radius:10px;
+                  padding:14px 18px;
+                ">
+                  <p style="margin:0 0 4px;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#ea580c;">
+                    ⚠ Aviso de segurança
+                  </p>
+                  <p style="margin:0;font-size:12px;color:#7c3205;line-height:1.65;">
+                    A Finix <strong>jamais</strong> solicitará este código por WhatsApp ou telefone. Se você não criou uma conta, ignore esta mensagem.
+                  </p>
+                </div>
               </td>
             </tr>
 
             <!-- FOOTER -->
             <tr>
               <td style="
-                border-top:1px solid rgba(255,255,255,0.05);
-                padding:24px 48px 32px;
+                background:#f9fafb;
+                border-top:1px solid #e5e7eb;
+                padding:20px 44px 28px;
                 text-align:center;
               ">
-                <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.25);">
+                <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#9ca3af;">
                   © 2026 Finix · Controle financeiro inteligente
                 </p>
-                <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.15);">
+                <p style="margin:0;font-size:11px;color:#d1d5db;">
                   Este e-mail foi enviado automaticamente. Por favor, não responda.
                 </p>
               </td>
