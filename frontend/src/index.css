@@ -147,13 +147,20 @@
   }
 
   .dashboard-theme.dark .input {
-    background: #1c1c1f;
+    background: rgba(255,255,255,0.04);
     border-color: rgba(255,255,255,0.1);
+    color: #fafafa;
   }
 
   .dashboard-theme.dark .input:focus {
-    border-color: #a78bfa;
-    background: #222226;
+    border-color: rgba(124,58,237,0.7);
+    background: rgba(124,58,237,0.06);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+  }
+
+  .dashboard-theme.dark select.input option {
+    background: #1c1c1f;
+    color: #fafafa;
   }
 
   .input::placeholder {
@@ -200,6 +207,22 @@
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Glass card utility */
+.glass {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+.dashboard-theme:not(.dark) .glass {
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Number tabular */
+.num { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
 
 /* Gradient background helper */
 .bg-auth-side {

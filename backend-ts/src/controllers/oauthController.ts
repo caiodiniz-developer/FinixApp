@@ -78,7 +78,12 @@ export const googleCallbackController = async (req: Request, res: Response) => {
     const redirectTo = `${FRONTEND_URL}/oauth-callback?success=true`;
     return res.redirect(redirectTo);
   } catch (error: any) {
-    console.error("[OAuth] googleCallbackController error:", error);
+    console.error("[OAuth] googleCallbackController error:", {
+      message: error.message,
+      status: error.status,
+      response: error.response?.data,
+      code: error.code,
+    });
     return res.redirect(
       `${FRONTEND_URL}/oauth-callback?success=false&message=${encodeURIComponent(error.message || "Erro ao autenticar")}`,
     );

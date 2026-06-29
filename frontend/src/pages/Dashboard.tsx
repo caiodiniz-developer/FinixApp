@@ -4,7 +4,7 @@ import {
   FileDown, FileSpreadsheet, ArrowUpRight, ArrowDownRight,
   Info, AlertTriangle, CheckCircle2, Sparkles, Loader2,
   Plus, Target, X, Activity, Zap, Clock, Flame,
-  ChevronRight, Lightbulb, BarChart2, ShieldCheck, Award,
+  ChevronRight, Lightbulb, ShieldCheck, Award,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -18,12 +18,8 @@ import { currency, dateBR, CATEGORY_COLORS } from "../utils/format";
 import { UpgradeModal } from "../components/UpgradeModal";
 import toast from "react-hot-toast";
 
-// ─── TYPES ────────────────────────────────────────────────────────────────────
 interface CalendarDay { date: string; expense: number; revenue: number; net: number; }
-interface AlertItem {
-  id: string; title: string; description?: string | null;
-  dueDate?: string | null; amount?: number | null; daysUntilDue?: number | null; severity?: string;
-}
+interface AlertItem { id: string; title: string; amount?: number | null; daysUntilDue?: number | null; }
 
 // ─── QUICK-ADD MODAL ──────────────────────────────────────────────────────────
 function QuickAddModal({ open, onClose, onAdded, categories }: {
@@ -31,48 +27,62 @@ function QuickAddModal({ open, onClose, onAdded, categories }: {
 }) {
   const [form, setForm] = useState({ title: "", amount: "", type: "EXPENSE" as "INCOME" | "EXPENSE", category: categories[0] || "Outros", date: new Date().toISOString().split("T")[0] });
   const [loading, setLoading] = useState(false);
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title || !form.amount) return;
     setLoading(true);
     try {
       await api.post("/api/transactions", { ...form, amount: parseFloat(form.amount), paymentMethod: "pix", installments: 1 });
       toast.success("Transação adicionada!");
       onAdded(); onClose();
-      setForm({ title: "", amount: "", type: "EXPENSE", category: categories[0] || "Outros", date: new Date().toISOString().split("T")[0] });
+      setForm(f => ({ ...f, title: "", amount: "" }));
     } catch (e: any) { toast.error(apiErrorMessage(e) || "Erro"); }
     finally { setLoading(false); }
   };
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)" }} onClick={onClose}>
-      <motion.div initial={{ scale: 0.94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.94, opacity: 0 }}
-        transition={{ type: "spring", damping: 24, stiffness: 320 }}
-        className="w-full max-w-md rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}
-        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="font-bold text-lg">Nova transação</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg opacity-60 hover:opacity-100" style={{ color: "var(--color-text-muted)" }}><X className="w-4 h-4" /></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(14px)" }}
+      onClick={onClose}>
+      <motion.div initial={{ scale: 0.95, opacity: 0, y: 12 }} animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0 }} transition={{ type: "spring", damping: 26, stiffness: 340 }}
+        className="w-full max-w-md rounded-2xl overflow-hidden"
+        style={{ background: "var(--color-surface)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 40px 80px rgba(0,0,0,0.7)" }}
+        onClick={e => e.stopPropagation()}>
+        {/* header strip */}
+        <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-bold text-base" style={{ color: "var(--color-text)" }}>Nova transação</h2>
+              <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Adicione uma receita ou despesa</p>
+            </div>
+            <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors hover:bg-white/5" style={{ color: "var(--color-text-low)" }}>
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl" style={{ background: "var(--color-surface-strong)" }}>
+        <form onSubmit={submit} className="p-6 space-y-4">
+          {/* type toggle */}
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl" style={{ background: "var(--color-surface-strong)" }}>
             {(["EXPENSE", "INCOME"] as const).map(t => (
-              <button key={t} type="button" onClick={() => setForm({ ...form, type: t })}
-                className={`py-2.5 rounded-lg text-sm font-bold transition-all ${form.type === t ? t === "EXPENSE" ? "bg-rose-500 text-white" : "bg-emerald-500 text-white" : "opacity-50"}`}>
+              <button key={t} type="button" onClick={() => setForm(f => ({ ...f, type: t }))}
+                className={`py-3 rounded-lg text-xs font-bold transition-all ${form.type === t ? t === "EXPENSE" ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20" : "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "opacity-40"}`}
+                style={{ color: form.type === t ? undefined : "var(--color-text-muted)" }}>
                 {t === "EXPENSE" ? "↓ Despesa" : "↑ Receita"}
               </button>
             ))}
           </div>
-          <input className="input" placeholder="Descrição..." value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required />
+          <input className="input w-full" placeholder="Descrição da transação..." value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
           <div className="grid grid-cols-2 gap-3">
-            <input type="number" step="0.01" min="0.01" className="input" placeholder="R$" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} required />
-            <input type="date" className="input" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+            <input type="number" step="0.01" min="0.01" className="input num" placeholder="Valor R$" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} required />
+            <input type="date" className="input" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
           </div>
-          <select className="input" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+          <select className="input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
             {(categories.length ? categories : ["Outros"]).map(c => <option key={c}>{c}</option>)}
           </select>
-          <button type="submit" disabled={loading} className="btn-primary w-full !py-2.5">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4" /> Salvar</>}
+          <button type="submit" disabled={loading}
+            className="w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
+            style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 4px 20px rgba(16,185,129,0.3)" }}>
+            {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Salvar transação"}
           </button>
         </form>
       </motion.div>
@@ -82,20 +92,25 @@ function QuickAddModal({ open, onClose, onAdded, categories }: {
 
 // ─── HEALTH RING ──────────────────────────────────────────────────────────────
 function HealthRing({ score }: { score: number }) {
-  const r = 36, circ = 2 * Math.PI * r, dash = (score / 100) * circ;
+  const r = 38, circ = 2 * Math.PI * r, dash = (score / 100) * circ;
   const color = score >= 70 ? "#22c55e" : score >= 40 ? "#f59e0b" : "#ef4444";
+  const label = score >= 70 ? "Excelente" : score >= 40 ? "Regular" : "Atenção";
   return (
-    <div className="relative w-20 h-20 shrink-0">
-      <svg width="80" height="80" viewBox="0 0 80 80" className="-rotate-90">
-        <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7" />
-        <motion.circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="7" strokeLinecap="round"
-          initial={{ strokeDasharray: `0 ${circ}` }} animate={{ strokeDasharray: `${dash} ${circ}` }}
-          transition={{ duration: 1.2, ease: "easeOut" }} />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-lg font-black leading-none" style={{ color }}>{score}</span>
-        <span className="text-[8px] font-bold uppercase tracking-wider" style={{ color: "var(--color-text-low)" }}>/100</span>
+    <div className="flex flex-col items-center gap-1.5 shrink-0">
+      <div className="relative w-20 h-20">
+        <svg width="80" height="80" viewBox="0 0 80 80" className="-rotate-90">
+          <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
+          <motion.circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="6" strokeLinecap="round"
+            initial={{ strokeDasharray: `0 ${circ}` }} animate={{ strokeDasharray: `${dash} ${circ}` }}
+            transition={{ duration: 1.3, ease: "easeOut" }}
+            style={{ filter: `drop-shadow(0 0 6px ${color}60)` }} />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <motion.span className="text-lg font-black leading-none num" style={{ color }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>{score}</motion.span>
+          <span className="text-[8px] font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.3)" }}>/100</span>
+        </div>
       </div>
+      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color }}>{label}</span>
     </div>
   );
 }
@@ -104,11 +119,11 @@ function HealthRing({ score }: { score: number }) {
 function Sparkline({ values, color }: { values: number[]; color: string }) {
   if (values.length < 2) return null;
   const max = Math.max(...values, 1), min = Math.min(...values), range = max - min || 1;
-  const W = 56, H = 20;
-  const pts = values.map((v, i) => `${(i / (values.length - 1)) * W},${H - ((v - min) / range) * (H - 3) - 1.5}`).join(" ");
+  const W = 60, H = 22;
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * W},${H - ((v - min) / range) * (H - 4) - 2}`).join(" ");
   return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="opacity-60">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
     </svg>
   );
 }
@@ -117,10 +132,15 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
 const ChartTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl p-3 shadow-2xl text-sm" style={{ background: "var(--color-surface-strong)", border: "1px solid var(--color-border)", color: "var(--color-text)" }}>
-      <p className="text-[10px] uppercase tracking-wider mb-1.5" style={{ color: "var(--color-text-muted)" }}>{label}</p>
+    <div className="rounded-xl p-3 shadow-2xl"
+      style={{ background: "rgba(17,17,19,0.95)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}>
+      <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>{label}</p>
       {payload.map((p: any) => (
-        <p key={p.name} className="font-semibold text-xs" style={{ color: p.color }}>{p.name}: {currency(p.value)}</p>
+        <div key={p.name} className="flex items-center gap-2 text-xs">
+          <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
+          <span style={{ color: "rgba(255,255,255,0.6)" }}>{p.name}</span>
+          <span className="font-bold ml-auto pl-4 num" style={{ color: p.color }}>{currency(p.value)}</span>
+        </div>
       ))}
     </div>
   );
@@ -129,36 +149,44 @@ const ChartTooltip = ({ active, payload, label }: any) => {
 // ─── SPENDING HEATMAP ─────────────────────────────────────────────────────────
 function SpendingHeatmap({ days }: { days: CalendarDay[] }) {
   const [hovered, setHovered] = useState<CalendarDay | null>(null);
-  if (days.length === 0) return <div className="flex items-center justify-center h-20 text-xs" style={{ color: "var(--color-text-low)" }}>Sem dados</div>;
+  if (days.length === 0) return <div className="h-20 flex items-center justify-center text-xs" style={{ color: "var(--color-text-low)" }}>Sem dados</div>;
   const maxE = Math.max(...days.map(d => d.expense), 1);
-  const firstDay = new Date(days[0].date + "T12:00:00");
-  const cells: (CalendarDay | null)[] = [...Array(firstDay.getDay()).fill(null), ...days];
+  const first = new Date(days[0].date + "T12:00:00");
+  const cells: (CalendarDay | null)[] = [...Array(first.getDay()).fill(null), ...days];
   while (cells.length % 7 !== 0) cells.push(null);
-  const getColor = (e: number) => {
-    if (e === 0) return "rgba(255,255,255,0.04)";
-    const i = Math.pow(e / maxE, 0.55);
-    return `rgba(${Math.round(239 * i + 25 * (1 - i))},${Math.round(68 * i + 25 * (1 - i))},${Math.round(68 * i + 38 * (1 - i))},${0.12 + i * 0.65})`;
+  const col = (e: number) => {
+    if (e === 0) return "rgba(255,255,255,0.03)";
+    const i = Math.pow(e / maxE, 0.5);
+    return `rgba(239,${Math.round(68 * (1 - i * 0.7))},${Math.round(68 * (1 - i * 0.7))},${0.1 + i * 0.65})`;
   };
   return (
     <div>
-      <div className="grid grid-cols-7 gap-1 mb-0.5">{["D","S","T","Q","Q","S","S"].map((d,i) => <div key={i} className="text-center text-[8px] font-bold uppercase" style={{ color: "var(--color-text-low)" }}>{d}</div>)}</div>
+      <div className="grid grid-cols-7 gap-1 mb-0.5">
+        {["D","S","T","Q","Q","S","S"].map((d, i) => (
+          <div key={i} className="text-center text-[8px] font-bold uppercase" style={{ color: "rgba(255,255,255,0.2)" }}>{d}</div>
+        ))}
+      </div>
       <div className="grid grid-cols-7 gap-1">
         {cells.map((day, i) => (
-          <div key={i} className="relative aspect-square rounded transition-transform hover:scale-110 cursor-default"
-            style={{ background: day ? getColor(day.expense) : "transparent" }}
+          <div key={i} className="aspect-square rounded-md transition-all hover:scale-110 hover:ring-1 hover:ring-white/20 cursor-default"
+            style={{ background: day ? col(day.expense) : "transparent" }}
             onMouseEnter={() => day && setHovered(day)} onMouseLeave={() => setHovered(null)}>
-            {day && <span className="absolute inset-0 flex items-center justify-center text-[8px]" style={{ color: "var(--color-text-low)" }}>{new Date(day.date + "T12:00:00").getDate()}</span>}
+            {day && (
+              <div className="w-full h-full flex items-center justify-center text-[8px] font-medium" style={{ color: "rgba(255,255,255,0.25)" }}>
+                {new Date(day.date + "T12:00:00").getDate()}
+              </div>
+            )}
           </div>
         ))}
       </div>
       <AnimatePresence>
         {hovered && (
-          <motion.div initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="mt-2 flex items-center justify-between rounded-lg px-3 py-1.5 text-xs"
-            style={{ background: "var(--color-surface-strong)", border: "1px solid var(--color-border)" }}>
-            <span style={{ color: "var(--color-text-muted)" }}>{new Date(hovered.date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
-            <span className="text-rose-400 font-semibold">{hovered.expense > 0 ? `- ${currency(hovered.expense)}` : "—"}</span>
-            {hovered.revenue > 0 && <span className="text-emerald-400 font-semibold">+ {currency(hovered.revenue)}</span>}
+          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="mt-2 flex items-center justify-between rounded-xl px-3 py-2 text-xs"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <span style={{ color: "rgba(255,255,255,0.5)" }}>{new Date(hovered.date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
+            <span className="text-rose-400 font-semibold num">{hovered.expense > 0 ? `- ${currency(hovered.expense)}` : "—"}</span>
+            {hovered.revenue > 0 && <span className="text-emerald-400 font-semibold num">+ {currency(hovered.revenue)}</span>}
           </motion.div>
         )}
       </AnimatePresence>
@@ -168,30 +196,30 @@ function SpendingHeatmap({ days }: { days: CalendarDay[] }) {
 
 // ─── CATEGORY BARS ────────────────────────────────────────────────────────────
 function CategoryBars({ categories }: { categories: { category: string; amount: number }[] }) {
-  const COLORS = ["#7c3aed","#2563eb","#059669","#d97706","#dc2626","#0891b2","#be185d","#7c3aed"];
-  if (categories.length === 0) return <div className="flex items-center justify-center h-20 text-xs" style={{ color: "var(--color-text-low)" }}>Sem dados</div>;
+  const COLORS = ["#2563eb","#0891b2","#059669","#d97706","#dc2626","#8b5cf6","#0ea5e9","#be185d"];
+  if (categories.length === 0) return <div className="h-20 flex items-center justify-center text-xs" style={{ color: "var(--color-text-low)" }}>Sem dados</div>;
   const total = categories.reduce((s, c) => s + c.amount, 0);
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
       {categories.slice(0, 6).map((cat, i) => {
         const pct = total > 0 ? (cat.amount / total) * 100 : 0;
         const color = CATEGORY_COLORS[cat.category] || COLORS[i % COLORS.length];
         return (
           <div key={cat.category}>
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: color }} />
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: color, boxShadow: `0 0 6px ${color}80` }} />
                 <span className="text-xs font-medium truncate max-w-[100px]" style={{ color: "var(--color-text)" }}>{cat.category}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <span className="text-[10px]" style={{ color: "var(--color-text-low)" }}>{pct.toFixed(0)}%</span>
-                <span className="text-xs font-semibold" style={{ color: "var(--color-text)" }}>{currency(cat.amount)}</span>
+                <span className="text-xs font-semibold num" style={{ color: "var(--color-text)" }}>{currency(cat.amount)}</span>
               </div>
             </div>
-            <div className="h-1 rounded-full overflow-hidden" style={{ background: "var(--color-border)" }}>
-              <motion.div className="h-full rounded-full" style={{ background: color }}
+            <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+              <motion.div className="h-full rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}60` }}
                 initial={{ width: 0 }} animate={{ width: `${pct}%` }}
-                transition={{ duration: 0.8, ease: "easeOut", delay: i * 0.05 }} />
+                transition={{ duration: 0.9, ease: "easeOut", delay: i * 0.06 }} />
             </div>
           </div>
         );
@@ -200,16 +228,23 @@ function CategoryBars({ categories }: { categories: { category: string; amount: 
   );
 }
 
-// ─── SECTION HEADER ───────────────────────────────────────────────────────────
-function SectionHeader({ title, sub, action }: { title: string; sub?: string; action?: React.ReactNode }) {
+// ─── METRIC CARD ──────────────────────────────────────────────────────────────
+function MetricCard({ label, value, sub, color, barPct }: { label: string; value: string; sub: string; color: string; barPct?: number }) {
   return (
-    <div className="flex items-center justify-between mb-4">
-      <div>
-        <h3 className="font-semibold text-sm" style={{ color: "var(--color-text)" }}>{title}</h3>
-        {sub && <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-low)" }}>{sub}</p>}
-      </div>
-      {action}
-    </div>
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+      className="rounded-2xl p-4 flex flex-col gap-2"
+      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--color-text-low)" }}>{label}</p>
+      <p className="text-xl font-black num leading-none" style={{ color }}>{value}</p>
+      {barPct !== undefined && (
+        <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+          <motion.div className="h-full rounded-full" style={{ background: color }}
+            initial={{ width: 0 }} animate={{ width: `${Math.min(barPct, 100)}%` }}
+            transition={{ duration: 0.9 }} />
+        </div>
+      )}
+      <p className="text-[10px]" style={{ color: "var(--color-text-low)" }}>{sub}</p>
+    </motion.div>
   );
 }
 
@@ -235,20 +270,19 @@ export default function Dashboard() {
   const canUseAi = user?.plan !== "FREE";
   const canAddTx = user?.plan !== "FREE";
 
-  const fetchDashboard = useCallback(async () => {
+  const fetchAll = useCallback(async () => {
     if (!user) return;
     setError(null); setLoading(true);
     try { const r = await api.get("/api/dashboard"); setData(r.data); }
-    catch (e: any) { const msg = apiErrorMessage(e) || "Erro ao carregar"; setError(msg); toast.error(msg); }
+    catch (e: any) { const m = apiErrorMessage(e) || "Erro"; setError(m); toast.error(m); }
     finally { setLoading(false); }
   }, [user]);
 
-  useEffect(() => { if (!user) { setData(null); setLoading(false); return; } fetchDashboard(); }, [user, fetchDashboard]);
+  useEffect(() => { if (!user) { setData(null); setLoading(false); return; } fetchAll(); }, [user, fetchAll]);
 
   useEffect(() => {
     if (!user) return;
-    const now = new Date();
-    const mp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const mp = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
     Promise.allSettled([
       api.get("/api/alerts"), api.get("/api/budgets"), api.get("/api/goals"),
       api.get("/api/categories"), api.get(`/api/calendar?month=${mp}`),
@@ -282,7 +316,7 @@ export default function Dashboard() {
     finally { setAiLoading(false); }
   };
 
-  // Loading
+  // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) return (
     <div className="space-y-4">
       <div className="skeleton h-28 rounded-2xl" />
@@ -293,14 +327,14 @@ export default function Dashboard() {
     </div>
   );
   if (error) return (
-    <div className="p-5 rounded-2xl border-rose-900/40 bg-rose-950/20 text-rose-300" style={{ border: "1px solid" }}>
-      <p className="font-semibold">{error}</p>
-      <button onClick={fetchDashboard} className="btn-primary mt-3 text-sm">Tentar novamente</button>
+    <div className="p-5 rounded-2xl" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
+      <p className="font-semibold text-rose-400">{error}</p>
+      <button onClick={fetchAll} className="btn-primary mt-3 text-sm">Tentar novamente</button>
     </div>
   );
   if (!data) return null;
 
-  // Computed
+  // ── Computed ─────────────────────────────────────────────────────────────
   const now = new Date();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const dayOfMonth = now.getDate();
@@ -309,9 +343,9 @@ export default function Dashboard() {
   const prevMonth = data.monthly[data.monthly.length - 2] || { income: 0, expense: 0 };
   const dailyRate = dayOfMonth > 0 ? curMonth.expense / dayOfMonth : 0;
   const dailyLimit = curMonth.income > 0 ? (curMonth.income - curMonth.expense) / daysRemaining : 0;
-  const projectedEndBalance = curMonth.income - (curMonth.expense + dailyRate * daysRemaining);
-  const avgMonthly6 = data.monthly.reduce((s, m) => s + m.expense, 0) / (data.monthly.length || 1);
-  const runway = avgMonthly6 > 0 ? data.balance / avgMonthly6 : 0;
+  const projectedEnd = curMonth.income - (curMonth.expense + dailyRate * daysRemaining);
+  const avgMonthly = data.monthly.reduce((s, m) => s + m.expense, 0) / (data.monthly.length || 1);
+  const runway = avgMonthly > 0 ? data.balance / avgMonthly : 0;
   const velocityPct = curMonth.income > 0 ? Math.min((dailyRate / (curMonth.income / daysInMonth)) * 100, 100) : 0;
   const savingsRate = data.income > 0 ? (data.saved / data.income) * 100 : 0;
   const expenseRatio = data.income > 0 ? (data.expense / data.income) * 100 : 100;
@@ -324,90 +358,100 @@ export default function Dashboard() {
   const dailyLimitSafe = Math.max(dailyLimit, 0);
   const todayPct = dailyLimitSafe > 0 ? Math.min((todaySpent / dailyLimitSafe) * 100, 100) : 0;
   let streak = 0;
-  for (const d of [...calDays].sort((a,b) => b.date.localeCompare(a.date))) {
+  for (const d of [...calDays].sort((a, b) => b.date.localeCompare(a.date))) {
     if (d.expense === 0 && d.revenue === 0) continue;
     if (d.net >= 0) streak++; else break;
   }
 
   const stats = [
-    { label: "Saldo total", value: data.balance, diff: null, invertDiff: false, spark: data.monthly.map(m => m.income - m.expense), sparkColor: "#a78bfa", accent: "#a78bfa", icon: Wallet },
-    { label: "Receitas", value: curMonth.income, diff: incomeDiff, invertDiff: false, spark: data.monthly.map(m => m.income), sparkColor: "#22c55e", accent: "#22c55e", icon: TrendingUp },
-    { label: "Despesas", value: curMonth.expense, diff: expenseDiff, invertDiff: true, spark: data.monthly.map(m => m.expense), sparkColor: "#ef4444", accent: "#ef4444", icon: TrendingDown },
-    { label: "Economizado", value: data.saved, diff: null, invertDiff: false, spark: data.monthly.map(m => m.income - m.expense), sparkColor: "#f59e0b", accent: "#f59e0b", icon: PiggyBank },
+    { label: "Saldo total", value: data.balance, diff: null, inv: false, spark: data.monthly.map(m => m.income - m.expense), color: "#38bdf8", icon: Wallet },
+    { label: "Receitas", value: curMonth.income, diff: incomeDiff, inv: false, spark: data.monthly.map(m => m.income), color: "#22c55e", icon: TrendingUp },
+    { label: "Despesas", value: curMonth.expense, diff: expenseDiff, inv: true, spark: data.monthly.map(m => m.expense), color: "#f87171", icon: TrendingDown },
+    { label: "Economizado", value: data.saved, diff: null, inv: false, spark: data.monthly.map(m => m.income - m.expense), color: "#fbbf24", icon: PiggyBank },
   ];
 
   const insightCfg = {
-    info: { icon: Info, border: "rgba(59,130,246,0.2)", text: "text-blue-400", bg: "rgba(59,130,246,0.06)" },
-    warning: { icon: AlertTriangle, border: "rgba(245,158,11,0.2)", text: "text-amber-400", bg: "rgba(245,158,11,0.06)" },
-    success: { icon: CheckCircle2, border: "rgba(34,197,94,0.2)", text: "text-emerald-400", bg: "rgba(34,197,94,0.06)" },
+    info: { icon: Info, border: "rgba(59,130,246,0.2)", text: "#60a5fa", bg: "rgba(59,130,246,0.05)" },
+    warning: { icon: AlertTriangle, border: "rgba(245,158,11,0.2)", text: "#fbbf24", bg: "rgba(245,158,11,0.05)" },
+    success: { icon: CheckCircle2, border: "rgba(34,197,94,0.2)", text: "#4ade80", bg: "rgba(34,197,94,0.05)" },
   } as const;
 
-  const PIE_COLORS = ["#7c3aed","#2563eb","#059669","#d97706","#dc2626","#0891b2"];
+  const PIE_COLORS = ["#2563eb","#0891b2","#059669","#d97706","#dc2626","#0ea5e9"];
 
-  // smart tips
   const tips: { icon: React.ElementType; text: string; color: string }[] = [];
-  if (streak > 2) tips.push({ icon: Flame, text: `${streak} dias com saldo positivo`, color: "text-orange-400" });
-  if (savingsRate > 20) tips.push({ icon: Award, text: `${savingsRate.toFixed(0)}% poupado este mês`, color: "text-emerald-400" });
-  else if (savingsRate < 5 && data.income > 0) tips.push({ icon: Lightbulb, text: "Tente poupar ao menos 10% da renda", color: "text-amber-400" });
-  if (runway < 3) tips.push({ icon: ShieldCheck, text: `Reserva cobre ${runway.toFixed(1)} meses — construa mais`, color: "text-blue-400" });
-  if (projectedEndBalance < 0) tips.push({ icon: TrendingDown, text: `Projeção: ${currency(Math.abs(projectedEndBalance))} negativo no fim do mês`, color: "text-rose-400" });
-  if (budgets.some(b => b.percentage > 100)) tips.push({ icon: BarChart2, text: "Orçamento excedido em alguma categoria", color: "text-rose-400" });
-  if (tips.length === 0) tips.push({ icon: CheckCircle2, text: "Finanças equilibradas. Continue monitorando!", color: "text-emerald-400" });
+  if (streak > 2) tips.push({ icon: Flame, text: `${streak} dias consecutivos positivos`, color: "#fb923c" });
+  if (savingsRate > 20) tips.push({ icon: Award, text: `${savingsRate.toFixed(0)}% poupado — acima da média`, color: "#4ade80" });
+  else if (savingsRate < 5 && data.income > 0) tips.push({ icon: Lightbulb, text: "Tente poupar ao menos 10% da renda", color: "#fbbf24" });
+  if (runway < 3) tips.push({ icon: ShieldCheck, text: `Reserva: ${runway.toFixed(1)} meses — ideal 3-6`, color: "#60a5fa" });
+  if (projectedEnd < 0) tips.push({ icon: TrendingDown, text: `Projeção negativa de ${currency(Math.abs(projectedEnd))}`, color: "#f87171" });
+  if (budgets.some(b => b.percentage > 100)) tips.push({ icon: AlertTriangle, text: "Limite excedido em algum orçamento", color: "#f87171" });
+  if (tips.length === 0) tips.push({ icon: CheckCircle2, text: "Finanças equilibradas. Continue assim!", color: "#4ade80" });
 
-  const card = { background: "var(--color-surface)", border: "1px solid var(--color-border)" };
+  const C = "var(--color-surface)";
+  const B = "1px solid var(--color-border)";
+
+  const linkStyle = { color: "#60a5fa", fontSize: "10px", fontWeight: 600, display: "flex", alignItems: "center", gap: 2 };
 
   return (
     <div className="space-y-4" data-testid="dashboard">
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-        style={card}>
-        <div className="flex items-center gap-4">
-          <HealthRing score={healthScore} />
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "var(--color-text-low)" }}>Saúde financeira</p>
-            <h1 className="text-2xl font-bold leading-tight">
-              {user.plan === "PRO" && user.companyName ? user.companyName : `Olá, ${user.name.split(" ")[0]}`}
-            </h1>
-            <p className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>
-              {now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
-            </p>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {alerts.count > 0 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold text-rose-400" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
-                  <AlertTriangle className="w-2.5 h-2.5" /> {alerts.count} alertas
-                </span>
-              )}
-              {streak > 1 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold text-orange-400" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)" }}>
-                  <Flame className="w-2.5 h-2.5" /> {streak} dias
-                </span>
-              )}
-              {isFree && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium" style={{ color: "var(--color-text-low)", background: "var(--color-surface-strong)", border: "1px solid var(--color-border)" }}>
-                  <Zap className="w-2.5 h-2.5" /> Grátis
-                </span>
-              )}
+        className="relative rounded-2xl overflow-hidden p-5 sm:p-6"
+        style={{ background: C, border: B }}>
+        {/* subtle bg glow */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 20% 50%,rgba(14,165,233,0.04) 0%,transparent 60%)" }} />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-5">
+            <HealthRing score={healthScore} />
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.25)" }}>Saúde financeira</p>
+              <h1 className="text-2xl font-black leading-tight tracking-tight" style={{ color: "var(--color-text)" }}>
+                {user.plan === "PRO" && user.companyName ? user.companyName : `Olá, ${user.name.split(" ")[0]}`}
+              </h1>
+              <p className="text-xs mt-0.5 capitalize" style={{ color: "var(--color-text-low)" }}>
+                {now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
+              </p>
+              <div className="flex flex-wrap gap-1.5 mt-2.5">
+                {alerts.count > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold text-rose-400" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                    <AlertTriangle className="w-2.5 h-2.5" /> {alerts.count} alertas
+                  </span>
+                )}
+                {streak > 1 && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold text-orange-400" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)" }}>
+                    <Flame className="w-2.5 h-2.5" /> {streak} dias
+                  </span>
+                )}
+                {isFree && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold" style={{ color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <Zap className="w-2.5 h-2.5" /> Grátis
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {canAddTx && (
-            <button onClick={() => setQuickAddOpen(true)} className="btn-primary text-xs !py-2 !px-3">
-              <Plus className="w-3.5 h-3.5" /> Transação
+          <div className="flex flex-wrap gap-2">
+            {canAddTx && (
+              <button onClick={() => setQuickAddOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white transition-all hover:opacity-90 active:scale-[0.97]"
+                style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 4px 14px rgba(16,185,129,0.3)" }}>
+                <Plus className="w-3.5 h-3.5" /> Transação
+              </button>
+            )}
+            <button onClick={generateAi} disabled={aiLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:bg-white/5"
+              style={{ color: "var(--color-text-muted)", border: B }} data-testid="ai-insights-btn">
+              {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              {aiLoading ? "Analisando..." : "Análise IA"}
             </button>
-          )}
-          <button onClick={generateAi} disabled={aiLoading} className="btn-outline text-xs !py-2 !px-3" data-testid="ai-insights-btn">
-            {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-            {aiLoading ? "Analisando..." : "Análise IA"}
-          </button>
-          <button onClick={() => handleExport("pdf")} className={`btn-outline text-xs !py-2 !px-3 ${!canExportPdf ? "opacity-40" : ""}`} data-testid="export-pdf">
-            <FileDown className="w-3.5 h-3.5" /> PDF
-          </button>
-          <button onClick={() => handleExport("excel")} className={`btn-outline text-xs !py-2 !px-3 ${!canExportExcel ? "opacity-40" : ""}`} data-testid="export-excel">
-            <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
-          </button>
+            <button onClick={() => handleExport("pdf")} className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:bg-white/5 ${!canExportPdf ? "opacity-30" : ""}`} style={{ color: "var(--color-text-muted)", border: B }} data-testid="export-pdf">
+              <FileDown className="w-3.5 h-3.5" /> PDF
+            </button>
+            <button onClick={() => handleExport("excel")} className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:bg-white/5 ${!canExportExcel ? "opacity-30" : ""}`} style={{ color: "var(--color-text-muted)", border: B }} data-testid="export-excel">
+              <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
+            </button>
+          </div>
         </div>
       </motion.div>
 
@@ -416,85 +460,70 @@ export default function Dashboard() {
         {stats.map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06, type: "spring", damping: 22 }}
-            className="rounded-xl p-4" style={{ ...card, borderLeft: `3px solid ${s.accent}` }}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-low)" }}>{s.label}</span>
-              <s.icon className="w-3.5 h-3.5 opacity-40" style={{ color: s.accent }} />
-            </div>
-            <div className="text-xl font-bold leading-none mb-2" data-testid={`stat-${s.label}`} style={{ color: "var(--color-text)" }}>
-              {currency(s.value)}
-            </div>
-            <div className="flex items-end justify-between">
-              {s.diff !== null ? (
-                <span className={`text-[10px] font-semibold ${(s.invertDiff ? s.diff < 0 : s.diff > 0) ? "text-emerald-400" : s.diff === 0 ? "" : "text-rose-400"}`}
-                  style={s.diff === 0 ? { color: "var(--color-text-low)" } : {}}>
-                  {s.diff > 0 ? "+" : ""}{s.diff.toFixed(1)}%
-                </span>
-              ) : <div />}
-              <Sparkline values={s.spark} color={s.accent} />
+            className="rounded-2xl p-4 relative overflow-hidden group"
+            style={{ background: C, border: B }}>
+            <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: `radial-gradient(ellipse at 80% 20%,${s.color}12 0%,transparent 60%)` }} />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>{s.label}</span>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${s.color}15`, border: `1px solid ${s.color}25` }}>
+                  <s.icon className="w-3.5 h-3.5" style={{ color: s.color }} />
+                </div>
+              </div>
+              <div className="text-2xl font-black num leading-none mb-2.5 tracking-tight" style={{ color: "var(--color-text)" }} data-testid={`stat-${s.label}`}>
+                {currency(s.value)}
+              </div>
+              <div className="flex items-end justify-between">
+                {s.diff !== null ? (
+                  <span className={`text-[10px] font-bold num ${(s.inv ? s.diff < 0 : s.diff > 0) ? "text-emerald-400" : s.diff === 0 ? "" : "text-rose-400"}`}
+                    style={s.diff === 0 ? { color: "rgba(255,255,255,0.25)" } : {}}>
+                    {s.diff > 0 ? "+" : ""}{s.diff.toFixed(1)}%
+                  </span>
+                ) : <div />}
+                <Sparkline values={s.spark} color={s.color} />
+              </div>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* ── SMART METRICS ───────────────────────────────────────────────── */}
+      {/* ── METRICS ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="rounded-xl p-4" style={card}>
-          <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--color-text-low)" }}>Velocidade de gastos</p>
-          <p className="text-xl font-bold mb-1" style={{ color: "var(--color-text)" }}>{currency(dailyRate)}<span className="text-xs font-normal ml-1" style={{ color: "var(--color-text-muted)" }}>/dia</span></p>
-          <div className="h-1.5 rounded-full mb-1" style={{ background: "var(--color-border)" }}>
-            <motion.div className="h-full rounded-full" initial={{ width: 0 }} animate={{ width: `${velocityPct}%` }} transition={{ duration: 0.8 }}
-              style={{ background: velocityPct < 50 ? "#22c55e" : velocityPct < 80 ? "#f59e0b" : "#ef4444" }} />
-          </div>
-          <p className="text-[10px]" style={{ color: "var(--color-text-low)" }}>
-            {velocityPct < 50 ? "Ritmo saudável" : velocityPct < 80 ? "Atenção ao ritmo" : "Ritmo acelerado"}
-          </p>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}
-          className="rounded-xl p-4" style={card}>
-          <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--color-text-low)" }}>Limite diário disponível</p>
-          <p className={`text-xl font-bold mb-1 ${dailyLimit < 0 ? "text-rose-400" : "text-emerald-400"}`}>
-            {dailyLimit < 0 ? "-" : ""}{currency(Math.abs(dailyLimitSafe))}
-          </p>
-          <div className="h-1.5 rounded-full mb-1" style={{ background: "var(--color-border)" }}>
-            <motion.div className="h-full rounded-full" initial={{ width: 0 }} animate={{ width: `${todayPct}%` }} transition={{ duration: 0.8 }}
-              style={{ background: todayPct > 80 ? "#ef4444" : todayPct > 50 ? "#f59e0b" : "#22c55e" }} />
-          </div>
-          <div className="flex justify-between text-[10px]" style={{ color: "var(--color-text-low)" }}>
-            <span>Hoje: {currency(todaySpent)}</span><span>{daysRemaining} dias</span>
-          </div>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
-          className="rounded-xl p-4" style={card}>
-          <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--color-text-low)" }}>Projeção & runway</p>
-          <div className="space-y-1.5">
+        <MetricCard label="Ritmo de gastos" value={`${currency(dailyRate)}/dia`}
+          barPct={velocityPct} color={velocityPct < 50 ? "#22c55e" : velocityPct < 80 ? "#f59e0b" : "#ef4444"}
+          sub={velocityPct < 50 ? "Ritmo saudável" : velocityPct < 80 ? "Atenção ao ritmo" : "Ritmo acelerado"} />
+        <MetricCard label="Disponível hoje"
+          value={`${dailyLimit < 0 ? "-" : ""}${currency(Math.abs(dailyLimitSafe))}`}
+          barPct={todayPct} color={todayPct > 80 ? "#ef4444" : todayPct > 50 ? "#f59e0b" : "#22c55e"}
+          sub={`Hoje: ${currency(todaySpent)} · ${daysRemaining} dias restantes`} />
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl p-4" style={{ background: C, border: B }}>
+          <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Projeção & runway</p>
+          <div className="space-y-2">
             {[
-              { label: "Fim do mês", val: currency(projectedEndBalance), color: projectedEndBalance >= 0 ? "text-emerald-400" : "text-rose-400" },
-              { label: "Reserva", val: runway < 1 ? `${(runway * 30).toFixed(0)} dias` : `${runway.toFixed(1)} meses`, color: "text-violet-400" },
-              { label: "Poupança", val: `${savingsRate.toFixed(1)}%`, color: savingsRate > 20 ? "text-emerald-400" : savingsRate > 5 ? "text-amber-400" : "text-rose-400" },
+              { k: "Fim do mês", v: currency(projectedEnd), c: projectedEnd >= 0 ? "#4ade80" : "#f87171" },
+              { k: "Reserva", v: runway < 1 ? `${(runway*30).toFixed(0)} dias` : `${runway.toFixed(1)} meses`, c: "#38bdf8" },
+              { k: "Poupança", v: `${savingsRate.toFixed(1)}%`, c: savingsRate > 20 ? "#4ade80" : savingsRate > 5 ? "#fbbf24" : "#f87171" },
             ].map(row => (
-              <div key={row.label} className="flex justify-between items-center">
-                <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>{row.label}</span>
-                <span className={`text-xs font-semibold ${row.color}`}>{row.val}</span>
+              <div key={row.k} className="flex justify-between items-center">
+                <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{row.k}</span>
+                <span className="text-xs font-bold num" style={{ color: row.c }}>{row.v}</span>
               </div>
             ))}
           </div>
         </motion.div>
       </div>
 
-      {/* ── SMART TIPS STRIP ────────────────────────────────────────────── */}
+      {/* ── TIPS STRIP ──────────────────────────────────────────────────── */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-        className="rounded-xl px-4 py-3 flex items-center gap-2 flex-wrap" style={card}>
-        <Lightbulb className="w-3.5 h-3.5 shrink-0 text-amber-400" />
-        <div className="flex gap-2 flex-wrap">
+        className="rounded-2xl px-4 py-3 flex items-center gap-3 flex-wrap"
+        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+        <Lightbulb className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+        <div className="flex gap-3 flex-wrap">
           {tips.map((t, i) => (
-            <span key={i} className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${t.color}`}>
+            <span key={i} className="inline-flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: t.color }}>
               <t.icon className="w-3 h-3 shrink-0" />{t.text}
-              {i < tips.length - 1 && <span className="text-zinc-700 mx-1">·</span>}
+              {i < tips.length - 1 && <span style={{ color: "rgba(255,255,255,0.12)" }} className="ml-2">·</span>}
             </span>
           ))}
         </div>
@@ -507,12 +536,11 @@ export default function Dashboard() {
             const cfg = insightCfg[ins.type] || insightCfg.info;
             return (
               <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                className="flex gap-2.5 rounded-xl border p-3"
-                style={{ background: cfg.bg, borderColor: cfg.border }}>
-                <cfg.icon className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${cfg.text}`} />
+                className="flex gap-2.5 rounded-xl p-3.5" style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
+                <cfg.icon className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: cfg.text }} />
                 <div>
-                  <div className={`text-xs font-semibold mb-0.5 ${cfg.text}`}>{ins.title}</div>
-                  <div className="text-[11px] leading-relaxed" style={{ color: "var(--color-text-muted)" }}>{ins.message}</div>
+                  <div className="text-xs font-bold mb-0.5" style={{ color: cfg.text }}>{ins.title}</div>
+                  <div className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>{ins.message}</div>
                 </div>
               </motion.div>
             );
@@ -522,42 +550,51 @@ export default function Dashboard() {
 
       {/* ── CHARTS ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 rounded-xl p-5" style={card}>
-          <SectionHeader title="Fluxo de caixa" sub="Receitas vs despesas — últimos 6 meses" />
+        <div className="lg:col-span-2 rounded-2xl p-5" style={{ background: C, border: B }}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Fluxo de caixa</h3>
+              <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>Receitas vs despesas — últimos 6 meses</p>
+            </div>
+            <Activity className="w-4 h-4" style={{ color: "rgba(255,255,255,0.2)" }} />
+          </div>
           <div className="h-52">
             <ResponsiveContainer>
-              <AreaChart data={data.monthly} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
+              <AreaChart data={data.monthly} margin={{ top: 4, right: 0, left: -22, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gI" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#22c55e" stopOpacity={0.25} /><stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#22c55e" stopOpacity={0.3} /><stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="gE" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#ef4444" stopOpacity={0.2} /><stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#f87171" stopOpacity={0.25} /><stop offset="100%" stopColor="#f87171" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
-                <XAxis dataKey="month" stroke="var(--color-text-low)" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--color-text-low)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="month" stroke="rgba(255,255,255,0.2)" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="rgba(255,255,255,0.2)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
                 <Tooltip content={<ChartTooltip />} />
                 <Area type="monotone" dataKey="income" stroke="#22c55e" fill="url(#gI)" strokeWidth={2} name="Receitas" dot={false} />
-                <Area type="monotone" dataKey="expense" stroke="#ef4444" fill="url(#gE)" strokeWidth={2} name="Despesas" dot={false} />
+                <Area type="monotone" dataKey="expense" stroke="#f87171" fill="url(#gE)" strokeWidth={2} name="Despesas" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="rounded-xl p-5" style={card}>
-          <SectionHeader title="Por categoria" sub="Distribuição de despesas" />
+        <div className="rounded-2xl p-5" style={{ background: C, border: B }}>
+          <div className="mb-4">
+            <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Por categoria</h3>
+            <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>Distribuição de despesas</p>
+          </div>
           <div className="h-52">
             {data.categories.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-xs" style={{ color: "var(--color-text-low)" }}>Sem dados ainda</div>
+              <div className="h-full flex items-center justify-center text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>Sem dados ainda</div>
             ) : (
               <ResponsiveContainer>
                 <PieChart>
-                  <Pie data={data.categories} dataKey="amount" nameKey="category" cx="50%" cy="44%" innerRadius={34} outerRadius={66} paddingAngle={3} strokeWidth={0}>
+                  <Pie data={data.categories} dataKey="amount" nameKey="category" cx="50%" cy="45%" innerRadius={32} outerRadius={66} paddingAngle={3} strokeWidth={0}>
                     {data.categories.map((c, i) => <Cell key={i} fill={CATEGORY_COLORS[c.category] || PIE_COLORS[i % PIE_COLORS.length]} />)}
                   </Pie>
-                  <Tooltip formatter={(v: any) => currency(Number(v))} contentStyle={{ borderRadius: 10, border: "1px solid var(--color-border)", background: "var(--color-surface-strong)" }} />
+                  <Tooltip formatter={(v: any) => currency(Number(v))} contentStyle={{ borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(17,17,19,0.95)" }} />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: 10 }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -568,23 +605,27 @@ export default function Dashboard() {
 
       {/* ── HEATMAP + CATEGORY BARS ─────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-        <div className="rounded-xl p-5" style={card}>
-          <SectionHeader title="Mapa de gastos"
-            sub={now.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}
-            action={
-              <div className="flex items-center gap-1">
-                {[0.12,0.3,0.5,0.7,0.9].map(o => <div key={o} className="w-2.5 h-2.5 rounded-sm" style={{background:`rgba(239,68,68,${o})`}}/>)}
-              </div>
-            }
-          />
+        <div className="rounded-2xl p-5" style={{ background: C, border: B }}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Mapa de gastos</h3>
+              <p className="text-[10px] mt-0.5 capitalize" style={{ color: "rgba(255,255,255,0.3)" }}>{now.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</p>
+            </div>
+            <div className="flex gap-0.5">
+              {[0.1,0.3,0.5,0.7,0.9].map(o => <div key={o} className="w-2.5 h-2.5 rounded-sm" style={{ background: `rgba(239,68,68,${o})` }} />)}
+            </div>
+          </div>
           <SpendingHeatmap days={calDays} />
         </div>
 
-        <div className="rounded-xl p-5" style={card}>
-          <SectionHeader title="Breakdown" sub="Participação por categoria"
-            action={<span className="text-[10px]" style={{ color: "var(--color-text-low)" }}>{currency(curMonth.expense)} total</span>}
-          />
+        <div className="rounded-2xl p-5" style={{ background: C, border: B }}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Categorias</h3>
+              <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>Participação nos gastos</p>
+            </div>
+            <span className="text-[10px] font-bold num" style={{ color: "rgba(255,255,255,0.3)" }}>{currency(curMonth.expense)}</span>
+          </div>
           <CategoryBars categories={data.categories} />
         </div>
       </div>
@@ -593,31 +634,36 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
         {/* Budgets */}
-        <div className="rounded-xl p-5" style={card}>
-          <SectionHeader title="Orçamentos" sub="Mês atual"
-            action={<a href="/app/budgets" className="text-[10px] font-semibold text-violet-400 hover:underline flex items-center gap-0.5">Ver todos<ChevronRight className="w-3 h-3"/></a>}
-          />
+        <div className="rounded-2xl p-5" style={{ background: C, border: B }}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Orçamentos</h3>
+              <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>Mês atual</p>
+            </div>
+            <a href="/app/budgets" style={linkStyle}>Ver todos <ChevronRight className="w-3 h-3" /></a>
+          </div>
           {budgets.length === 0 ? (
             <div className="flex flex-col items-center py-8 gap-2">
-              <Wallet className="w-7 h-7 opacity-20" style={{ color: "var(--color-text-muted)" }} />
-              <p className="text-xs" style={{ color: "var(--color-text-low)" }}>Nenhum orçamento</p>
-              {!isFree && <a href="/app/budgets" className="text-xs text-violet-400 font-semibold hover:underline">Criar</a>}
+              <Wallet className="w-8 h-8 opacity-10" style={{ color: "var(--color-text)" }} />
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>Nenhum orçamento</p>
+              {!isFree && <a href="/app/budgets" style={linkStyle}>Criar</a>}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {budgets.map(b => {
                 const pct = Math.min(b.percentage, 100);
                 const col = b.percentage > 100 ? "#ef4444" : b.percentage >= 80 ? "#f59e0b" : "#22c55e";
                 return (
                   <div key={b.id}>
-                    <div className="flex justify-between mb-1">
+                    <div className="flex justify-between items-baseline mb-1.5">
                       <span className="text-xs font-medium truncate max-w-[110px]" style={{ color: "var(--color-text)" }}>{b.category}</span>
-                      <span className="text-[10px]" style={{ color: "var(--color-text-low)" }}>{currency(b.spent)}/{currency(b.limit)}</span>
+                      <span className="text-[10px] num" style={{ color: "rgba(255,255,255,0.35)" }}>{currency(b.spent)} / {currency(b.limit)}</span>
                     </div>
-                    <div className="h-1 rounded-full" style={{background:"var(--color-border)"}}>
-                      <motion.div initial={{width:0}} animate={{width:`${pct}%`}} transition={{duration:0.8}} className="h-full rounded-full" style={{background:col}}/>
+                    <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8 }}
+                        className="h-full rounded-full" style={{ background: col, boxShadow: `0 0 8px ${col}50` }} />
                     </div>
-                    {b.percentage > 100 && <p className="text-[9px] text-rose-400 mt-0.5">+{(b.percentage-100).toFixed(0)}% acima</p>}
+                    {b.percentage > 100 && <p className="text-[9px] text-rose-400 mt-0.5 font-semibold">+{(b.percentage-100).toFixed(0)}% acima</p>}
                   </div>
                 );
               })}
@@ -626,34 +672,38 @@ export default function Dashboard() {
         </div>
 
         {/* Goals */}
-        <div className="rounded-xl p-5" style={card}>
-          <SectionHeader title="Metas" sub="Em progresso"
-            action={<a href="/app/goals" className="text-[10px] font-semibold text-violet-400 hover:underline flex items-center gap-0.5">Ver todas<ChevronRight className="w-3 h-3"/></a>}
-          />
+        <div className="rounded-2xl p-5" style={{ background: C, border: B }}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Metas</h3>
+              <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>Em progresso</p>
+            </div>
+            <a href="/app/goals" style={linkStyle}>Ver todas <ChevronRight className="w-3 h-3" /></a>
+          </div>
           {goals.length === 0 ? (
             <div className="flex flex-col items-center py-8 gap-2">
-              <Target className="w-7 h-7 opacity-20" style={{ color: "var(--color-text-muted)" }} />
-              <p className="text-xs" style={{ color: "var(--color-text-low)" }}>Nenhuma meta criada</p>
-              <a href="/app/goals" className="text-xs text-violet-400 font-semibold hover:underline">Criar meta</a>
+              <Target className="w-8 h-8 opacity-10" style={{ color: "var(--color-text)" }} />
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>Nenhuma meta criada</p>
+              <a href="/app/goals" style={linkStyle}>Criar meta</a>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {goals.map(g => {
-                const pct = Math.min((g.currentAmount/g.targetAmount)*100,100);
-                const dLeft = Math.ceil((new Date(g.deadline).getTime()-Date.now())/86400000);
+                const pct = Math.min((g.currentAmount / g.targetAmount) * 100, 100);
+                const dLeft = Math.max(0, Math.ceil((new Date(g.deadline).getTime() - Date.now()) / 86400000));
                 return (
                   <div key={g.id}>
-                    <div className="flex justify-between mb-1">
+                    <div className="flex justify-between items-baseline mb-1.5">
                       <span className="text-xs font-medium truncate max-w-[130px]" style={{ color: "var(--color-text)" }}>{g.title}</span>
-                      <span className="text-[10px] text-violet-400">{pct.toFixed(0)}%</span>
+                      <span className="text-[10px] font-bold num" style={{ color: "#34d399" }}>{pct.toFixed(0)}%</span>
                     </div>
-                    <div className="h-1 rounded-full" style={{background:"var(--color-border)"}}>
-                      <motion.div initial={{width:0}} animate={{width:`${pct}%`}} transition={{duration:0.9}}
-                        className="h-full rounded-full" style={{background:"linear-gradient(90deg,#7c3aed,#4f46e5)"}}/>
+                    <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.9 }}
+                        className="h-full rounded-full" style={{ background: "linear-gradient(90deg,#059669,#10b981)", boxShadow: "0 0 8px rgba(16,185,129,0.4)" }} />
                     </div>
                     <div className="flex justify-between mt-0.5">
-                      <span className="text-[9px]" style={{ color: "var(--color-text-low)" }}>{currency(g.currentAmount)} / {currency(g.targetAmount)}</span>
-                      {dLeft > 0 && <span className="text-[9px] flex items-center gap-0.5" style={{ color: "var(--color-text-low)" }}><Clock className="w-2 h-2"/>{dLeft}d</span>}
+                      <span className="text-[9px] num" style={{ color: "rgba(255,255,255,0.3)" }}>{currency(g.currentAmount)} / {currency(g.targetAmount)}</span>
+                      {dLeft > 0 && <span className="text-[9px] flex items-center gap-0.5" style={{ color: "rgba(255,255,255,0.3)" }}><Clock className="w-2 h-2" />{dLeft}d</span>}
                     </div>
                   </div>
                 );
@@ -663,32 +713,36 @@ export default function Dashboard() {
         </div>
 
         {/* Recent */}
-        <div className="rounded-xl p-5" style={card}>
-          <SectionHeader title="Recentes" sub="Últimas transações"
-            action={<a href="/app/transactions" className="text-[10px] font-semibold text-violet-400 hover:underline flex items-center gap-0.5">Ver todas<ChevronRight className="w-3 h-3"/></a>}
-          />
-          <div className="space-y-1" data-testid="recent-transactions">
+        <div className="rounded-2xl p-5" style={{ background: C, border: B }}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Recentes</h3>
+              <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>Últimas transações</p>
+            </div>
+            <a href="/app/transactions" style={linkStyle}>Ver todas <ChevronRight className="w-3 h-3" /></a>
+          </div>
+          <div className="space-y-0.5" data-testid="recent-transactions">
             {data.recent.length === 0 && (
               <div className="flex flex-col items-center py-8 gap-2">
-                <Activity className="w-7 h-7 opacity-20" style={{ color: "var(--color-text-muted)" }} />
-                <p className="text-xs" style={{ color: "var(--color-text-low)" }}>Nenhuma transação</p>
+                <Activity className="w-8 h-8 opacity-10" style={{ color: "var(--color-text)" }} />
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>Nenhuma transação</p>
               </div>
             )}
-            {data.recent.map((t,i) => (
-              <motion.div key={t.id} initial={{opacity:0,x:6}} animate={{opacity:1,x:0}} transition={{delay:i*0.04}}
-                className="flex items-center gap-2.5 p-2 rounded-lg transition-colors"
-                style={{ cursor: "default" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "var(--color-surface-strong)")}
+            {data.recent.map((t, i) => (
+              <motion.div key={t.id} initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                className="flex items-center gap-2.5 px-2 py-2 rounded-xl transition-colors cursor-default group"
+                style={{ "--hover-bg": "rgba(255,255,255,0.03)" } as any}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "")}>
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${t.type==="INCOME"?"bg-emerald-500/10":"bg-rose-500/10"}`}>
-                  {t.type==="INCOME"?<ArrowUpRight className="w-3 h-3 text-emerald-400"/>:<ArrowDownRight className="w-3 h-3 text-rose-400"/>}
+                <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${t.type === "INCOME" ? "bg-emerald-500/10" : "bg-rose-500/10"}`}>
+                  {t.type === "INCOME" ? <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" /> : <ArrowDownRight className="w-3.5 h-3.5 text-rose-400" />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-medium truncate" style={{ color: "var(--color-text)" }}>{t.title}</div>
-                  <div className="text-[10px]" style={{ color: "var(--color-text-low)" }}>{t.category} · {dateBR(t.date)}</div>
+                  <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>{t.category} · {dateBR(t.date)}</div>
                 </div>
-                <div className={`text-xs font-semibold shrink-0 ${t.type==="INCOME"?"text-emerald-400":"text-rose-400"}`}>
-                  {t.type==="INCOME"?"+":"-"}{currency(t.amount)}
+                <div className={`text-xs font-bold shrink-0 num ${t.type === "INCOME" ? "text-emerald-400" : "text-rose-400"}`}>
+                  {t.type === "INCOME" ? "+" : "-"}{currency(t.amount)}
                 </div>
               </motion.div>
             ))}
@@ -699,31 +753,31 @@ export default function Dashboard() {
       {/* ── AI INSIGHTS ─────────────────────────────────────────────────── */}
       <AnimatePresence>
         {aiInsights && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-            className="rounded-xl p-5" style={{ background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.18)" }}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)" }}
             data-testid="ai-insights-panel">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-violet-400" />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)" }}>
+                  <Sparkles className="w-4 h-4 text-sky-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm">Análise IA · Claude</h3>
-                  <p className="text-[10px]" style={{ color: "var(--color-text-low)" }}>Insights personalizados</p>
+                  <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Análise IA · Claude</h3>
+                  <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>Insights personalizados</p>
                 </div>
               </div>
-              <button onClick={() => setAiInsights(null)} className="p-1.5 rounded-lg opacity-50 hover:opacity-100" style={{ color: "var(--color-text-muted)" }}><X className="w-3.5 h-3.5" /></button>
+              <button onClick={() => setAiInsights(null)} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5" style={{ color: "rgba(255,255,255,0.3)" }}><X className="w-3.5 h-3.5" /></button>
             </div>
-            <div className="grid gap-2.5 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {aiInsights.map((ins, i) => {
                 const cfg = insightCfg[ins.type] || insightCfg.info;
                 return (
                   <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-                    className="rounded-xl p-3.5 flex gap-2.5" style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
-                    <cfg.icon className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${cfg.text}`} />
+                    className="flex gap-2.5 rounded-xl p-3.5" style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
+                    <cfg.icon className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: cfg.text }} />
                     <div>
-                      <div className={`text-xs font-semibold mb-0.5 ${cfg.text}`}>{ins.title}</div>
-                      <div className="text-[11px] leading-relaxed" style={{ color: "var(--color-text-muted)" }}>{ins.message}</div>
+                      <div className="text-xs font-bold mb-0.5" style={{ color: cfg.text }}>{ins.title}</div>
+                      <div className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>{ins.message}</div>
                     </div>
                   </motion.div>
                 );
@@ -733,8 +787,7 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      {/* ── MODALS ──────────────────────────────────────────────────────── */}
-      <QuickAddModal open={quickAddOpen} onClose={() => setQuickAddOpen(false)} onAdded={fetchDashboard} categories={categories} />
+      <QuickAddModal open={quickAddOpen} onClose={() => setQuickAddOpen(false)} onAdded={fetchAll} categories={categories} />
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
     </div>
   );

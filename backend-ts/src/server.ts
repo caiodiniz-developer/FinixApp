@@ -13,6 +13,7 @@ import PDFDocument from "pdfkit";
 import ExcelJS from "exceljs";
 import Stripe from "stripe";
 import authRoutes from "./routes/authRoutes";
+import googleRoutes from "./routes/googleRoutes";
 import { authRateLimit } from "./middlewares/rateLimit";
 import { signup } from "./services/authService";
 
@@ -136,6 +137,7 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/google", googleRoutes);
 
 // ============================================================================
 // PLANS CONFIGURATION

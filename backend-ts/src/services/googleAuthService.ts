@@ -21,6 +21,12 @@ const oauthClient = new OAuth2Client(
   GOOGLE_REDIRECT_URI,
 );
 
+console.log("[GoogleAuthService] Config:", {
+  clientId: GOOGLE_CLIENT_ID ? GOOGLE_CLIENT_ID.slice(0, 20) + "..." : "MISSING",
+  clientSecret: GOOGLE_CLIENT_SECRET ? "SET (" + GOOGLE_CLIENT_SECRET.length + " chars)" : "MISSING (empty!)",
+  redirectUri: GOOGLE_REDIRECT_URI,
+});
+
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   console.warn(
     "[GoogleAuthService] Faltando GOOGLE_CLIENT_ID ou GOOGLE_CLIENT_SECRET. Configure o .env.",
