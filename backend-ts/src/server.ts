@@ -686,12 +686,10 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(401).json({ error: "Credenciais inválidas" });
     }
     if (!user.isVerified) {
-      return res
-        .status(401)
-        .json({
-          error:
-            "E-mail não verificado. Verifique seu e-mail antes de fazer login.",
-        });
+      return res.status(401).json({
+        error:
+          "E-mail não verificado. Verifique seu e-mail antes de fazer login.",
+      });
     }
     const token = jwt.sign(
       { sub: user.id, email: user.email, role: user.role },
@@ -820,11 +818,9 @@ app.put("/api/categories", authenticate, async (req, res) => {
     const user = (req as any).user;
     const plan = PLANS[user.plan] || PLANS.FREE;
     if (!plan.canEditCategories)
-      return res
-        .status(403)
-        .json({
-          error: "Atualização de categorias disponível apenas no plano Pro",
-        });
+      return res.status(403).json({
+        error: "Atualização de categorias disponível apenas no plano Pro",
+      });
     const data = categoriesUpdateSchema.parse(req.body);
     const uniqueCategories = Array.from(
       new Set(data.categories.map((cat) => cat.trim()).filter(Boolean)),
@@ -857,11 +853,9 @@ app.post("/api/categories", authenticate, async (req, res) => {
     const user = (req as any).user;
     const plan = PLANS[user.plan] || PLANS.FREE;
     if (!plan.canCreateCategories)
-      return res
-        .status(403)
-        .json({
-          error: "Criação de categorias disponível apenas no plano Pro",
-        });
+      return res.status(403).json({
+        error: "Criação de categorias disponível apenas no plano Pro",
+      });
     const data = categorySchema.parse(req.body);
     const category = await prisma.category.create({
       data: { id: uuidv4(), userId: user.id, ...data },
@@ -909,11 +903,9 @@ app.delete("/api/categories/:id", authenticate, async (req, res) => {
     const user = (req as any).user;
     const plan = PLANS[user.plan] || PLANS.FREE;
     if (!plan.canEditCategories)
-      return res
-        .status(403)
-        .json({
-          error: "Exclusão de categorias disponível apenas no plano Pro",
-        });
+      return res.status(403).json({
+        error: "Exclusão de categorias disponível apenas no plano Pro",
+      });
     const categoryId = String(req.params.id);
     const category = await prisma.category.findUnique({
       where: { id: categoryId },
@@ -924,11 +916,9 @@ app.delete("/api/categories/:id", authenticate, async (req, res) => {
       where: { userId: user.id, category: category.name },
     });
     if (linked > 0)
-      return res
-        .status(400)
-        .json({
-          error: "Não é possível excluir categoria vinculada a transações",
-        });
+      return res.status(400).json({
+        error: "Não é possível excluir categoria vinculada a transações",
+      });
     await prisma.category.delete({ where: { id: categoryId } });
     res.json({ ok: true });
   } catch (err: any) {
@@ -2325,12 +2315,9 @@ app.post("/api/stripe/change-plan", authenticate, async (req, res) => {
   if (plan_id === user.plan)
     return res.status(400).json({ error: "Você já está neste plano." });
   if (!user.stripeSubscriptionId)
-    return res
-      .status(400)
-      .json({
-        error:
-          "Nenhuma assinatura ativa encontrada. Faça upgrade via checkout.",
-      });
+    return res.status(400).json({
+      error: "Nenhuma assinatura ativa encontrada. Faça upgrade via checkout.",
+    });
   const targetPlan = PLANS[plan_id];
   if (!targetPlan?.stripePriceId)
     return res
