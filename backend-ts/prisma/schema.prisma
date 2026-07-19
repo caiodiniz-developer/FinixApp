@@ -1,12 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Prisma schema — PostgreSQL + Neon
+// Documentation: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,19 +17,19 @@ model User {
   passwordHash           String
   role                   String    @default("USER")
   blocked                Boolean   @default(false)
-  photo                  String?   @db.Text
+  photo                  String?
   googleId               String?   @unique
   authProvider           String?   @default("local")
-  plan                   String    @default("FREE") // FREE | BASIC | PRO | TEST
+  plan                   String    @default("FREE")
   stripeCustomerId       String?
   stripeSubscriptionId   String?
   transactionsUsed       Int       @default(0)
-  transactionsMonth      String    @default("") // YYYY-MM for monthly reset
+  transactionsMonth      String    @default("")
   planExpiresAt          DateTime?
   hasCompletedOnboarding Boolean   @default(false)
   usageType              String?
   companyName            String?
-  companyLogo            String?   @db.LongText
+  companyLogo            String?
   businessPurpose        String?
   primaryColor           String?
   phone                  String?
@@ -37,7 +37,7 @@ model User {
   verificationCode       String?
   verificationExpires    DateTime?
   createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @default(now()) @updatedAt
+  updatedAt              DateTime  @updatedAt
 
   transactions        Transaction[]
   goals               Goal[]
@@ -62,6 +62,8 @@ model RefreshToken {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([expiresAt])
   @@map("refresh_tokens")
 }
 
@@ -89,6 +91,9 @@ model Transaction {
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   installment Installment? @relation(fields: [installmentId], references: [id], onDelete: SetNull)
 
+  @@index([userId])
+  @@index([userId, date])
+  @@index([installmentId])
   @@map("transactions")
 }
 
@@ -103,6 +108,8 @@ model Goal {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([userId, deadline])
   @@map("goals")
 }
 
@@ -116,6 +123,7 @@ model Budget {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, category])
+  @@index([userId])
   @@map("budgets")
 }
 
@@ -126,16 +134,18 @@ model PaymentTransaction {
   sessionId       String   @unique
   amount          Float
   currency        String   @default("brl")
-  plan            String // basic | pro
-  paymentStatus   String   @default("pending") // pending | paid | failed | expired
+  plan            String
+  paymentStatus   String   @default("pending")
   status          String   @default("initiated")
   stripePaymentId String?
-  metadata        String? // JSON string
+  metadata        String?
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @default(now()) @updatedAt
+  updatedAt       DateTime @updatedAt
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@index([userId])
+  @@index([paymentStatus])
   @@map("payment_transactions")
 }
 
@@ -143,97 +153,103 @@ model Category {
   id        String   @id @default(uuid())
   userId    String
   name      String
-  icon      String?  @default("folder") // lucide-react icon name
-  color     String?  @default("#3b82f6") // hex color
-  type      String   @default("expense") // "income" | "expense" | "both"
+  icon      String?  @default("folder")
+  color     String?  @default("#3b82f6")
+  type      String   @default("expense")
   isDefault Boolean  @default(false)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([userId, name])
   @@map("categories")
 }
 
-// Plan definition (stored as reference, not duplicated per user)
 model Plan {
   id          String   @id @default(uuid())
-  name        String   @unique // "FREE" | "BASIC" | "PRO"
-  displayName String // "Free (Trial)" | "Finix Básico" | "Finix Pro"
-  price       Float    @default(0) // monthly price in BRL
-  yearlyPrice Float? // annual billed price
+  name        String   @unique
+  displayName String
+  price       Float    @default(0)
+  yearlyPrice Float?
   description String?
-  features    String   @default("{}") // JSON with feature set
-  limits      String   @default("{}") // JSON with limits: { "users": 1, "contacts": 50, "accounts": 2, ... }
+  features    String   @default("{}")
+  limits      String   @default("{}")
   isActive    Boolean  @default(true)
-  order       Int      @default(0) // for sorting
+  order       Int      @default(0)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
+  updatedAt   DateTime @updatedAt
 
   subscriptions Subscription[]
 
   @@map("plans")
 }
 
-// User subscription to a plan
 model Subscription {
   id               String    @id @default(uuid())
   userId           String    @unique
   planId           String
   startDate        DateTime  @default(now())
-  endDate          DateTime? // null = forever (or use calculated date)
+  endDate          DateTime?
   autoRenew        Boolean   @default(true)
   stripeCustomerId String?
   stripeSubId      String?
-  status           String    @default("active") // "active" | "cancelled" | "paused" | "expired"
+  status           String    @default("active")
   createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @default(now()) @updatedAt
+  updatedAt        DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan Plan @relation(fields: [planId], references: [id])
 
+  @@index([planId])
+  @@index([status])
   @@map("subscriptions")
 }
 
-// Installment for credit card expenses
 model Installment {
   id              String   @id @default(uuid())
   userId          String
-  description     String // "Celular", "Notebook", etc.
-  totalAmount     Float // Total value
-  numberOfParcels Int // Number of installments
-  dueDay          Int // Day of month (1-31)
-  startDate       DateTime // When first parcel starts
-  status          String   @default("active") // "active" | "completed" | "cancelled"
+  description     String
+  totalAmount     Float
+  numberOfParcels Int
+  dueDay          Int
+  startDate       DateTime
+  status          String   @default("active")
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @default(now()) @updatedAt
+  updatedAt       DateTime @updatedAt
 
   user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   alerts       FinancialAlert[]
   transactions Transaction[]
 
+  @@index([userId])
+  @@index([userId, startDate])
   @@map("installments")
 }
 
-// Alert for installment due dates
 model FinancialAlert {
   id            String    @id @default(uuid())
   userId        String
   installmentId String?
-  title         String // "Parcela Celular vence amanhã"
+  title         String
   description   String?
-  type          String    @default("installment") // "installment" | "budget" | "goal"
-  severity      String    @default("info") // "info" | "warning" | "danger"
+  type          String    @default("installment")
+  severity      String    @default("info")
   amount        Float?
   daysUntilDue  Int?
   dueDate       DateTime?
   isRead        Boolean   @default(false)
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
+  updatedAt     DateTime  @updatedAt
 
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   installment Installment? @relation(fields: [installmentId], references: [id], onDelete: SetNull)
 
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([installmentId])
+  @@index([dueDate])
   @@map("financial_alerts")
 }
