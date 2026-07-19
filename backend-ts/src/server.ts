@@ -2454,63 +2454,138 @@ app.use(
 );
 
 // ============================================================================
-// SEED + START
+// SERVER START — SEM SEED AUTOMÁTICO EM PRODUÇÃO
 // ============================================================================
-const seedData = async () => {
-  const adminEmail = process.env.ADMIN_EMAIL || "finixappp@gmail.com";
-  const adminPassword = process.env.ADMIN_PASSWORD || "Admin@123";
-  await prisma.user.deleteMany({
-    where: { role: "ADMIN", email: { not: adminEmail } },
-  });
-  const admin = await prisma.user.findUnique({ where: { email: adminEmail } });
-  if (!admin) {
-    await prisma.user.create({
-      data: {
-        id: uuidv4(),
-        name: "Administrador Finix",
-        email: adminEmail,
-        passwordHash: await bcrypt.hash(adminPassword, 10),
-        role: "ADMIN",
-        plan: "PRO",
-        isVerified: true,
-        verificationCode: null,
-        verificationExpires: null,
-        transactionsMonth: currentMonthKey(),
-      },
-    });
-    console.log(`✅ Admin criado: ${adminEmail}`);
-  } else {
-    const updateData: any = {};
-    if (admin.role !== "ADMIN") updateData.role = "ADMIN";
-    if (admin.plan !== "PRO") updateData.plan = "PRO";
-    if (!admin.isVerified) updateData.isVerified = true;
-    if (admin.verificationCode !== null) updateData.verificationCode = null;
-    if (admin.verificationExpires !== null)
-      updateData.verificationExpires = null;
-    if (Object.keys(updateData).length > 0) {
-      await prisma.user.update({ where: { id: admin.id }, data: updateData });
-      console.log(`✅ Admin atualizado: ${adminEmail}`);
-    } else {
-      console.log(`✅ Admin já existe: ${adminEmail}`);
+
+const PORT = Number(process.env.PORT) || 8000;
+
+let httpServer: ReturnType<typeof app.listen> | null = null;
+let isShuttingDown = false;
+
+const connectDatabase = async (): Promise<void> => {
+  const maxAttempts = 5;
+  const retryDelayMs = 5000;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await prisma.$connect();
+      await prisma.$queryRaw`SELECT 1`;
+
+      console.log("[DATABASE] ✅ Banco conectado com sucesso");
+      return;
+    } catch (error) {
+      console.error(
+        `[DATABASE] ❌ Falha ao conectar (${attempt}/${maxAttempts})`,
+        error,
+      );
+
+      if (attempt === maxAttempts) {
+        throw error;
+      }
+
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, retryDelayMs);
+      });
     }
   }
 };
 
-const PORT = Number(process.env.PORT) || 8000;
-app.listen(PORT, async () => {
-  console.log(`
+const startServer = async (): Promise<void> => {
+  try {
+    await connectDatabase();
+
+    httpServer = app.listen(PORT, "0.0.0.0", () => {
+      console.log(`
 ╔════════════════════════════════════════╗
 ║  Finix TS Backend                      ║
-║  Rodando na porta ${PORT}                 ║
-║  Environment: ${process.env.NODE_ENV || "development"}           ║
+║  Rodando na porta ${PORT}
+║  Environment: ${process.env.NODE_ENV || "development"}
 ╚════════════════════════════════════════╝
-  `);
-  console.log("[SERVER] CORS Origins:", allowedOrigins);
-  console.log("[SERVER] Frontend URL:", FRONTEND_URL);
-  console.log("[SERVER] JWT Secret configurado:", !!process.env.JWT_SECRET);
-  console.log("[SERVER] Database URL configurado:", !!process.env.DATABASE_URL);
-  console.log("[SERVER] Stripe configurado:", !!process.env.STRIPE_SECRET_KEY);
+      `);
 
-  await seedData();
-  console.log("[SERVER] ✅ Servidor pronto para requisições");
+      console.log("[SERVER] CORS Origins:", allowedOrigins);
+      console.log("[SERVER] Frontend URL:", FRONTEND_URL);
+      console.log(
+        "[SERVER] JWT Secret configurado:",
+        Boolean(process.env.JWT_SECRET),
+      );
+      console.log(
+        "[SERVER] Database URL configurado:",
+        Boolean(process.env.DATABASE_URL),
+      );
+      console.log(
+        "[SERVER] Stripe configurado:",
+        Boolean(process.env.STRIPE_SECRET_KEY),
+      );
+      console.log("[SERVER] ✅ Servidor pronto para requisições");
+    });
+
+    httpServer.on("error", async (error) => {
+      console.error("[SERVER] ❌ Erro no servidor HTTP:", error);
+      await prisma.$disconnect();
+      process.exit(1);
+    });
+  } catch (error) {
+    console.error("[SERVER] ❌ Não foi possível iniciar a aplicação:", error);
+
+    await prisma.$disconnect().catch(() => undefined);
+    process.exit(1);
+  }
+};
+
+const shutdown = async (signal: string): Promise<void> => {
+  if (isShuttingDown) return;
+
+  isShuttingDown = true;
+  console.log(`[SERVER] ${signal} recebido. Encerrando com segurança...`);
+
+  const forceShutdownTimeout = setTimeout(() => {
+    console.error("[SERVER] ❌ Encerramento forçado após 10 segundos");
+    process.exit(1);
+  }, 10000);
+
+  forceShutdownTimeout.unref();
+
+  try {
+    if (httpServer) {
+      await new Promise<void>((resolve, reject) => {
+        httpServer?.close((error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+
+          resolve();
+        });
+      });
+    }
+
+    await prisma.$disconnect();
+    clearTimeout(forceShutdownTimeout);
+
+    console.log("[SERVER] ✅ Aplicação encerrada corretamente");
+    process.exit(0);
+  } catch (error) {
+    console.error("[SERVER] ❌ Erro durante o encerramento:", error);
+    process.exit(1);
+  }
+};
+
+process.once("SIGTERM", () => {
+  void shutdown("SIGTERM");
 });
+
+process.once("SIGINT", () => {
+  void shutdown("SIGINT");
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("[PROCESS] Promise rejeitada sem tratamento:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("[PROCESS] Exceção não tratada:", error);
+  void shutdown("uncaughtException");
+});
+
+void startServer();
