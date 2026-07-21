@@ -2490,63 +2490,6 @@ const connectDatabase = async (): Promise<void> => {
   }
 };
 
-const createOrUpdateAdmin = async (): Promise<void> => {
-  const adminEmail = (
-    process.env.ADMIN_EMAIL || "finixappp@gmail.com"
-  ).toLowerCase();
-
-  const adminPassword =
-    process.env.ADMIN_PASSWORD || "Admin@123";
-
-  const passwordHash = await bcrypt.hash(adminPassword, 10);
-
-  const existingAdmin = await prisma.user.findUnique({
-    where: {
-      email: adminEmail,
-    },
-  });
-
-  if (!existingAdmin) {
-    await prisma.user.create({
-      data: {
-        id: uuidv4(),
-        name: "Administrador Finix",
-        email: adminEmail,
-        passwordHash,
-        role: "ADMIN",
-        plan: "PRO",
-        blocked: false,
-        isVerified: true,
-        verificationCode: null,
-        verificationExpires: null,
-        transactionsUsed: 0,
-        transactionsMonth: currentMonthKey(),
-        hasCompletedOnboarding: true,
-        authProvider: "local",
-      },
-    });
-
-    console.log(`[ADMIN] ✅ Conta criada: ${adminEmail}`);
-    return;
-  }
-
-  await prisma.user.update({
-    where: {
-      id: existingAdmin.id,
-    },
-    data: {
-      role: "ADMIN",
-      plan: "PRO",
-      blocked: false,
-      isVerified: true,
-      verificationCode: null,
-      verificationExpires: null,
-    },
-  });
-
-  console.log(`[ADMIN] ✅ Conta já existente e atualizada: ${adminEmail}`);
-};
-
 const startServer = async (): Promise<void> => {
   try {
     await connectDatabase();
@@ -2644,6 +2587,5 @@ process.on("uncaughtException", (error) => {
   console.error("[PROCESS] Exceção não tratada:", error);
   void shutdown("uncaughtException");
 });
-
 
 void startServer();
