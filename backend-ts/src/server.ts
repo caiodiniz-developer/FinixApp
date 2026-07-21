@@ -2489,10 +2489,58 @@ const connectDatabase = async (): Promise<void> => {
     }
   }
 };
+const createOrUpdateAdmin = async (): Promise<void> => {
+  const adminEmail = (process.env.ADMIN_EMAIL || "finixappp@gmail.com")
+    .trim()
+    .toLowerCase();
+
+  const adminPassword = process.env.ADMIN_PASSWORD || "Admin@123";
+
+  const passwordHash = await bcrypt.hash(adminPassword, 10);
+
+  const admin = await prisma.user.upsert({
+    where: {
+      email: adminEmail,
+    },
+
+    create: {
+      id: uuidv4(),
+      name: "Administrador Finix",
+      email: adminEmail,
+      passwordHash,
+      role: "ADMIN",
+      plan: "PRO",
+      blocked: false,
+      isVerified: true,
+      verificationCode: null,
+      verificationExpires: null,
+      transactionsUsed: 0,
+      transactionsMonth: currentMonthKey(),
+      hasCompletedOnboarding: true,
+      authProvider: "local",
+    },
+
+    update: {
+      name: "Administrador Finix",
+      passwordHash,
+      role: "ADMIN",
+      plan: "PRO",
+      blocked: false,
+      isVerified: true,
+      verificationCode: null,
+      verificationExpires: null,
+    },
+  });
+
+  console.log(`[ADMIN] ✅ Administrador configurado: ${admin.email}`);
+};
 
 const startServer = async (): Promise<void> => {
   try {
     await connectDatabase();
+
+    // Cria ou atualiza a conta de administrador no banco atual
+    await createOrUpdateAdmin();
 
     httpServer = app.listen(PORT, "0.0.0.0", () => {
       console.log(`
@@ -2505,30 +2553,21 @@ const startServer = async (): Promise<void> => {
 
       console.log("[SERVER] CORS Origins:", allowedOrigins);
       console.log("[SERVER] Frontend URL:", FRONTEND_URL);
-      console.log(
-        "[SERVER] JWT Secret configurado:",
-        Boolean(process.env.JWT_SECRET),
-      );
+      console.log("[SERVER] JWT Secret configurado:", !!process.env.JWT_SECRET);
       console.log(
         "[SERVER] Database URL configurado:",
-        Boolean(process.env.DATABASE_URL),
+        !!process.env.DATABASE_URL,
       );
       console.log(
         "[SERVER] Stripe configurado:",
-        Boolean(process.env.STRIPE_SECRET_KEY),
+        !!process.env.STRIPE_SECRET_KEY,
       );
       console.log("[SERVER] ✅ Servidor pronto para requisições");
-    });
-
-    httpServer.on("error", async (error) => {
-      console.error("[SERVER] ❌ Erro no servidor HTTP:", error);
-      await prisma.$disconnect();
-      process.exit(1);
     });
   } catch (error) {
     console.error("[SERVER] ❌ Não foi possível iniciar a aplicação:", error);
 
-    await prisma.$disconnect().catch(() => undefined);
+    await prisma.$disconnect();
     process.exit(1);
   }
 };
