@@ -1,17 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, ArrowLeftRight, Target, Shield, LogOut,
   Menu, Sun, Moon, Wallet, User as UserIcon, Crown, Bell,
   CalendarDays, Tag, Plus, TrendingUp, TrendingDown, X,
   BarChart3, Calculator, ChevronDown, ChevronUp, Percent,
-  Hash, Repeat, PiggyBank,
+  Hash, Repeat, PiggyBank, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { Logo } from "../components/Logo";
 import { useAuth, useAutoRefreshUser } from "../contexts/AuthContext";
 import { useDashboardTheme } from "../contexts/ThemeContext";
 import { api } from "../services/api";
 import { currency } from "../utils/format";
+import { gsap } from "../lib/gsap";
 
 interface SidebarStats { balance: number; income: number; expense: number; spendPct: number; }
 interface GoalItem { id: string; title: string; targetAmount: number; currentAmount: number; deadline: string; }
@@ -50,14 +51,14 @@ function InstallmentCalc() {
             <label className="block text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: "var(--color-text-low)" }}>Valor total (R$)</label>
             <input type="number" min="0" step="0.01" placeholder="0,00" value={valor} onChange={e => setValor(e.target.value)}
               className="w-full px-3 py-1.5 rounded-lg text-xs font-semibold outline-none transition-all num"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--color-border)", color: "var(--color-text)" }} />
+              style={{ background: "var(--color-hairline)", border: "1px solid var(--color-border)", color: "var(--color-text)" }} />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-[9px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1" style={{ color: "var(--color-text-low)" }}><Hash className="w-2.5 h-2.5" /> Parcelas</label>
               <select value={parcelas} onChange={e => setParcelas(e.target.value)}
                 className="w-full px-2 py-1.5 rounded-lg text-xs font-semibold outline-none"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--color-border)", color: "var(--color-text)" }}>
+                style={{ background: "var(--color-hairline)", border: "1px solid var(--color-border)", color: "var(--color-text)" }}>
                 {[1,2,3,4,6,9,12,18,24,36,48].map(v => <option key={v} value={v}>{v}x</option>)}
               </select>
             </div>
@@ -65,7 +66,7 @@ function InstallmentCalc() {
               <label className="block text-[9px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1" style={{ color: "var(--color-text-low)" }}><Percent className="w-2.5 h-2.5" /> Juros/mês</label>
               <select value={taxa} onChange={e => setTaxa(e.target.value)}
                 className="w-full px-2 py-1.5 rounded-lg text-xs font-semibold outline-none"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--color-border)", color: "var(--color-text)" }}>
+                style={{ background: "var(--color-hairline)", border: "1px solid var(--color-border)", color: "var(--color-text)" }}>
                 {["0","0.5","1","1.5","2","2.5","3","3.5","4","5"].map(v => <option key={v} value={v}>{v}%</option>)}
               </select>
             </div>
@@ -82,7 +83,7 @@ function InstallmentCalc() {
                 <span className="text-xs font-semibold num" style={{ color: "var(--color-text)" }}>{currency(total)}</span>
               </div>
               {juros > 0.01 && (
-                <div className="flex justify-between items-center pt-1" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="flex justify-between items-center pt-1" style={{ borderTop: "1px solid var(--color-hairline)" }}>
                   <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Juros totais</span>
                   <span className="text-xs font-semibold text-rose-400 num">+{currency(juros)}</span>
                 </div>
@@ -143,6 +144,40 @@ function RecurringWidget({ amount, count }: { amount: number; count: number }) {
   );
 }
 
+// ─── SLIDING ACTIVE INDICATOR ─────────────────────────────────────────────────
+// Animates a background "pill" behind the active nav link with GSAP instead of
+// hard-cutting between routes — it measures the active link's box and tweens
+// the indicator to match, sliding through the list as the user navigates.
+function useActivePill(activePath: string, deps: React.DependencyList) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pillRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const pill = pillRef.current;
+    const active = itemRefs.current[activePath];
+    if (!container || !pill) return;
+    if (!active) {
+      gsap.to(pill, { opacity: 0, duration: 0.2 });
+      return;
+    }
+    const cRect = container.getBoundingClientRect();
+    const aRect = active.getBoundingClientRect();
+    const targetY = aRect.top - cRect.top;
+    // Snap on first paint (no stale slide-in from y:0), then tween afterwards.
+    if (pill.dataset.ready !== "1") {
+      gsap.set(pill, { y: targetY, height: aRect.height, opacity: 1 });
+      pill.dataset.ready = "1";
+    } else {
+      gsap.to(pill, { y: targetY, height: aRect.height, opacity: 1, duration: 0.45, ease: "power3.out" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePath, ...deps]);
+
+  return { containerRef, pillRef, itemRefs };
+}
+
 // ─── MAIN LAYOUT ──────────────────────────────────────────────────────────────
 export default function AppLayout() {
   const { theme, toggleTheme } = useDashboardTheme();
@@ -152,6 +187,10 @@ export default function AppLayout() {
   const nav = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("finix_sidebar_collapsed") === "1";
+  });
   const [alertCount, setAlertCount] = useState(0);
   const [stats, setStats] = useState<SidebarStats | null>(null);
   const [closestGoal, setClosestGoal] = useState<GoalItem | null>(null);
@@ -160,6 +199,9 @@ export default function AppLayout() {
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quickForm, setQuickForm] = useState({ title: "", amount: "", type: "EXPENSE" as "INCOME" | "EXPENSE", category: "Outros" });
   const [quickLoading, setQuickLoading] = useState(false);
+
+  const sidebarScopeRef = useRef<HTMLDivElement>(null);
+  const { containerRef: navContainerRef, pillRef, itemRefs } = useActivePill(location.pathname, [collapsed, open]);
 
   React.useEffect(() => {
     if (!user) return;
@@ -212,6 +254,30 @@ export default function AppLayout() {
       nav("/onboarding", { replace: true });
     }
   }, [user?.plan, user?.hasCompletedOnboarding, user?.role, nav]);
+
+  // Entrance choreography: logo, balance widget and nav groups stagger in on
+  // first mount. Runs once — route changes don't replay it.
+  useEffect(() => {
+    if (!sidebarScopeRef.current) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      tl.from("[data-reveal='logo']", { opacity: 0, x: -12, duration: 0.5 })
+        .from("[data-reveal='balance']", { opacity: 0, y: 10, duration: 0.5 }, "-=0.25")
+        .from("[data-reveal='quickadd']", { opacity: 0, y: 8, duration: 0.4 }, "-=0.3")
+        .from("[data-reveal='navgroup']", { opacity: 0, x: -8, duration: 0.35, stagger: 0.06 }, "-=0.2")
+        .from("[data-reveal='tools']", { opacity: 0, y: 8, duration: 0.4 }, "-=0.15");
+    }, sidebarScopeRef);
+    return () => ctx.revert();
+  }, []);
+
+  const toggleCollapsed = () => {
+    setCollapsed(c => {
+      const next = !c;
+      window.localStorage.setItem("finix_sidebar_collapsed", next ? "1" : "0");
+      return next;
+    });
+  };
 
   if (!user) return null;
 
@@ -271,22 +337,39 @@ export default function AppLayout() {
     },
   ];
 
+  const sidebarWidth = collapsed ? "w-[76px]" : "w-64";
+
   const Sidebar = (
-    <aside className="w-64 shrink-0 h-full flex flex-col" style={{ background: "var(--color-surface)", borderRight: "1px solid var(--color-border)" }}>
+    <aside ref={sidebarScopeRef} className={`${sidebarWidth} shrink-0 h-full flex flex-col relative transition-[width] duration-300 ease-out`}
+      style={{ background: "var(--color-surface)", borderRight: "1px solid var(--color-border)" }}>
+
+      {/* Collapse toggle (desktop only) */}
+      <button
+        onClick={toggleCollapsed}
+        title={collapsed ? "Expandir menu" : "Recolher menu"}
+        className="hidden lg:flex absolute -right-3 top-7 z-10 w-6 h-6 rounded-full items-center justify-center transition-transform hover:scale-110 active:scale-95"
+        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", color: "var(--color-text-muted)", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}>
+        {collapsed ? <PanelLeftOpen className="w-3.5 h-3.5" /> : <PanelLeftClose className="w-3.5 h-3.5" />}
+      </button>
 
       {/* Logo */}
-      <div className="px-5 pt-5 pb-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+      <div data-reveal="logo" className="px-5 pt-5 pb-4 overflow-hidden" style={{ borderBottom: "1px solid var(--color-border)" }}>
         <div className="flex items-center gap-3">
-          <Logo src={user.plan === "PRO" ? user.companyLogo : undefined} altText={user.plan === "PRO" ? user.companyName || "Logo" : undefined} showText={user.plan !== "PRO"} size={34} />
-          {user.plan === "PRO" && user.companyName && (
+          <Logo src={user.plan === "PRO" ? user.companyLogo : undefined} altText={user.plan === "PRO" ? user.companyName || "Logo" : undefined} showText={false} size={34} />
+          {!collapsed && (user.plan === "PRO" && user.companyName ? (
             <span className="text-sm font-bold truncate" style={{ color: "var(--color-text)" }}>{user.companyName}</span>
-          )}
+          ) : (
+            <span className="font-display font-extrabold text-[1.15rem] tracking-tight whitespace-nowrap">
+              <span style={{ color: "var(--color-text)" }}>FINI</span>
+              <span className="bg-gradient-to-r from-brand-blue to-brand-purple bg-clip-text text-transparent">X</span>
+            </span>
+          ))}
         </div>
       </div>
 
       {/* Balance widget */}
-      {stats && (
-        <div className="mx-3 mt-3 rounded-2xl p-3.5" style={{ background: "linear-gradient(135deg,rgba(124,58,237,0.12),rgba(99,102,241,0.08))", border: "1px solid rgba(124,58,237,0.2)" }}>
+      {stats && !collapsed && (
+        <div data-reveal="balance" className="mx-3 mt-3 rounded-2xl p-3.5 relative overflow-hidden" style={{ background: "linear-gradient(135deg,rgba(124,58,237,0.12),rgba(99,102,241,0.08))", border: "1px solid rgba(124,58,237,0.2)" }}>
           <div className="flex items-center justify-between mb-0.5">
             <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "rgba(196,181,253,0.7)" }}>Saldo total</span>
             <BarChart3 className="w-3 h-3 text-violet-400 opacity-60" />
@@ -304,7 +387,7 @@ export default function AppLayout() {
               <div className="text-[11px] font-bold text-rose-400 num">{currency(stats.expense)}</div>
             </div>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden mb-1" style={{ background: "rgba(255,255,255,0.08)" }}>
+          <div className="h-1.5 rounded-full overflow-hidden mb-1" style={{ background: "var(--color-hairline-strong)" }}>
             <div className="h-full rounded-full transition-all duration-1000 relative"
               style={{ width: `${stats.spendPct}%`, background: stats.spendPct > 85 ? "linear-gradient(90deg,#f59e0b,#ef4444)" : stats.spendPct > 60 ? "linear-gradient(90deg,#22c55e,#f59e0b)" : "linear-gradient(90deg,#6366f1,#22c55e)" }}>
             </div>
@@ -316,57 +399,69 @@ export default function AppLayout() {
       )}
 
       {/* Quick add */}
-      <div className="px-3 mt-2.5">
-        <button onClick={() => setQuickAddOpen(true)}
+      <div data-reveal="quickadd" className="px-3 mt-2.5">
+        <button onClick={() => setQuickAddOpen(true)} title="Nova transação"
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
           style={{ background: "linear-gradient(135deg,#7c3aed,#6366f1)", boxShadow: "0 4px 16px rgba(124,58,237,0.35)" }}>
-          <Plus className="w-3.5 h-3.5" /> Nova transação
+          <Plus className="w-3.5 h-3.5 shrink-0" /> {!collapsed && "Nova transação"}
         </button>
       </div>
 
       {/* Navigation groups */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 scrollbar-hide">
-        {navGroups.map((group, gi) => (
-          <div key={group.label} className={gi > 0 ? "mt-4" : ""}>
-            <div className="px-2 mb-1 text-[9px] font-black uppercase tracking-widest" style={{ color: "var(--color-text-low)" }}>
-              {group.label}
-            </div>
-            {group.items.map((l) => (
-              <NavLink key={l.to} to={l.to} data-testid={(l as any).testid}
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all mb-0.5"
-                style={({ isActive }) => isActive
-                  ? { background: "rgba(124,58,237,0.15)", color: "#c4b5fd", borderLeft: "2px solid #7c3aed", paddingLeft: "10px" }
-                  : { color: "var(--color-text-muted)" }
-                }>
-                <div className="flex items-center gap-2.5">
-                  <l.icon className="w-4 h-4 shrink-0" />
-                  <span>{l.label}</span>
-                </div>
-                {(l as any).badge ? (
-                  <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                    {(l as any).badge}
-                  </span>
-                ) : null}
-              </NavLink>
-            ))}
-          </div>
-        ))}
+        <div ref={navContainerRef} className="relative">
+          <div ref={pillRef} data-ready="0"
+            className="absolute inset-x-0 rounded-xl pointer-events-none opacity-0"
+            style={{ background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.3)", top: 0, left: 8, right: 8, willChange: "transform,height" }} />
 
-        {/* Financial tools section */}
-        <div className="mt-4">
-          <div className="px-2 mb-1 text-[9px] font-black uppercase tracking-widest" style={{ color: "var(--color-text-low)" }}>
-            Ferramentas
-          </div>
-          <InstallmentCalc />
-          {closestGoal && <GoalMiniWidget goal={closestGoal} />}
-          <RecurringWidget amount={recurringTotal} count={recurringCount} />
+          {navGroups.map((group, gi) => (
+            <div key={group.label} data-reveal="navgroup" className={gi > 0 ? "mt-4" : ""}>
+              {!collapsed && (
+                <div className="px-2 mb-1 text-[9px] font-black uppercase tracking-widest" style={{ color: "var(--color-text-low)" }}>
+                  {group.label}
+                </div>
+              )}
+              {group.items.map((l) => (
+                <NavLink key={l.to} to={l.to} data-testid={(l as any).testid}
+                  ref={(el) => { itemRefs.current[l.to] = el; }}
+                  onClick={() => setOpen(false)}
+                  title={collapsed ? l.label : undefined}
+                  className={`relative z-[1] flex items-center ${collapsed ? "justify-center" : "justify-between"} gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors mb-0.5`}
+                  style={({ isActive }) => isActive
+                    ? { color: "#c4b5fd" }
+                    : { color: "var(--color-text-muted)" }
+                  }>
+                  <div className={`flex items-center gap-2.5 ${collapsed ? "" : "min-w-0"}`}>
+                    <l.icon className="w-4 h-4 shrink-0" />
+                    {!collapsed && <span className="truncate">{l.label}</span>}
+                  </div>
+                  {(l as any).badge ? (
+                    <span className={`inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold text-white ${collapsed ? "absolute -top-1 -right-1" : ""}`}>
+                      {(l as any).badge}
+                    </span>
+                  ) : null}
+                </NavLink>
+              ))}
+            </div>
+          ))}
+
+          {/* Financial tools section */}
+          {!collapsed && (
+            <div data-reveal="navgroup" className="mt-4">
+              <div className="px-2 mb-1 text-[9px] font-black uppercase tracking-widest" style={{ color: "var(--color-text-low)" }}>
+                Ferramentas
+              </div>
+              <InstallmentCalc />
+              {closestGoal && <GoalMiniWidget goal={closestGoal} />}
+              <RecurringWidget amount={recurringTotal} count={recurringCount} />
+            </div>
+          )}
         </div>
       </nav>
 
       {/* User + controls */}
-      <div className="p-3 space-y-2" style={{ borderTop: "1px solid var(--color-border)" }}>
-        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl transition-colors" style={{ background: "var(--color-surface-strong)" }}>
+      <div data-reveal="tools" className="p-3 space-y-2" style={{ borderTop: "1px solid var(--color-border)" }}>
+        <div className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl transition-colors ${collapsed ? "justify-center" : ""}`} style={{ background: "var(--color-surface-strong)" }}>
           {user.photo ? (
             <img src={user.photo} alt={user.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
           ) : (
@@ -375,20 +470,24 @@ export default function AppLayout() {
               {user.name.charAt(0).toUpperCase()}
             </div>
           )}
-          <div className="min-w-0 flex-1">
-            <div className="text-xs font-semibold truncate" style={{ color: "var(--color-text)" }}>{user.name}</div>
-            <div className="text-[10px] truncate" style={{ color: "var(--color-text-low)" }}>{user.email}</div>
-          </div>
-          {user.plan && (
-            <span data-testid="plan-badge"
-              className={`shrink-0 text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${user.plan === "PRO" ? "text-violet-300" : user.plan === "BASIC" ? "text-blue-300" : "text-zinc-500"}`}
-              style={{ background: user.plan === "PRO" ? "rgba(124,58,237,0.18)" : user.plan === "BASIC" ? "rgba(37,99,235,0.18)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              {user.plan}
-            </span>
+          {!collapsed && (
+            <>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-semibold truncate" style={{ color: "var(--color-text)" }}>{user.name}</div>
+                <div className="text-[10px] truncate" style={{ color: "var(--color-text-low)" }}>{user.email}</div>
+              </div>
+              {user.plan && (
+                <span data-testid="plan-badge"
+                  className={`shrink-0 text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${user.plan === "PRO" ? "text-violet-300" : user.plan === "BASIC" ? "text-blue-300" : "text-zinc-500"}`}
+                  style={{ background: user.plan === "PRO" ? "rgba(124,58,237,0.18)" : user.plan === "BASIC" ? "rgba(37,99,235,0.18)" : "var(--color-hairline)", border: "1px solid var(--color-hairline-strong)" }}>
+                  {user.plan}
+                </span>
+              )}
+            </>
           )}
         </div>
 
-        <div className="flex gap-1.5">
+        <div className={`flex gap-1.5 ${collapsed ? "flex-col" : ""}`}>
           {alertCount > 0 && (
             <button onClick={() => nav("/app/alerts")} title="Alertas"
               className="relative p-2 rounded-lg transition-colors hover:bg-rose-500/10"
@@ -398,14 +497,14 @@ export default function AppLayout() {
             </button>
           )}
           <button data-testid="theme-toggle" onClick={toggleTheme} title="Tema"
-            className="p-2 rounded-lg transition-colors hover:bg-white/5"
+            className="p-2 rounded-lg transition-colors hover:bg-[var(--color-hairline)]"
             style={{ color: "var(--color-text-muted)", border: "1px solid var(--color-border)" }}>
             {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
           </button>
-          <button data-testid="logout-btn" onClick={logout}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold text-rose-400 transition-colors hover:bg-rose-500/8"
+          <button data-testid="logout-btn" onClick={logout} title="Sair"
+            className={`${collapsed ? "" : "flex-1"} flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold text-rose-400 transition-colors hover:bg-rose-500/8`}
             style={{ border: "1px solid var(--color-border)" }}>
-            <LogOut className="w-3.5 h-3.5" /> Sair
+            <LogOut className="w-3.5 h-3.5" /> {!collapsed && "Sair"}
           </button>
         </div>
       </div>
@@ -424,7 +523,7 @@ export default function AppLayout() {
                 <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Registro rápido</p>
               </div>
               <button onClick={() => setQuickAddOpen(false)}
-                className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5"
+                className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--color-hairline)]"
                 style={{ color: "var(--color-text-low)" }}><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleQuickAdd} className="space-y-3">
@@ -462,7 +561,7 @@ export default function AppLayout() {
       )}
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="lg:hidden sticky top-0 z-30 backdrop-blur px-4 py-3 flex items-center justify-between"
-          style={{ background: "rgba(9,9,11,0.85)", borderBottom: "1px solid var(--color-border)" }}>
+          style={{ background: "var(--color-surface)", borderBottom: "1px solid var(--color-border)" }}>
           <button data-testid="open-sidebar" onClick={() => setOpen(true)} className="p-2 rounded-lg" style={{ color: "var(--color-text-muted)" }}>
             <Menu className="w-5 h-5" />
           </button>
