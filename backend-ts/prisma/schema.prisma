@@ -48,6 +48,10 @@ model User {
   installments        Installment[]
   financialAlerts     FinancialAlert[]
   refreshTokens       RefreshToken[]
+  accounts            Account[]
+  creditCards         CreditCard[]
+  contacts            Contact[]
+  splitExpenses       SplitExpense[]
 
   @@map("users")
 }
@@ -84,17 +88,96 @@ model Transaction {
   totalInstallments  Int?
   totalAmount        Float?
   installmentId      String?
+  accountId          String?
+  cardId             String?
   currency           String    @default("BRL")
   dueDate            DateTime?
   createdAt          DateTime  @default(now())
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  installment Installment? @relation(fields: [installmentId], references: [id], onDelete: SetNull)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  installment   Installment?    @relation(fields: [installmentId], references: [id], onDelete: SetNull)
+  account       Account?        @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  card          CreditCard?     @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  splitExpenses SplitExpense[]
 
   @@index([userId])
   @@index([userId, date])
   @@index([installmentId])
+  @@index([accountId])
+  @@index([cardId])
   @@map("transactions")
+}
+
+model Account {
+  id         String   @id @default(uuid())
+  userId     String
+  name       String
+  type       String   @default("corrente")
+  color      String?  @default("#2563eb")
+  isDefault  Boolean  @default(false)
+  archived   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model CreditCard {
+  id         String   @id @default(uuid())
+  userId     String
+  name       String
+  brand      String?
+  limit      Float    @default(0)
+  closingDay Int      @default(1)
+  dueDay     Int      @default(10)
+  color      String?  @default("#7c3aed")
+  archived   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("credit_cards")
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  email     String?
+  phone     String?
+  color     String?  @default("#f59e0b")
+  createdAt DateTime @default(now())
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  splitExpenses SplitExpense[]
+
+  @@index([userId])
+  @@map("contacts")
+}
+
+model SplitExpense {
+  id            String    @id @default(uuid())
+  userId        String
+  transactionId String
+  contactId     String
+  amount        Float
+  settled       Boolean   @default(false)
+  settledAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  contact     Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([transactionId])
+  @@index([contactId])
+  @@map("split_expenses")
 }
 
 model Goal {

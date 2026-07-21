@@ -24,6 +24,9 @@ import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Goals from "./pages/Goals";
 import Budgets from "./pages/Budgets";
+import Accounts from "./pages/Accounts";
+import Cards from "./pages/Cards";
+import Contacts from "./pages/Contacts";
 import Plans from "./pages/Plans";
 import Calendar from "./pages/Calendar";
 import Alerts from "./pages/Alerts";
@@ -186,6 +189,9 @@ export default function App() {
               <Route path="transactions" element={<Transactions />} />
               <Route path="goals" element={<Goals />} />
               <Route path="budgets" element={<Budgets />} />
+              <Route path="accounts" element={<Accounts />} />
+              <Route path="cards" element={<Cards />} />
+              <Route path="contacts" element={<Contacts />} />
               <Route path="calendar" element={<Calendar />} />
               <Route path="alerts" element={<Alerts />} />
               <Route path="categories" element={<Categories />} />

@@ -12,6 +12,7 @@ import {
   RefreshCw,
   CheckCircle2,
   Clock,
+  Split,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -19,10 +20,11 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
-import { Budget, Transaction } from "../types";
+import { Budget, Transaction, Contact } from "../types";
 import { currency, dateBR, dateISOForInput } from "../utils/format";
 import { useAuth } from "../contexts/AuthContext";
 import { UpgradeModal } from "../components/UpgradeModal";
+import { SplitModal } from "../components/SplitModal";
 
 const DEFAULT_CATEGORIES = [
   "Alimentação",
@@ -56,6 +58,8 @@ const schema = yup.object({
     .default("pix"),
   installments: yup.number().min(1).max(60).default(1),
   currency: yup.string().oneOf(["BRL", "USD", "EUR", "GBP"]).default("BRL"),
+  accountId: yup.string().nullable().default(null),
+  cardId: yup.string().nullable().default(null),
   dueDate: yup.string().nullable().default(null),
 });
 type Form = yup.InferType<typeof schema>;
@@ -111,6 +115,10 @@ export default function Transactions() {
   const [userCategories, setUserCategories] =
     useState<string[]>(DEFAULT_CATEGORIES);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([]);
+  const [cards, setCards] = useState<{ id: string; name: string }[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [splitting, setSplitting] = useState<Transaction | null>(null);
   const isFree = user?.plan === "FREE";
 
   const effectiveCategories =
@@ -164,6 +172,12 @@ export default function Transactions() {
   useEffect(() => {
     fetchCategories();
   }, [user]);
+  useEffect(() => {
+    if (isFree) return;
+    api.get("/api/accounts").then((r) => setAccounts(r.data)).catch(() => {});
+    api.get("/api/cards").then((r) => setCards(r.data)).catch(() => {});
+    api.get("/api/contacts").then((r) => setContacts(r.data)).catch(() => {});
+  }, [isFree]);
 
   const openUpgrade = () => setUpgradeOpen(true);
   const openNew = () => {
@@ -399,6 +413,16 @@ export default function Transactions() {
                   </div>
 
                   <div className="flex gap-1 items-center">
+                    {contacts.length > 0 && t.type === "EXPENSE" && !isInstallment && (
+                      <button
+                        className="btn-ghost !p-2"
+                        onClick={() => setSplitting(t)}
+                        data-testid={`split-${t.id}`}
+                        title="Dividir com contatos"
+                      >
+                        <Split className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
                       className="btn-ghost !p-2"
                       onClick={() => openEdit(t)}
@@ -430,12 +454,24 @@ export default function Transactions() {
             editing={editing}
             budgets={budgets}
             categories={effectiveCategories}
+            accounts={accounts}
+            cards={cards}
             onClose={() => setOpen(false)}
             onSaved={() => {
               setOpen(false);
               fetchData();
               fetchBudgets();
             }}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {splitting && (
+          <SplitModal
+            transaction={splitting}
+            contacts={contacts}
+            onClose={() => setSplitting(null)}
+            onSaved={() => setSplitting(null)}
           />
         )}
       </AnimatePresence>
@@ -450,10 +486,14 @@ function TxModal({
   onSaved,
   budgets,
   categories,
+  accounts,
+  cards,
 }: {
   editing: Transaction | null;
   budgets: Budget[];
   categories: string[];
+  accounts: { id: string; name: string }[];
+  cards: { id: string; name: string }[];
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -488,6 +528,8 @@ function TxModal({
           paymentMethod: editing.paymentMethod || "pix",
           installments: editing.installments || 1,
           currency: editing.currency || "BRL",
+          accountId: editing.accountId || null,
+          cardId: editing.cardId || null,
           dueDate: (editing as any).dueDate
             ? dateISOForInput((editing as any).dueDate)
             : null,
@@ -502,6 +544,8 @@ function TxModal({
           paymentMethod: "pix",
           installments: 1,
           currency: "BRL",
+          accountId: null,
+          cardId: null,
           dueDate: null,
         } as any),
   });
@@ -725,6 +769,37 @@ function TxModal({
               </select>
             </div>
           </div>
+
+          {(accounts.length > 0 || (watchedPaymentMethod === "credito" && cards.length > 0)) && (
+            <div className="grid grid-cols-2 gap-3">
+              {accounts.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-text dark:text-muted">
+                    Conta
+                  </label>
+                  <select {...register("accountId")} className="input mt-1" data-testid="tx-account">
+                    <option value="">Sem conta</option>
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {watchedPaymentMethod === "credito" && cards.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-text dark:text-muted">
+                    Cartão
+                  </label>
+                  <select {...register("cardId")} className="input mt-1" data-testid="tx-card">
+                    <option value="">Sem cartão</option>
+                    {cards.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
 
           {watchedPaymentMethod === "credito" && (
             <div>

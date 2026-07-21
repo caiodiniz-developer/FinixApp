@@ -41,16 +41,16 @@ interface AlertItem {
 interface TopExpense { id: string; title: string; amount: number; category: string; date: string; }
 
 // ─── QUICK-ADD MODAL ──────────────────────────────────────────────────────────
-function QuickAddModal({ open, onClose, onAdded, categories }: {
-  open: boolean; onClose: () => void; onAdded: () => void; categories: string[];
+function QuickAddModal({ open, onClose, onAdded, categories, accounts }: {
+  open: boolean; onClose: () => void; onAdded: () => void; categories: string[]; accounts: { id: string; name: string }[];
 }) {
-  const [form, setForm] = useState({ title: "", amount: "", type: "EXPENSE" as "INCOME" | "EXPENSE", category: categories[0] || "Outros", date: new Date().toISOString().split("T")[0] });
+  const [form, setForm] = useState({ title: "", amount: "", type: "EXPENSE" as "INCOME" | "EXPENSE", category: categories[0] || "Outros", date: new Date().toISOString().split("T")[0], accountId: "" });
   const [loading, setLoading] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post("/api/transactions", { ...form, amount: parseFloat(form.amount), paymentMethod: "pix", installments: 1 });
+      await api.post("/api/transactions", { ...form, amount: parseFloat(form.amount), accountId: form.accountId || null, paymentMethod: "pix", installments: 1 });
       toast.success("Transação adicionada!");
       onAdded(); onClose();
       setForm(f => ({ ...f, title: "", amount: "" }));
@@ -98,6 +98,12 @@ function QuickAddModal({ open, onClose, onAdded, categories }: {
           <select className="input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
             {(categories.length ? categories : ["Outros"]).map(c => <option key={c}>{c}</option>)}
           </select>
+          {accounts.length > 0 && (
+            <select className="input" value={form.accountId} onChange={e => setForm(f => ({ ...f, accountId: e.target.value }))}>
+              <option value="">Sem conta</option>
+              {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          )}
           <button type="submit" disabled={loading}
             className="w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
             style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 4px 20px rgba(16,185,129,0.3)" }}>
@@ -280,6 +286,7 @@ export default function Dashboard() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([]);
   const [calDays, setCalDays] = useState<CalendarDay[]>([]);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -310,13 +317,14 @@ export default function Dashboard() {
     const mp = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
     Promise.allSettled([
       api.get("/api/alerts"), api.get("/api/budgets"), api.get("/api/goals"),
-      api.get("/api/categories"), api.get(`/api/calendar?month=${mp}`),
-    ]).then(([al, bu, go, ca, cl]) => {
+      api.get("/api/categories"), api.get(`/api/calendar?month=${mp}`), api.get("/api/accounts"),
+    ]).then(([al, bu, go, ca, cl, ac]) => {
       if (al.status === "fulfilled") setAlerts(al.value.data);
       if (bu.status === "fulfilled") setBudgets(bu.value.data.slice(0, 4));
       if (go.status === "fulfilled") setGoals(go.value.data.slice(0, 3));
       if (ca.status === "fulfilled") setCategories(ca.value.data.map((c: any) => c.name));
       if (cl.status === "fulfilled") setCalDays(cl.value.data.dailySummary || []);
+      if (ac.status === "fulfilled") setAccounts(ac.value.data);
     });
   }, [user]);
 
@@ -1037,7 +1045,7 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      <QuickAddModal open={quickAddOpen} onClose={() => setQuickAddOpen(false)} onAdded={fetchAll} categories={categories} />
+      <QuickAddModal open={quickAddOpen} onClose={() => setQuickAddOpen(false)} onAdded={fetchAll} categories={categories} accounts={accounts} />
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
     </div>
   );

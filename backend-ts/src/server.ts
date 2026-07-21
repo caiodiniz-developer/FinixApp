@@ -420,6 +420,8 @@ const transactionSchema = z.object({
   paymentMethod: z.enum(["credito", "debito", "pix"]).optional().default("pix"),
   installments: z.number().min(1).max(60).optional().default(1),
   currency: z.enum(["BRL", "USD", "EUR", "GBP"]).optional().default("BRL"),
+  accountId: z.string().optional().nullable(),
+  cardId: z.string().optional().nullable(),
   dueDate: z
     .string()
     .nullable()
@@ -459,6 +461,27 @@ const toLocalDateKey = (d: Date): string => {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+};
+
+// A card's "fatura" is a rolling window that closes on `closingDay` of each
+// month and opens the day after the previous closing — computed on read from
+// Transaction rows, never stored, same philosophy as budgets' `spent`.
+const cardStatementWindow = (closingDay: number, year: number, month0: number) => {
+  const closeDay = getSafeDueDay(year, month0, closingDay);
+  const end = new Date(year, month0, closeDay, 23, 59, 59, 999);
+  const prev = new Date(year, month0 - 1, 1);
+  const startDay = getSafeDueDay(prev.getFullYear(), prev.getMonth(), closingDay);
+  const start = new Date(prev.getFullYear(), prev.getMonth(), startDay + 1, 0, 0, 0, 0);
+  return { start, end };
+};
+
+const currentStatementMonth = (closingDay: number, ref: Date = new Date()) => {
+  const day = getSafeDueDay(ref.getFullYear(), ref.getMonth(), closingDay);
+  if (ref.getDate() > day) {
+    const next = new Date(ref.getFullYear(), ref.getMonth() + 1, 1);
+    return { year: next.getFullYear(), month0: next.getMonth() };
+  }
+  return { year: ref.getFullYear(), month0: ref.getMonth() };
 };
 
 const buildInstallmentSchedule = async (user: any, data: any) => {
@@ -525,6 +548,8 @@ const buildInstallmentSchedule = async (user: any, data: any) => {
       totalAmount: data.totalAmount,
       currency: "BRL",
       installmentId: installment.id,
+      accountId: data.accountId ?? null,
+      cardId: data.cardId ?? null,
     });
   }
 
@@ -569,6 +594,43 @@ const goalSchema = z.object({
 const budgetSchema = z.object({
   category: z.string(),
   limit: z.number().positive(),
+});
+
+const accountSchema = z.object({
+  name: z.string().min(1).max(80),
+  type: z
+    .enum(["corrente", "poupanca", "carteira", "investimento"])
+    .optional()
+    .default("corrente"),
+  color: z.string().optional(),
+  isDefault: z.boolean().optional().default(false),
+});
+
+const creditCardSchema = z.object({
+  name: z.string().min(1).max(80),
+  brand: z.string().optional().nullable(),
+  limit: z.number().min(0).optional().default(0),
+  closingDay: z.number().min(1).max(31),
+  dueDay: z.number().min(1).max(31),
+  color: z.string().optional(),
+});
+
+const contactSchema = z.object({
+  name: z.string().min(1).max(80),
+  email: z.string().email().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  color: z.string().optional(),
+});
+
+const splitExpenseCreateSchema = z.object({
+  splits: z
+    .array(
+      z.object({
+        contactId: z.string(),
+        amount: z.number().positive(),
+      }),
+    )
+    .min(1),
 });
 
 const profileUpdateSchema = z.object({
@@ -1040,6 +1102,8 @@ app.post("/api/transactions", authenticate, async (req, res) => {
         category: data.category,
         paymentMethod: data.paymentMethod,
         note: data.description,
+        accountId: data.accountId,
+        cardId: data.cardId,
       });
       return res.json(response.transactions);
     }
@@ -1511,6 +1575,343 @@ app.delete("/api/budgets/:id", authenticate, async (req, res) => {
   });
   if (deleted.count === 0)
     return res.status(404).json({ error: "Orçamento não encontrado" });
+  res.json({ ok: true });
+});
+
+// ============================================================================
+// ACCOUNTS
+// ============================================================================
+app.get("/api/accounts", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const accounts = await prisma.account.findMany({
+    where: { userId: user.id, archived: false },
+    orderBy: { createdAt: "asc" },
+  });
+  const transactions = await prisma.transaction.findMany({
+    where: { userId: user.id, accountId: { in: accounts.map((a) => a.id) } },
+    select: { accountId: true, amount: true, type: true },
+  });
+  const balanceByAccount: Record<string, number> = {};
+  transactions.forEach((t) => {
+    const delta = t.type === "INCOME" ? t.amount : -t.amount;
+    balanceByAccount[t.accountId as string] =
+      (balanceByAccount[t.accountId as string] || 0) + delta;
+  });
+  res.json(accounts.map((a) => ({ ...a, balance: balanceByAccount[a.id] || 0 })));
+});
+
+app.post("/api/accounts", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = accountSchema.parse(req.body);
+  const plan = PLANS[user.plan] || PLANS.FREE;
+  const count = await prisma.account.count({
+    where: { userId: user.id, archived: false },
+  });
+  if (count >= plan.accountsLimit)
+    return res.status(403).json({
+      error: `Plano ${plan.name} permite até ${plan.accountsLimit} contas. Faça upgrade.`,
+      upgrade: true,
+    });
+  const account = await prisma.account.create({
+    data: { ...data, id: uuidv4(), userId: user.id },
+  });
+  res.json(account);
+});
+
+app.put("/api/accounts/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = accountSchema.parse(req.body);
+  const updated = await prisma.account.updateMany({
+    where: { id: String(req.params.id), userId: user.id },
+    data,
+  });
+  if (updated.count === 0)
+    return res.status(404).json({ error: "Conta não encontrada" });
+  const account = await prisma.account.findUnique({
+    where: { id: String(req.params.id) },
+  });
+  res.json(account);
+});
+
+app.delete("/api/accounts/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const deleted = await prisma.account.deleteMany({
+    where: { id: String(req.params.id), userId: user.id },
+  });
+  if (deleted.count === 0)
+    return res.status(404).json({ error: "Conta não encontrada" });
+  res.json({ ok: true });
+});
+
+// ============================================================================
+// CREDIT CARDS (fatura computada on-the-fly, nunca armazenada)
+// ============================================================================
+app.get(
+  "/api/cards",
+  authenticate,
+  requireFeature("canUseCards"),
+  async (req, res) => {
+    const user = (req as any).user;
+    const cards = await prisma.creditCard.findMany({
+      where: { userId: user.id, archived: false },
+      orderBy: { createdAt: "asc" },
+    });
+    const now = new Date();
+    const result = await Promise.all(
+      cards.map(async (c) => {
+        const { year, month0 } = currentStatementMonth(c.closingDay, now);
+        const { start, end } = cardStatementWindow(c.closingDay, year, month0);
+        const txs = await prisma.transaction.findMany({
+          where: {
+            userId: user.id,
+            cardId: c.id,
+            paymentMethod: "credito",
+            date: { gte: start, lte: end },
+          },
+        });
+        const total = txs.reduce((s, t) => s + t.amount, 0);
+        const dueDate = new Date(year, month0, getSafeDueDay(year, month0, c.dueDay));
+        return {
+          ...c,
+          currentStatement: {
+            referenceMonth: `${year}-${String(month0 + 1).padStart(2, "0")}`,
+            total,
+            closingDate: end,
+            dueDate,
+            transactionsCount: txs.length,
+          },
+        };
+      }),
+    );
+    res.json(result);
+  },
+);
+
+app.post(
+  "/api/cards",
+  authenticate,
+  requireFeature("canUseCards"),
+  async (req, res) => {
+    const user = (req as any).user;
+    const data = creditCardSchema.parse(req.body);
+    const plan = PLANS[user.plan] || PLANS.FREE;
+    const count = await prisma.creditCard.count({
+      where: { userId: user.id, archived: false },
+    });
+    if (count >= plan.cardsLimit)
+      return res.status(403).json({
+        error: `Plano ${plan.name} permite até ${plan.cardsLimit} cartões. Faça upgrade.`,
+        upgrade: true,
+      });
+    const card = await prisma.creditCard.create({
+      data: { ...data, id: uuidv4(), userId: user.id },
+    });
+    res.json(card);
+  },
+);
+
+app.put(
+  "/api/cards/:id",
+  authenticate,
+  requireFeature("canUseCards"),
+  async (req, res) => {
+    const user = (req as any).user;
+    const data = creditCardSchema.parse(req.body);
+    const updated = await prisma.creditCard.updateMany({
+      where: { id: String(req.params.id), userId: user.id },
+      data,
+    });
+    if (updated.count === 0)
+      return res.status(404).json({ error: "Cartão não encontrado" });
+    const card = await prisma.creditCard.findUnique({
+      where: { id: String(req.params.id) },
+    });
+    res.json(card);
+  },
+);
+
+app.delete(
+  "/api/cards/:id",
+  authenticate,
+  requireFeature("canUseCards"),
+  async (req, res) => {
+    const user = (req as any).user;
+    const deleted = await prisma.creditCard.deleteMany({
+      where: { id: String(req.params.id), userId: user.id },
+    });
+    if (deleted.count === 0)
+      return res.status(404).json({ error: "Cartão não encontrado" });
+    res.json({ ok: true });
+  },
+);
+
+app.get(
+  "/api/cards/:id/statements/:month",
+  authenticate,
+  requireFeature("canUseCards"),
+  async (req, res) => {
+    const user = (req as any).user;
+    const card = await prisma.creditCard.findUnique({
+      where: { id: String(req.params.id) },
+    });
+    if (!card || card.userId !== user.id)
+      return res.status(404).json({ error: "Cartão não encontrado" });
+    const [yearStr, monthStr] = String(req.params.month).split("-");
+    const year = Number(yearStr);
+    const month0 = Number(monthStr) - 1;
+    if (!Number.isInteger(year) || !Number.isInteger(month0))
+      return res.status(400).json({ error: "Mês inválido, use o formato AAAA-MM" });
+    const { start, end } = cardStatementWindow(card.closingDay, year, month0);
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        userId: user.id,
+        cardId: card.id,
+        paymentMethod: "credito",
+        date: { gte: start, lte: end },
+      },
+      orderBy: { date: "asc" },
+    });
+    const total = transactions.reduce((s, t) => s + t.amount, 0);
+    const dueDate = new Date(year, month0, getSafeDueDay(year, month0, card.dueDay));
+    res.json({
+      referenceMonth: `${year}-${String(month0 + 1).padStart(2, "0")}`,
+      closingDate: end,
+      dueDate,
+      total,
+      transactions,
+    });
+  },
+);
+
+// ============================================================================
+// CONTACTS & SPLIT EXPENSES (rachar conta)
+// ============================================================================
+app.get("/api/contacts", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const contacts = await prisma.contact.findMany({
+    where: { userId: user.id },
+    orderBy: { name: "asc" },
+  });
+  const splits = await prisma.splitExpense.findMany({
+    where: { userId: user.id, settled: false },
+  });
+  const owedByContact: Record<string, number> = {};
+  splits.forEach((s) => {
+    owedByContact[s.contactId] = (owedByContact[s.contactId] || 0) + s.amount;
+  });
+  res.json(
+    contacts.map((c) => ({ ...c, totalOwed: owedByContact[c.id] || 0 })),
+  );
+});
+
+app.post("/api/contacts", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = contactSchema.parse(req.body);
+  const plan = PLANS[user.plan] || PLANS.FREE;
+  const count = await prisma.contact.count({ where: { userId: user.id } });
+  if (count >= plan.contactsLimit)
+    return res.status(403).json({
+      error: `Plano ${plan.name} permite até ${plan.contactsLimit} contatos. Faça upgrade.`,
+      upgrade: true,
+    });
+  const contact = await prisma.contact.create({
+    data: { ...data, id: uuidv4(), userId: user.id },
+  });
+  res.json(contact);
+});
+
+app.put("/api/contacts/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = contactSchema.parse(req.body);
+  const updated = await prisma.contact.updateMany({
+    where: { id: String(req.params.id), userId: user.id },
+    data,
+  });
+  if (updated.count === 0)
+    return res.status(404).json({ error: "Contato não encontrado" });
+  const contact = await prisma.contact.findUnique({
+    where: { id: String(req.params.id) },
+  });
+  res.json(contact);
+});
+
+app.delete("/api/contacts/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const deleted = await prisma.contact.deleteMany({
+    where: { id: String(req.params.id), userId: user.id },
+  });
+  if (deleted.count === 0)
+    return res.status(404).json({ error: "Contato não encontrado" });
+  res.json({ ok: true });
+});
+
+app.get("/api/contacts/:id/splits", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const contact = await prisma.contact.findUnique({
+    where: { id: String(req.params.id) },
+  });
+  if (!contact || contact.userId !== user.id)
+    return res.status(404).json({ error: "Contato não encontrado" });
+  const splits = await prisma.splitExpense.findMany({
+    where: { userId: user.id, contactId: contact.id },
+    include: { transaction: true },
+    orderBy: { createdAt: "desc" },
+  });
+  res.json(splits);
+});
+
+app.post("/api/transactions/:id/split", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const tx = await prisma.transaction.findUnique({
+    where: { id: String(req.params.id) },
+  });
+  if (!tx || tx.userId !== user.id)
+    return res.status(404).json({ error: "Transação não encontrada" });
+  const data = splitExpenseCreateSchema.parse(req.body);
+  const contactIds = data.splits.map((s) => s.contactId);
+  const ownedCount = await prisma.contact.count({
+    where: { id: { in: contactIds }, userId: user.id },
+  });
+  if (ownedCount !== new Set(contactIds).size)
+    return res.status(400).json({ error: "Contato inválido" });
+  await prisma.splitExpense.createMany({
+    data: data.splits.map((s) => ({
+      id: uuidv4(),
+      userId: user.id,
+      transactionId: tx.id,
+      contactId: s.contactId,
+      amount: s.amount,
+    })),
+  });
+  const splits = await prisma.splitExpense.findMany({
+    where: { transactionId: tx.id, userId: user.id },
+    include: { contact: true },
+  });
+  res.json(splits);
+});
+
+app.put("/api/split-expenses/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const settled = Boolean(req.body?.settled);
+  const updated = await prisma.splitExpense.updateMany({
+    where: { id: String(req.params.id), userId: user.id },
+    data: { settled, settledAt: settled ? new Date() : null },
+  });
+  if (updated.count === 0)
+    return res.status(404).json({ error: "Registro não encontrado" });
+  const split = await prisma.splitExpense.findUnique({
+    where: { id: String(req.params.id) },
+  });
+  res.json(split);
+});
+
+app.delete("/api/split-expenses/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const deleted = await prisma.splitExpense.deleteMany({
+    where: { id: String(req.params.id), userId: user.id },
+  });
+  if (deleted.count === 0)
+    return res.status(404).json({ error: "Registro não encontrado" });
   res.json({ ok: true });
 });
 

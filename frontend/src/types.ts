@@ -37,7 +37,68 @@ export interface Transaction {
   totalInstallments?: number;
   totalAmount?: number;
   currency?: "BRL" | "USD" | "EUR" | "GBP";
+  accountId?: string | null;
+  cardId?: string | null;
   createdAt: string;
+}
+
+export interface Account {
+  id: string;
+  userId: string;
+  name: string;
+  type: "corrente" | "poupanca" | "carteira" | "investimento";
+  color?: string;
+  isDefault: boolean;
+  archived: boolean;
+  balance: number;
+  createdAt: string;
+}
+
+export interface CardStatement {
+  referenceMonth: string;
+  total: number;
+  closingDate: string;
+  dueDate: string;
+  transactionsCount?: number;
+  transactions?: Transaction[];
+}
+
+export interface CreditCard {
+  id: string;
+  userId: string;
+  name: string;
+  brand?: string | null;
+  limit: number;
+  closingDay: number;
+  dueDay: number;
+  color?: string;
+  archived: boolean;
+  currentStatement: CardStatement;
+  createdAt: string;
+}
+
+export interface Contact {
+  id: string;
+  userId: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  color?: string;
+  totalOwed: number;
+  createdAt: string;
+}
+
+export interface SplitExpense {
+  id: string;
+  userId: string;
+  transactionId: string;
+  contactId: string;
+  amount: number;
+  settled: boolean;
+  settledAt?: string | null;
+  createdAt: string;
+  contact?: Contact;
+  transaction?: Transaction;
 }
 
 export interface CalendarDay {

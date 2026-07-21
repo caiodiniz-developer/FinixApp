@@ -6,6 +6,7 @@ import {
   CalendarDays, Tag, Plus, TrendingUp, TrendingDown, X,
   BarChart3, Calculator, ChevronDown, ChevronUp, Percent,
   Hash, Repeat, PiggyBank, PanelLeftClose, PanelLeftOpen,
+  Landmark, CreditCard as CardIcon, Users,
 } from "lucide-react";
 import { Logo } from "../components/Logo";
 import { useAuth, useAutoRefreshUser } from "../contexts/AuthContext";
@@ -197,8 +198,9 @@ export default function AppLayout() {
   const [recurringTotal, setRecurringTotal] = useState(0);
   const [recurringCount, setRecurringCount] = useState(0);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [quickForm, setQuickForm] = useState({ title: "", amount: "", type: "EXPENSE" as "INCOME" | "EXPENSE", category: "Outros" });
+  const [quickForm, setQuickForm] = useState({ title: "", amount: "", type: "EXPENSE" as "INCOME" | "EXPENSE", category: "Outros", accountId: "" });
   const [quickLoading, setQuickLoading] = useState(false);
+  const [quickAccounts, setQuickAccounts] = useState<{ id: string; name: string }[]>([]);
 
   const sidebarScopeRef = useRef<HTMLDivElement>(null);
   const { containerRef: navContainerRef, pillRef, itemRefs } = useActivePill(location.pathname, [collapsed, open]);
@@ -208,6 +210,11 @@ export default function AppLayout() {
     api.get("/api/alerts").then(r => setAlertCount(r.data.count || 0)).catch(() => {});
     const t = setInterval(() => api.get("/api/alerts").then(r => setAlertCount(r.data.count || 0)).catch(() => {}), 60000);
     return () => clearInterval(t);
+  }, [user]);
+
+  React.useEffect(() => {
+    if (!user) return;
+    api.get("/api/accounts").then(r => setQuickAccounts(r.data || [])).catch(() => {});
   }, [user]);
 
   React.useEffect(() => {
@@ -296,11 +303,12 @@ export default function AppLayout() {
     try {
       await api.post("/api/transactions", {
         ...quickForm, amount: parseFloat(quickForm.amount),
+        accountId: quickForm.accountId || null,
         paymentMethod: "pix", installments: 1,
         date: new Date().toISOString().split("T")[0],
       });
       setQuickAddOpen(false);
-      setQuickForm({ title: "", amount: "", type: "EXPENSE", category: "Outros" });
+      setQuickForm({ title: "", amount: "", type: "EXPENSE", category: "Outros", accountId: "" });
       refreshStats();
     } catch { }
     finally { setQuickLoading(false); }
@@ -315,8 +323,11 @@ export default function AppLayout() {
       label: "Finanças",
       items: [
         { to: "/app/transactions", icon: ArrowLeftRight, label: "Transações", testid: "nav-transactions" },
+        { to: "/app/accounts", icon: Landmark, label: "Contas", testid: "nav-accounts" },
+        { to: "/app/cards", icon: CardIcon, label: "Cartões", testid: "nav-cards" },
         { to: "/app/budgets", icon: Wallet, label: "Orçamentos", testid: "nav-budgets" },
         { to: "/app/goals", icon: Target, label: "Metas", testid: "nav-goals" },
+        { to: "/app/contacts", icon: Users, label: "Contatos", testid: "nav-contacts" },
         { to: "/app/calendar", icon: CalendarDays, label: "Calendário", testid: "nav-calendar" },
         { to: "/app/alerts", icon: Bell, label: "Alertas", testid: "nav-alerts", badge: alertCount },
       ],
@@ -538,6 +549,12 @@ export default function AppLayout() {
               </div>
               <input className="input w-full" placeholder="Descrição..." value={quickForm.title} onChange={e => setQuickForm({ ...quickForm, title: e.target.value })} required />
               <input type="number" step="0.01" min="0.01" className="input w-full num" placeholder="Valor em R$" value={quickForm.amount} onChange={e => setQuickForm({ ...quickForm, amount: e.target.value })} required />
+              {quickAccounts.length > 0 && (
+                <select className="input w-full" value={quickForm.accountId} onChange={e => setQuickForm({ ...quickForm, accountId: e.target.value })}>
+                  <option value="">Sem conta</option>
+                  {quickAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                </select>
+              )}
               <button type="submit" disabled={quickLoading}
                 className="w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
                 style={{ background: "linear-gradient(135deg,#7c3aed,#6366f1)", boxShadow: "0 4px 16px rgba(124,58,237,0.3)" }}>
