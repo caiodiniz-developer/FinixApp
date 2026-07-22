@@ -22,3 +22,6 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# Compiled backend output — rebuilt fresh on every deploy (npm run build)
+backend-ts/dist/

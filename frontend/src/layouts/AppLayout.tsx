@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Logo } from "../components/Logo";
 import { useAuth, useAutoRefreshUser } from "../contexts/AuthContext";
+import { useUserPhoto } from "../hooks/useUserPhoto";
 import { useDashboardTheme } from "../contexts/ThemeContext";
 import { api } from "../services/api";
 import { currency } from "../utils/format";
@@ -185,6 +186,7 @@ export default function AppLayout() {
   const isDark = theme === "dark";
   const { user, logout } = useAuth();
   useAutoRefreshUser(0);
+  const userPhoto = useUserPhoto(user);
   const nav = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
@@ -366,7 +368,7 @@ export default function AppLayout() {
       {/* Logo */}
       <div data-reveal="logo" className="px-5 pt-5 pb-4 overflow-hidden" style={{ borderBottom: "1px solid var(--color-border)" }}>
         <div className="flex items-center gap-3">
-          <Logo src={user.plan === "PRO" ? user.companyLogo : undefined} altText={user.plan === "PRO" ? user.companyName || "Logo" : undefined} showText={false} size={34} />
+          <Logo src={user.plan === "PRO" ? (userPhoto.companyLogo ?? undefined) : undefined} altText={user.plan === "PRO" ? user.companyName || "Logo" : undefined} showText={false} size={34} />
           {!collapsed && (user.plan === "PRO" && user.companyName ? (
             <span className="text-sm font-bold truncate" style={{ color: "var(--color-text)" }}>{user.companyName}</span>
           ) : (
@@ -473,8 +475,8 @@ export default function AppLayout() {
       {/* User + controls */}
       <div data-reveal="tools" className="p-3 space-y-2" style={{ borderTop: "1px solid var(--color-border)" }}>
         <div className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl transition-colors ${collapsed ? "justify-center" : ""}`} style={{ background: "var(--color-surface-strong)" }}>
-          {user.photo ? (
-            <img src={user.photo} alt={user.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+          {userPhoto.photo ? (
+            <img src={userPhoto.photo} alt={user.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
           ) : (
             <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-white text-xs font-black"
               style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>

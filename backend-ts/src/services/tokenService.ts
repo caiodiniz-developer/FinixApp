@@ -13,21 +13,48 @@ export interface SafeUser {
   email: string;
   name: string;
   role: string;
+  blocked: boolean;
   plan: string;
+  transactionsUsed: number;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  planExpiresAt: Date | null;
   hasCompletedOnboarding: boolean;
+  usageType: string | null;
+  companyName: string | null;
+  businessPurpose: string | null;
+  primaryColor: string | null;
   isVerified: boolean;
-  photo?: string | null;
+  createdAt: Date;
+  /** Data URIs can be multiple MB — never inline them in an auth response
+   * (login/me/refresh-token). Fetch the real value once from GET /api/auth/photo. */
+  hasPhoto: boolean;
+  hasCompanyLogo: boolean;
 }
 
+// This is the single point every auth response (login, /me, refresh-token)
+// funnels through — nothing sensitive (passwordHash, verification codes) or
+// oversized (photo/companyLogo data URIs) may ever leave this function.
 export const buildSafeUser = (user: User): SafeUser => ({
   id: user.id,
   email: user.email,
   name: user.name,
   role: user.role,
+  blocked: user.blocked,
   plan: user.plan,
+  transactionsUsed: user.transactionsUsed,
+  stripeCustomerId: user.stripeCustomerId,
+  stripeSubscriptionId: user.stripeSubscriptionId,
+  planExpiresAt: user.planExpiresAt,
   hasCompletedOnboarding: user.hasCompletedOnboarding,
+  usageType: user.usageType,
+  companyName: user.companyName,
+  businessPurpose: user.businessPurpose,
+  primaryColor: user.primaryColor,
   isVerified: user.isVerified,
-  photo: user.photo,
+  createdAt: user.createdAt,
+  hasPhoto: !!user.photo,
+  hasCompanyLogo: !!user.companyLogo,
 });
 
 export const createAccessToken = (user: User): string => {

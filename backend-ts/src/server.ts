@@ -1,6 +1,8 @@
 import express from "express";
+import helmet from "helmet";
 import cors from "cors";
 import "express-async-errors";
+import crypto from "crypto";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { PrismaClient } from "@prisma/client";
@@ -21,6 +23,22 @@ dotenv.config();
 
 if (!process.env.DATABASE_URL) {
   console.warn("WARNING: DATABASE_URL is not set. Configure your .env file.");
+}
+
+// JWT_SECRET signs every access token AND gates the /internal/* routes (via
+// x-internal-secret). A missing or well-known default value means anyone can
+// forge a token for any user — including admin — with zero credentials.
+// Refuse to boot in production rather than silently running wide open.
+const WEAK_JWT_SECRETS = new Set(["finix-dev-secret", "changeme", "secret", "dev-secret", ""]);
+if (
+  process.env.NODE_ENV === "production" &&
+  (!process.env.JWT_SECRET || WEAK_JWT_SECRETS.has(process.env.JWT_SECRET))
+) {
+  console.error(
+    "[FATAL] JWT_SECRET não está definido ou está usando um valor padrão inseguro. " +
+      "Defina uma variável de ambiente JWT_SECRET forte e aleatória (ex: `openssl rand -hex 48`) antes de rodar em produção.",
+  );
+  process.exit(1);
 }
 
 const app = express();
@@ -69,6 +87,16 @@ const corsOptions: cors.CorsOptions = {
   exposedHeaders: ["Content-Range", "X-Content-Range"],
   maxAge: 86400,
 };
+
+// JSON API, not an HTML page — disable the HTML-oriented CSP directives and
+// relax cross-origin-resource-policy so the Vercel-hosted frontend (a
+// different origin) can actually consume the responses.
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 
 // FIX 1: aplica cors() globalmente
 app.use(cors(corsOptions));
@@ -686,13 +714,19 @@ const onboardingSchema = z.object({
 // ============================================================================
 // HELPERS
 // ============================================================================
+// `photo`/`companyLogo` are data: URIs stored straight in the DB — some are
+// multiple MB of base64. userPublic() is embedded in the login/signup/me/
+// refresh response and re-fetched on every window focus (useAutoRefreshUser),
+// so shipping the raw bytes there made every auth check multi-megabyte. Only
+// a boolean flag goes out here; the actual image is fetched once, on demand,
+// from GET /api/auth/photo by whichever screen renders an <img>.
 const userPublic = (u: any) => ({
   id: u.id,
   name: u.name,
   email: u.email,
   role: u.role,
   blocked: u.blocked,
-  photo: u.photo,
+  hasPhoto: !!u.photo,
   plan: u.plan,
   transactionsUsed: u.transactionsUsed,
   stripeCustomerId: u.stripeCustomerId,
@@ -701,7 +735,7 @@ const userPublic = (u: any) => ({
   hasCompletedOnboarding: u.hasCompletedOnboarding,
   usageType: u.usageType,
   companyName: u.companyName,
-  companyLogo: u.companyLogo,
+  hasCompanyLogo: !!u.companyLogo,
   businessPurpose: u.businessPurpose,
   primaryColor: u.primaryColor,
   isVerified: u.isVerified,
@@ -773,6 +807,13 @@ app.get("/api/auth/me", authenticate, (req, res) => {
   const user = (req as any).user;
   const plan = PLANS[user.plan] || PLANS.FREE;
   res.json({ ...userPublic(user), planDetails: plan });
+});
+
+// Separate from userPublic() on purpose — see comment there. Fetched once by
+// whichever component actually renders an avatar, not on every auth check.
+app.get("/api/auth/photo", authenticate, (req, res) => {
+  const user = (req as any).user;
+  res.json({ photo: user.photo || null, companyLogo: user.companyLogo || null });
 });
 
 // ============================================================================
@@ -2082,7 +2123,14 @@ app.get("/api/users/:id", authenticate, requireAdmin, async (req, res) => {
     where: { userId },
     orderBy: { name: "asc" },
   });
-  res.json({ user: userPublic(user), transactions, goals, categories });
+  // Admin's single-user edit view needs the actual image to preview/replace
+  // it — unlike the hot auth paths, this is a one-off fetch, so the size is fine.
+  res.json({
+    user: { ...userPublic(user), photo: user.photo, companyLogo: user.companyLogo },
+    transactions,
+    goals,
+    categories,
+  });
 });
 
 app.put("/api/users/:id", authenticate, requireAdmin, async (req, res) => {
@@ -2532,10 +2580,25 @@ app.get(
 // ============================================================================
 const INTERNAL_SECRET = process.env.JWT_SECRET || "finix-dev-secret";
 
-app.post("/internal/update-user-plan", async (req, res) => {
-  const secret = req.headers["x-internal-secret"];
-  if (secret !== INTERNAL_SECRET)
-    return res.status(401).json({ error: "unauthorized" });
+// Constant-time compare — a plain `!==` leaks timing information proportional
+// to how many leading bytes match, which is enough to brute-force a secret
+// byte-by-byte. These routes have no user-level auth at all (they're the
+// gateway's server-to-server trust boundary), so this header is the only gate.
+const verifyInternalSecret = (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+) => {
+  const provided = String(req.headers["x-internal-secret"] || "");
+  const expected = INTERNAL_SECRET;
+  const ok =
+    provided.length === expected.length &&
+    crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+  if (!ok) return res.status(401).json({ error: "unauthorized" });
+  next();
+};
+
+app.post("/internal/update-user-plan", verifyInternalSecret, async (req, res) => {
   const {
     userId,
     plan,
@@ -2543,8 +2606,12 @@ app.post("/internal/update-user-plan", async (req, res) => {
     stripeSubscriptionId,
     planExpiresAt,
   } = req.body;
+  if (!userId) return res.status(400).json({ error: "userId obrigatório" });
   const updates: any = {};
-  if (plan) updates.plan = plan;
+  if (plan) {
+    if (!PLANS[plan]) return res.status(400).json({ error: "plano inválido" });
+    updates.plan = plan;
+  }
   if (stripeCustomerId !== undefined)
     updates.stripeCustomerId = stripeCustomerId;
   if (stripeSubscriptionId !== undefined)
@@ -2558,10 +2625,7 @@ app.post("/internal/update-user-plan", async (req, res) => {
   res.json(userPublic(user));
 });
 
-app.post("/internal/create-payment-tx", async (req, res) => {
-  const secret = req.headers["x-internal-secret"];
-  if (secret !== INTERNAL_SECRET)
-    return res.status(401).json({ error: "unauthorized" });
+app.post("/internal/create-payment-tx", verifyInternalSecret, async (req, res) => {
   const { userId, userEmail, sessionId, amount, currency, plan, metadata } =
     req.body;
   const tx = await prisma.paymentTransaction.create({
@@ -2579,10 +2643,7 @@ app.post("/internal/create-payment-tx", async (req, res) => {
   res.json(tx);
 });
 
-app.post("/internal/update-payment-tx", async (req, res) => {
-  const secret = req.headers["x-internal-secret"];
-  if (secret !== INTERNAL_SECRET)
-    return res.status(401).json({ error: "unauthorized" });
+app.post("/internal/update-payment-tx", verifyInternalSecret, async (req, res) => {
   const { sessionId, paymentStatus, status, stripePaymentId } = req.body;
   const existing = await prisma.paymentTransaction.findUnique({
     where: { sessionId },
@@ -2599,10 +2660,7 @@ app.post("/internal/update-payment-tx", async (req, res) => {
   res.json({ ...tx, previousStatus: existing.paymentStatus });
 });
 
-app.get("/internal/user-by-id/:id", async (req, res) => {
-  const secret = req.headers["x-internal-secret"];
-  if (secret !== INTERNAL_SECRET)
-    return res.status(401).json({ error: "unauthorized" });
+app.get("/internal/user-by-id/:id", verifyInternalSecret, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: String(req.params.id) },
   });
@@ -2610,10 +2668,7 @@ app.get("/internal/user-by-id/:id", async (req, res) => {
   res.json(userPublic(user));
 });
 
-app.get("/internal/payment-tx/:sessionId", async (req, res) => {
-  const secret = req.headers["x-internal-secret"];
-  if (secret !== INTERNAL_SECRET)
-    return res.status(401).json({ error: "unauthorized" });
+app.get("/internal/payment-tx/:sessionId", verifyInternalSecret, async (req, res) => {
   const tx = await prisma.paymentTransaction.findUnique({
     where: { sessionId: String(req.params.sessionId) },
   });
@@ -2896,6 +2951,13 @@ const createOrUpdateAdmin = async (): Promise<void> => {
     .toLowerCase();
 
   const adminPassword = process.env.ADMIN_PASSWORD || "Admin@123";
+  if (!process.env.ADMIN_PASSWORD) {
+    console.warn(
+      "[ADMIN] ⚠️  ADMIN_PASSWORD não definido — usando a senha padrão 'Admin@123'. " +
+        "Defina ADMIN_PASSWORD no ambiente com uma senha forte, especialmente em produção " +
+        "(esta rotina roda a cada reinício e reescreve a senha do admin para o valor configurado aqui).",
+    );
+  }
 
   const passwordHash = await bcrypt.hash(adminPassword, 10);
 

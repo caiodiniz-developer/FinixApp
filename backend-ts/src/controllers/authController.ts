@@ -8,6 +8,7 @@ import {
 import {
   accessTokenCookieOptions,
   refreshTokenCookieOptions,
+  buildSafeUser,
 } from "../services/tokenService";
 import { AuthRequest } from "../middlewares/auth";
 
@@ -84,7 +85,9 @@ export const getMeController = async (req: AuthRequest, res: Response) => {
     if (!req.user) {
       return res.status(401).json({ error: "Usuário não autenticado" });
     }
-    res.json(req.user);
+    // req.user is the raw Prisma row (passwordHash, verificationCode and all)
+    // — never return it directly. buildSafeUser() is the sanctioned filter.
+    res.json(buildSafeUser(req.user));
   } catch (error: any) {
     res.status(500).json({ error: "Erro interno do servidor" });
   }

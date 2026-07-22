@@ -15,6 +15,7 @@ import {
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
+import { useUserPhoto } from "../hooks/useUserPhoto";
 
 const nameSchema = yup.object({
   name: yup.string().min(2).required("Informe seu nome"),
@@ -37,6 +38,7 @@ type Tab =
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
+  const userPhoto = useUserPhoto(user);
   const [tab, setTab] = useState<Tab>("Perfil");
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -144,7 +146,7 @@ export default function Profile() {
 
   if (!user) return null;
 
-  const photoSrc = preview || user.photo || null;
+  const photoSrc = preview || userPhoto.photo || null;
   const initials = user.name.charAt(0).toUpperCase();
 
   const planName =
@@ -639,9 +641,9 @@ export default function Profile() {
                   </div>
                   <div className="rounded-3xl border border-border bg-surface-strong p-4">
                     <p className="text-sm text-muted">Logo</p>
-                    {user.companyLogo ? (
+                    {userPhoto.companyLogo ? (
                       <img
-                        src={user.companyLogo}
+                        src={userPhoto.companyLogo}
                         alt="Logo da empresa"
                         className="mt-3 h-20 w-20 rounded-3xl object-cover"
                       />

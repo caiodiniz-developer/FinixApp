@@ -5,7 +5,8 @@ export interface User {
   role: "USER" | "ADMIN";
   blocked: boolean;
   createdAt: string;
-  photo?: string;
+  /** Whether the account has an avatar — fetch the actual data URI from GET /api/auth/photo. */
+  hasPhoto?: boolean;
   plan?: "FREE" | "BASIC" | "PRO";
   transactionsUsed?: number;
   stripeCustomerId?: string;
@@ -14,7 +15,8 @@ export interface User {
   hasCompletedOnboarding?: boolean;
   usageType?: string;
   companyName?: string;
-  companyLogo?: string;
+  /** Whether a company logo is set — fetch the actual data URI from GET /api/auth/photo. */
+  hasCompanyLogo?: boolean;
   businessPurpose?: string;
   primaryColor?: string;
 }

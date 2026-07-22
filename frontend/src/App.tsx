@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -13,28 +13,34 @@ import {
   PublicThemeProvider,
   DashboardThemeProvider,
 } from "./contexts/ThemeContext";
-import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Signup from "./pages/Signup";
-import OAuthCallback from "./pages/OAuthCallback";
-import VerifyEmail from "./pages/VerifyEmail";
-import Onboarding from "./pages/Onboarding";
-import Dashboard from "./pages/Dashboard";
-import Transactions from "./pages/Transactions";
-import Goals from "./pages/Goals";
-import Budgets from "./pages/Budgets";
-import Accounts from "./pages/Accounts";
-import Cards from "./pages/Cards";
-import Contacts from "./pages/Contacts";
-import Plans from "./pages/Plans";
-import Calendar from "./pages/Calendar";
-import Alerts from "./pages/Alerts";
-import Categories from "./pages/Categories";
-import Profile from "./pages/Profile";
-import Admin from "./pages/Admin";
-import AppLayout from "./layouts/AppLayout";
 import { Logo } from "./components/Logo";
+
+// Route-level code splitting: each page ships as its own chunk instead of
+// one ~1.3MB bundle. This matters most for the public/auth pages (Landing,
+// Login, Register, Signup) — they used to pay for the entire authenticated
+// app (recharts, framer-motion animations, every dashboard page) before a
+// single line of their own code ran.
+const Landing = lazy(() => import("./pages/Landing"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const Signup = lazy(() => import("./pages/Signup"));
+const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Transactions = lazy(() => import("./pages/Transactions"));
+const Goals = lazy(() => import("./pages/Goals"));
+const Budgets = lazy(() => import("./pages/Budgets"));
+const Accounts = lazy(() => import("./pages/Accounts"));
+const Cards = lazy(() => import("./pages/Cards"));
+const Contacts = lazy(() => import("./pages/Contacts"));
+const Plans = lazy(() => import("./pages/Plans"));
+const Calendar = lazy(() => import("./pages/Calendar"));
+const Alerts = lazy(() => import("./pages/Alerts"));
+const Categories = lazy(() => import("./pages/Categories"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Admin = lazy(() => import("./pages/Admin"));
+const AppLayout = lazy(() => import("./layouts/AppLayout"));
 
 function FullScreenLoader() {
   return (
@@ -129,6 +135,7 @@ export default function App() {
             success: { iconTheme: { primary: "#22C55E", secondary: "white" } },
           }}
         />
+        <Suspense fallback={<FullScreenLoader />}>
         <Routes>
           <Route element={<PublicRoutes />}>
             <Route path="/" element={<Home />} />
@@ -210,6 +217,7 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   );

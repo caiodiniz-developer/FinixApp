@@ -24,10 +24,13 @@ from pydantic import BaseModel
 
 load_dotenv()
 
-# Load TS backend env for JWT secret (shared with internal routes)
+# Load TS backend env for JWT secret (shared with internal routes). This is
+# the source of truth for JWT_SECRET — override=True so it wins even though
+# load_dotenv() above may have already set a (possibly stale) value from
+# this directory's own .env.
 ts_env_path = Path("/app/backend-ts/.env")
 if ts_env_path.exists():
-    load_dotenv(ts_env_path)
+    load_dotenv(ts_env_path, override=True)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("finix-proxy")
@@ -35,8 +38,16 @@ log = logging.getLogger("finix-proxy")
 # Config
 STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "")
 TS_BACKEND_URL = os.environ.get("TS_BACKEND_URL", "http://localhost:8000")
-INTERNAL_SECRET = os.environ.get("JWT_SECRET", "finix-dev-secret")
 TS_BACKEND_DIR = "/app/backend-ts"
+
+_WEAK_SECRETS = {"finix-dev-secret", "changeme", "secret", "dev-secret", ""}
+INTERNAL_SECRET = os.environ.get("JWT_SECRET", "")
+if os.environ.get("ENVIRONMENT", os.environ.get("NODE_ENV", "")) == "production" and INTERNAL_SECRET in _WEAK_SECRETS:
+    log.error(
+        "FATAL: JWT_SECRET não definido ou usando valor padrão inseguro — "
+        "isso autentica tanto os tokens de usuário quanto as rotas /internal/*. Abortando."
+    )
+    raise SystemExit(1)
 
 # Fixed plans (SECURITY: amounts never come from frontend)
 PLANS = {
@@ -124,9 +135,21 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Finix API Gateway", lifespan=lifespan)
 
+# allow_origins=["*"] combined with allow_credentials=True makes FastAPI
+# reflect the request's Origin back instead of literally sending "*" — in
+# practice that means ANY website can make credentialed requests (cookies
+# included) against this API on behalf of a logged-in user. Must be an
+# explicit allowlist, same as the TS backend's own CORS_ORIGINS.
+_default_origins = "https://finixapp.vercel.app,https://finixapp.com.br,https://www.finixapp.com.br,http://localhost:5173,http://localhost:3000"
+ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.environ.get("CORS_ORIGINS", _default_origins).split(",")
+    if o.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
