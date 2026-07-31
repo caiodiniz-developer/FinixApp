@@ -1,98 +1,204 @@
-# Finix — Plataforma de Gestão Financeira Pessoal/PJ
+Finix — Resumo Técnico
+O que é?
 
-Finix é uma aplicação SaaS full-stack de controle financeiro (estilo "Mint/Organizze"), com planos pagos, insights automáticos, calendário de fluxo de caixa, orçamentos, metas, parcelamentos e um painel administrativo. Este README descreve a arquitetura e as decisões técnicas do projeto para quem for avaliar o código.
+Sistema SaaS de gestão financeira onde o usuário controla receitas, despesas, metas, cartões, orçamentos e recebe dashboards e insights financeiros.
 
-## Visão geral
+Principais funcionalidades
 
-O usuário cria conta, verifica o e-mail, passa por um onboarding (pessoal ou empresarial) e cai em um dashboard com saúde financeira, fluxo de caixa, categorias de gastos, orçamentos, metas e alertas de vencimento. Existem três planos (`FREE`, `BASIC`, `PRO`) que liberam progressivamente: transações ilimitadas, parcelamento, relatórios em PDF/Excel, categorias customizadas, análise por IA e um painel white-label (logo/cor da empresa). Um plano `ADMIN` acessa um painel para gerenciar usuários e ver métricas globais de receita.
+Login (e-mail ou Google)
+Controle de receitas e despesas
+Parcelamento automático
+Metas e orçamentos
+Dashboard financeiro
+Exportação PDF/Excel
+Pagamentos via Stripe
+Painel Admin
+Stack
+Frontend
+React + TypeScript
+Vite
+React Router
+Axios
+React Hook Form
+Tailwind CSS
+Recharts
+Framer Motion + GSAP
+Three.js
+Backend
+Express
+Prisma
+PostgreSQL
+Zod
+JWT
+bcrypt
+Stripe
+Gateway
+FastAPI
+httpx
+Arquitetura
 
+São 3 serviços:
 
-- **Frontend** (`frontend/`): SPA em React 18 + TypeScript, roteada por página (`react-router-dom`), consumindo a API via Axios com interceptor de JWT.
-- **Gateway** (`backend/server.py`): um processo **FastAPI** que fica na borda pública. Ele:
-  - sobe o backend TypeScript como **subprocesso filho** e faz *health-check* até ele responder;
-  - implementa a integração com o **Stripe Checkout** e o webhook de pagamento (a lib `emergentintegrations` abstrai a criação de sessão de checkout);
-  - faz **proxy reverso transparente** de qualquer outra rota `/api/*` para o backend TypeScript, repassando headers e corpo da requisição.
-- **Core API** (`backend-ts/`): a aplicação de negócio de fato — **Express + Prisma + PostgreSQL**, com toda a lógica de autenticação, transações, metas, orçamentos, parcelamentos, alertas, exportação de relatórios (PDFKit/ExcelJS), insights (heurísticas locais + chamada opcional a um LLM) e administração.
+React
+↓
+FastAPI (Gateway)
+↓
+Express API
+↓
+PostgreSQL
+Papel de cada um
 
-## Stack técnica
+Frontend
 
-| Camada | Tecnologias |
-|---|---|
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS, React Router 6, Axios, React Hook Form + Yup, Recharts, Framer Motion, GSAP, Three.js |
-| Gateway | Python 3, FastAPI, httpx (cliente async), Stripe Checkout |
-| Backend core | Node.js, Express, TypeScript, Prisma ORM, Zod (validação), JWT (`jsonwebtoken`), bcrypt, Multer, PDFKit, ExcelJS, Nodemailer/Resend |
-| Banco de dados | PostgreSQL (Neon), gerenciado via migrations do Prisma |
-| Autenticação | JWT stateless (Bearer) + login social Google OAuth |
-| Pagamentos | Stripe (Checkout Session + Webhooks assinados) |
-| Infra | Frontend na Vercel, backend no Render |
+Interface do usuário.
 
-## Por que um gateway em frente ao backend?
+Gateway (FastAPI)
 
-Esse é o ponto de arquitetura mais incomum do projeto e vale explicar o raciocínio: o histórico do produto começou com um protótipo em FastAPI e evoluiu para uma API mais robusta em Express/Prisma. Em vez de reescrever toda a camada de pagamentos, o FastAPI foi mantido como **gateway de borda** responsável só por Stripe (checkout, status, webhook), enquanto o restante das rotas de negócio passou a viver no backend TypeScript e é **repassado via proxy HTTP** (`httpx`) route por route (`/api/{full_path:path}`).
+Recebe todas as requisições.
+Gerencia Stripe.
+Encaminha as outras requisições para o Express.
 
-Trade-off consciente: isso introduz um hop de rede a mais e acopla o deploy (o Python sobe o Node como subprocesso e monitora sua saúde). Em uma reescrita, a opção mais limpa seria mover o fluxo de Stripe para dentro do próprio Express (que já importa o SDK `stripe` e já tem um handler de webhook em `backend-ts/src/server.ts`) e aposentar o gateway Python — ver [Limitações conhecidas](#limitações-conhecidas-e-próximos-passos).
+Express
 
-## Autenticação e autorização
+Toda regra de negócio.
+Autenticação.
+CRUD.
+Dashboard.
+Relatórios.
+Admin.
+Fluxo de Login
+Usuário faz login.
+Backend valida senha com bcrypt.
+Gera JWT.
+Frontend salva o token.
+Axios envia automaticamente o token em todas as requisições.
+Banco de Dados
 
-- Cadastro com verificação de e-mail obrigatória (código enviado por e-mail antes de liberar login) e login social via Google OAuth.
-- Login emite um **JWT assinado** (`JWT_SECRET`, expiração de 7 dias) contendo `sub` (id do usuário), `email` e `role`; o frontend guarda o token em `localStorage`/`sessionStorage` conforme "lembrar de mim" e o envia como `Authorization: Bearer`.
-- Middleware `authenticate` no Express valida o token, carrega o usuário do banco a cada requisição (permite bloquear usuários e resetar contadores mensais em tempo real) e injeta `req.user`.
-- Middleware `requireAdmin` protege rotas administrativas; `requireFeature("hasAI" | "hasPDF" | ...)` é uma factory que lê a tabela de planos (`PLANS`) e devolve `403` com `{ upgrade: true }` quando o plano do usuário não tem aquele recurso — é assim que o paywall é reforçado no servidor (não só escondendo botão no frontend).
-- Rotas internas (`/internal/*`, chamadas só pelo gateway Python para atualizar plano após pagamento) são protegidas por um header `x-internal-secret` compartilhado, e não por JWT de usuário.
+Entidades principais:
 
-## Modelo de dados
+User
+Transaction
+Installment
+Account
+CreditCard
+Goal
+Budget
+Category
+PaymentTransaction
+Parcelamento
 
-Schema Prisma (`backend-ts/prisma/schema.prisma`) com PostgreSQL. Principais entidades e relações:
+Ao invés de guardar apenas "12x":
 
-- `User` — dono de tudo; guarda plano, uso mensal de transações (`transactionsUsed`/`transactionsMonth`, resetado automaticamente no primeiro request do novo mês), dados de whitelabel (`companyName`, `companyLogo`, `primaryColor`) e status de verificação/OAuth.
-- `Transaction` — receita/despesa; pode pertencer a um `Installment` (parcelamento) via `installmentId`, guardando `installmentNumber`/`totalInstallments` para reconstruir a fatura.
-- `Installment` — parcelamento (ex.: compra em 12x), gera N `Transaction`s automaticamente com data de vencimento ajustada para meses mais curtos (`getSafeDueDay`).
-- `Goal`, `Budget`, `Category`, `FinancialAlert` — metas, orçamentos por categoria, categorias customizáveis e alertas persistentes (ex.: cobrança de cartão próxima do vencimento).
-- `PaymentTransaction` / `Subscription` — rastreiam o ciclo de vida de um pagamento Stripe de forma idempotente (o webhook e o polling de status só promovem o plano do usuário uma vez).
+O sistema cria:
 
-## Planos, paywall e billing (Stripe)
+1 registro de parcelamento
+12 transações futuras
 
-Os planos (`FREE`, `BASIC`, `PRO`, e um `TEST` interno) são definidos como uma constante tipada no backend (`PLANS`, em `backend-ts/src/server.ts`), nunca calculados a partir do que o frontend envia — os preços usados no Stripe Checkout também vêm dessa constante no gateway (`backend/server.py`), por segurança. Cada plano define limites (`transactionsLimit`, `goalsLimit`, `categoriesLimit`, ...) e *feature flags* (`hasAI`, `hasPDF`, `canUseAlerts`, ...), checados nos middlewares de rota.
+Assim fica muito mais fácil controlar vencimentos, gráficos e fluxo de caixa.
 
-Fluxo de upgrade:
-1. Frontend chama `POST /api/checkout/session` com o `plan_id`.
-2. Gateway valida o plano contra a lista fechada, cria uma Stripe Checkout Session e grava uma `PaymentTransaction` "pending" via chamada interna ao backend TS.
-3. Ao confirmar o pagamento (webhook `checkout.session.completed` **ou** polling de `GET /api/checkout/status/:id`, o que chegar primeiro), o backend promove `user.plan` e define `planExpiresAt` — de forma idempotente, checando se o status local já era `paid` antes de reprocessar.
+Segurança
+JWT para autenticação.
+bcrypt para senhas.
+Zod valida todas as entradas.
+Helmet e CORS.
+Rate Limit.
+Verificação de e-mail.
+Google OAuth.
+Paywall validado no backend.
 
-## Principais funcionalidades
+Nunca confia no frontend.
 
-- **Dashboard**: saúde financeira (score calculado a partir de índice de gastos, taxa de poupança e saúde dos orçamentos), fluxo de caixa dos últimos 6 meses, distribuição por categoria, ritmo de gastos diário, projeção de saldo até o fim do mês, runway de reserva, mapa de calor de gastos por dia, orçamentos, metas e transações recentes — tudo em uma única chamada agregada (`GET /api/dashboard`) mais chamadas paralelas para widgets secundários.
-- **Transações**: CRUD com filtros (tipo, categoria, busca, intervalo de datas), parcelamento automático (gera as N transações futuras de uma vez) e métodos de pagamento (pix/débito/crédito).
-- **Alertas financeiros**: combina alertas persistentes no banco com alertas computados on-the-fly (parcelas e cobranças de cartão vencendo nos próximos 7 dias).
-- **Calendário**: agregação diária de receita/despesa/saldo líquido do mês.
-- **Metas e orçamentos**: acompanhamento de progresso com limites por plano.
-- **Insights**: heurísticas locais (ex.: "gastos concentrados em uma categoria", "saldo negativo") sempre disponíveis no plano pago, com fallback para uma chamada a um LLM quando configurado.
-- **Exportação**: relatórios em PDF (PDFKit) e Excel (ExcelJS) gerados sob demanda, gated por plano.
-- **Onboarding & whitelabel**: fluxo pessoal vs. empresarial; empresas podem subir logo e cor primária, aplicados via CSS custom property (`--brand-primary`) no restante do app.
-- **Admin**: listagem/edição/bloqueio de usuários, métricas agregadas (receita total, distribuição de planos, volume de transações).
+Stripe
 
-## Estrutura de pastas
+Fluxo:
 
-```
-FInixApp/
-├── frontend/                 # SPA React + Vite
-│   └── src/
-│       ├── pages/            # Uma página por rota (Dashboard, Transactions, Goals, Admin...)
-│       ├── layouts/AppLayout.tsx   # Shell autenticado: sidebar, widgets, quick-add
-│       ├── contexts/         # AuthContext (sessão/JWT) e ThemeContext (tema público/dashboard)
-│       ├── services/api.ts   # Instância Axios com interceptors de auth e logging
-│       └── types.ts          # Tipos compartilhados do domínio
-├── backend/                  # Gateway FastAPI (Stripe + proxy)
-│   └── server.py
-├── backend-ts/                # API core (Express + Prisma)
-│   ├── src/server.ts         # Grande parte das rotas de negócio + tabela de planos
-│   ├── src/controllers|services|routes/  # Fluxo de auth (signup, login, OAuth Google, tokens)
-│   └── prisma/schema.prisma  # Modelo de dados
-└── README.md
-```
+Usuário
+↓
 
-## Deploy
+Checkout
 
-- **Frontend**: Vercel (`frontend/vercel.json`), build via Vite, rewrite de SPA para `index.html`.
-- **Backend**: Render, rodando o gateway FastAPI que por sua vez inicia o processo Node do backend core.
-- **Banco**: PostgreSQL gerenciado (Neon).
+↓
+
+Pagamento
+
+↓
+
+Webhook
+
+↓
+
+Plano atualizado
+
+O backend garante que o plano seja atualizado apenas uma vez (idempotência).
+
+Frontend
+
+Organizado em:
+
+Pages
+Components
+Contexts
+Hooks
+Services
+
+Usa:
+
+Context API para autenticação
+React Router para proteger rotas
+Axios Interceptors para adicionar o JWT automaticamente
+Decisões importantes (isso entrevista adora)
+Gateway separado
+
+Foi mantido porque Stripe já funcionava em Python.
+
+Vantagem:
+
+Não precisou reescrever pagamento.
+
+Desvantagem:
+
+Mais uma camada.
+Deploy mais complexo.
+Dashboard
+
+O backend envia dados "crus".
+
+O frontend calcula:
+
+Score financeiro
+Reserva financeira
+Taxa de economia
+
+Assim o backend fica mais simples.
+
+Paywall
+
+As permissões ficam no backend.
+
+Mesmo usando Postman ou curl o usuário não consegue acessar funções do plano Pro.
+
+Prisma
+
+Foi escolhido porque:
+
+ORM moderno.
+Tipagem automática.
+Migrations.
+Evita muitos erros em tempo de desenvolvimento.
+Dívidas técnicas
+
+Você pode comentar isso numa entrevista.
+
+server.ts muito grande (~3000 linhas)
+Gateway e Express dividindo Stripe
+Refresh Token implementado mas não usado pelo frontend
+Rate Limit em memória (ideal seria Redis)
+Algumas rotas antigas ainda existem e precisam ser removidas
+
+Mostrar que você sabe reconhecer essas melhorias costuma contar pontos.
+
+O que falar em 1 minuto para um recrutador
+
+"O Finix é um SaaS de gestão financeira desenvolvido com React, TypeScript, Express, Prisma e PostgreSQL. A arquitetura possui um frontend React, uma API Express responsável por toda a regra de negócio e um gateway FastAPI que gerencia o Stripe e encaminha as requisições para o backend principal. A autenticação utiliza JWT e bcrypt, as entradas são validadas com Zod e o banco é acessado pelo Prisma. O sistema possui controle de transações, parcelamentos, metas, orçamentos, dashboard financeiro, exportação de relatórios, integração com Stripe e um painel administrativo. Durante o desenvolvimento também considerei trade-offs de arquitetura e identifiquei pontos de melhoria, como modularizar melhor o backend e unificar a integração de pagamentos."
+
+Se você dominar esses tópicos e entender o código relacionado a cada um, já terá uma base sólida para explicar o projeto de forma técnica em uma entrevista.

@@ -16,8 +16,15 @@ import ExcelJS from "exceljs";
 import Stripe from "stripe";
 import authRoutes from "./routes/authRoutes";
 import googleRoutes from "./routes/googleRoutes";
+import twoFactorRoutes from "./routes/twoFactorRoutes";
 import { authRateLimit } from "./middlewares/rateLimit";
-import { signup } from "./services/authService";
+import { dispatchWebhook, generateWebhookSecret } from "./services/webhookService";
+import { sendPushToUser, getVapidPublicKey, isPushConfigured } from "./services/pushService";
+import { runDueRecurringTransactions, computeNextRunDate } from "./services/recurringService";
+import { sendDueAlertNotifications } from "./services/alertNotificationService";
+import { transactionsToCsv, parseCsvTransactions } from "./services/csvService";
+import { transactionsToOfx, parseOfxTransactions } from "./services/ofxService";
+import * as openFinance from "./services/openFinanceService";
 
 dotenv.config();
 
@@ -52,7 +59,6 @@ const stripe = process.env.STRIPE_SECRET_KEY
   : null;
 
 const JWT_SECRET = process.env.JWT_SECRET || "finix-dev-secret";
-const JWT_EXPIRES_IN = "7d";
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://finixapp.vercel.app";
 
 const allowedOrigins = [
@@ -165,6 +171,7 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/2fa", twoFactorRoutes);
 app.use("/google", googleRoutes);
 
 // ============================================================================
@@ -350,11 +357,49 @@ const resetMonthlyIfNeeded = async (userId: string, currentMonth: string) => {
 // ============================================================================
 // MIDDLEWARE
 // ============================================================================
+// Accepts either a JWT bearer token (normal frontend session) or an
+// `X-Api-Key` header (external integrations — Zapier, scripts, spreadsheets;
+// see POST /api/api-keys). Both paths converge on the same `req.user`, so
+// every route below works unmodified with either credential.
+const authenticateApiKey = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+): Promise<void> => {
+  const rawKey = req.headers["x-api-key"] as string | undefined;
+  if (!rawKey) {
+    res.status(401).json({ error: "Não autenticado" });
+    return;
+  }
+  try {
+    const fingerprint = crypto.createHash("sha256").update(rawKey).digest("hex");
+    const apiKey = await prisma.apiKey.findUnique({ where: { keyFingerprint: fingerprint } });
+    if (!apiKey || !(await bcrypt.compare(rawKey, apiKey.keyHash))) {
+      res.status(401).json({ error: "API key inválida" });
+      return;
+    }
+    const user = await prisma.user.findUnique({ where: { id: apiKey.userId } });
+    if (!user || user.blocked) {
+      res.status(401).json({ error: "Usuário não encontrado ou bloqueado" });
+      return;
+    }
+    prisma.apiKey.update({ where: { id: apiKey.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
+    (req as any).user = user;
+    (req as any).authMethod = "apikey";
+    next();
+  } catch {
+    res.status(401).json({ error: "API key inválida" });
+  }
+};
+
 const authenticate = async (
   req: express.Request,
   res: express.Response,
   next: express.NextFunction,
 ) => {
+  if (req.headers["x-api-key"]) {
+    return authenticateApiKey(req, res, next);
+  }
   const auth = req.headers.authorization;
   if (!auth?.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Não autenticado" });
@@ -422,17 +467,6 @@ const requireFeature =
 // ============================================================================
 // SCHEMAS
 // ============================================================================
-const registerSchema = z.object({
-  name: z.string().min(2).max(80),
-  email: z.string().email(),
-  password: z.string().min(6).max(128),
-});
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-});
-
 const transactionSchema = z.object({
   title: z.string().min(1).max(120),
   amount: z.number().positive(),
@@ -745,70 +779,6 @@ const userPublic = (u: any) => ({
 // ============================================================================
 // AUTH
 // ============================================================================
-// FIX 3: /api/auth/register definido aqui NÃO conflita com authRoutes
-// porque authRoutes deve montar apenas /login, /me, /verify etc.
-// Se authRoutes já tem /register, REMOVA o bloco abaixo para evitar duplicação.
-app.post("/api/auth/register", authRateLimit, async (req, res) => {
-  try {
-    const data = registerSchema.parse(req.body);
-    const result = await signup(
-      data.email.toLowerCase(),
-      data.password,
-      data.name.trim(),
-    );
-    res.status(201).json(result);
-  } catch (err: any) {
-    console.error("Register error:", err);
-    // FIX 4: ZodError retorna 400, não 500
-    if (err.name === "ZodError")
-      return res
-        .status(400)
-        .json({ error: "Dados inválidos", details: err.errors });
-    res.status(500).json({ error: err.message || "Erro ao criar conta" });
-  }
-});
-
-app.post("/api/auth/login", async (req, res) => {
-  try {
-    const data = loginSchema.parse(req.body);
-    const user = await prisma.user.findUnique({
-      where: { email: data.email.toLowerCase() },
-    });
-    if (
-      !user ||
-      !(await bcrypt.compare(data.password, user.passwordHash)) ||
-      user.blocked
-    ) {
-      return res.status(401).json({ error: "Credenciais inválidas" });
-    }
-    if (!user.isVerified) {
-      return res.status(401).json({
-        error:
-          "E-mail não verificado. Verifique seu e-mail antes de fazer login.",
-      });
-    }
-    const token = jwt.sign(
-      { sub: user.id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN },
-    );
-    res.json({ user: userPublic(user), token });
-  } catch (err: any) {
-    console.error("Login error:", err);
-    if (err.name === "ZodError")
-      return res
-        .status(400)
-        .json({ error: "Dados inválidos", details: err.errors });
-    res.status(500).json({ error: err.message || "Erro ao fazer login" });
-  }
-});
-
-app.get("/api/auth/me", authenticate, (req, res) => {
-  const user = (req as any).user;
-  const plan = PLANS[user.plan] || PLANS.FREE;
-  res.json({ ...userPublic(user), planDetails: plan });
-});
-
 // Separate from userPublic() on purpose — see comment there. Fetched once by
 // whichever component actually renders an avatar, not on every auth check.
 app.get("/api/auth/photo", authenticate, (req, res) => {
@@ -1185,6 +1155,13 @@ app.post("/api/transactions", authenticate, async (req, res) => {
     } catch (err: any) {
       console.error("Failed to create credit card alert:", err);
     }
+    dispatchWebhook(user.id, "transaction.created", {
+      id: transaction.id,
+      title: transaction.title,
+      amount: transaction.amount,
+      type: transaction.type,
+      category: transaction.category,
+    });
     res.json(transaction);
   } catch (err: any) {
     console.error("Transaction creation error:", err);
@@ -1503,10 +1480,14 @@ app.get("/api/calendar", authenticate, async (req, res) => {
 // ============================================================================
 // GOALS
 // ============================================================================
+// A goal is visible/editable by its owner (userId) OR any accepted
+// GoalMember — the `OR` below is what makes goals "shared" without touching
+// every existing query that assumed single ownership.
 app.get("/api/goals", authenticate, async (req, res) => {
   const user = (req as any).user;
   const goals = await prisma.goal.findMany({
-    where: { userId: user.id },
+    where: { OR: [{ userId: user.id }, { members: { some: { userId: user.id } } }] },
+    include: { members: { include: { user: { select: { id: true, name: true, email: true } } } } },
     orderBy: { deadline: "asc" },
   });
   res.json(goals);
@@ -1527,31 +1508,108 @@ app.post("/api/goals", authenticate, async (req, res) => {
   const goal = await prisma.goal.create({
     data: { ...data, id: uuidv4(), userId: user.id },
   });
+  dispatchWebhook(user.id, "goal.created", { id: goal.id, title: goal.title, targetAmount: goal.targetAmount });
   res.json(goal);
 });
+
+const canAccessGoal = async (goalId: string, userId: string) => {
+  const goal = await prisma.goal.findFirst({
+    where: { id: goalId, OR: [{ userId }, { members: { some: { userId } } }] },
+  });
+  return goal;
+};
 
 app.put("/api/goals/:id", authenticate, async (req, res) => {
   const user = (req as any).user;
   const data = goalSchema.parse(req.body);
-  const goal = await prisma.goal.updateMany({
-    where: { id: String(req.params.id), userId: user.id },
+  const existing = await canAccessGoal(String(req.params.id), user.id);
+  if (!existing) return res.status(404).json({ error: "Meta não encontrada" });
+
+  const updated = await prisma.goal.update({
+    where: { id: String(req.params.id) },
     data,
   });
-  if (goal.count === 0)
-    return res.status(404).json({ error: "Meta não encontrada" });
-  const updated = await prisma.goal.findUnique({
-    where: { id: String(req.params.id) },
-  });
+  if (updated.currentAmount >= updated.targetAmount) {
+    dispatchWebhook(existing.userId, "goal.completed", { id: updated.id, title: updated.title });
+  }
   res.json(updated);
 });
 
 app.delete("/api/goals/:id", authenticate, async (req, res) => {
   const user = (req as any).user;
+  // Only the owner can delete — members can contribute/view, not tear it down.
   const deleted = await prisma.goal.deleteMany({
     where: { id: String(req.params.id), userId: user.id },
   });
   if (deleted.count === 0)
     return res.status(404).json({ error: "Meta não encontrada" });
+  res.json({ ok: true });
+});
+
+// ── Shared goals: invite another Finix user by e-mail, they accept/decline ──
+app.post("/api/goals/:id/invite", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const { email } = z.object({ email: z.string().email() }).parse(req.body);
+  const goal = await prisma.goal.findFirst({ where: { id: String(req.params.id), userId: user.id } });
+  if (!goal) return res.status(404).json({ error: "Meta não encontrada" });
+
+  const normalizedEmail = email.toLowerCase().trim();
+  if (normalizedEmail === user.email) {
+    return res.status(400).json({ error: "Você já é dono desta meta" });
+  }
+  const receiver = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+
+  const invite = await prisma.goalInvite.create({
+    data: {
+      goalId: goal.id,
+      senderId: user.id,
+      receiverEmail: normalizedEmail,
+      receiverId: receiver?.id || null,
+    },
+  });
+  res.status(201).json(invite);
+});
+
+app.get("/api/goals/invites", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const invites = await prisma.goalInvite.findMany({
+    where: { receiverEmail: user.email.toLowerCase(), status: "pending" },
+    include: { goal: true, sender: { select: { id: true, name: true, email: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  res.json(invites);
+});
+
+app.post("/api/goals/invites/:id/accept", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const invite = await prisma.goalInvite.findUnique({ where: { id: String(req.params.id) } });
+  if (!invite || invite.receiverEmail !== user.email.toLowerCase() || invite.status !== "pending") {
+    return res.status(404).json({ error: "Convite não encontrado" });
+  }
+  await prisma.$transaction([
+    prisma.goalInvite.update({
+      where: { id: invite.id },
+      data: { status: "accepted", receiverId: user.id, respondedAt: new Date() },
+    }),
+    prisma.goalMember.upsert({
+      where: { goalId_userId: { goalId: invite.goalId, userId: user.id } },
+      create: { goalId: invite.goalId, userId: user.id, role: "member" },
+      update: {},
+    }),
+  ]);
+  res.json({ ok: true });
+});
+
+app.post("/api/goals/invites/:id/decline", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const invite = await prisma.goalInvite.findUnique({ where: { id: String(req.params.id) } });
+  if (!invite || invite.receiverEmail !== user.email.toLowerCase() || invite.status !== "pending") {
+    return res.status(404).json({ error: "Convite não encontrado" });
+  }
+  await prisma.goalInvite.update({
+    where: { id: invite.id },
+    data: { status: "declined", respondedAt: new Date() },
+  });
   res.json({ ok: true });
 });
 
@@ -2093,6 +2151,367 @@ app.get("/api/dashboard", authenticate, async (req, res) => {
     recent,
     insights,
   });
+});
+
+// ============================================================================
+// RECURRING TRANSACTIONS
+// ============================================================================
+const recurringSchema = z.object({
+  title: z.string().min(1).max(120),
+  amount: z.number().positive(),
+  type: z.enum(["INCOME", "EXPENSE"]),
+  category: z.string().min(1),
+  frequency: z.enum(["weekly", "monthly", "yearly"]),
+  startDate: z.coerce.date(),
+  accountId: z.string().optional(),
+  cardId: z.string().optional(),
+});
+
+app.get("/api/recurring", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const rules = await prisma.recurringTransaction.findMany({
+    where: { userId: user.id },
+    orderBy: { nextRunDate: "asc" },
+  });
+  res.json(rules);
+});
+
+app.post("/api/recurring", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = recurringSchema.parse(req.body);
+  const rule = await prisma.recurringTransaction.create({
+    data: { ...data, userId: user.id, nextRunDate: data.startDate },
+  });
+  res.status(201).json(rule);
+});
+
+app.put("/api/recurring/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = z
+    .object({ active: z.boolean().optional(), amount: z.number().positive().optional() })
+    .parse(req.body);
+  const updated = await prisma.recurringTransaction.updateMany({
+    where: { id: String(req.params.id), userId: user.id },
+    data,
+  });
+  if (updated.count === 0) return res.status(404).json({ error: "Recorrência não encontrada" });
+  res.json({ ok: true });
+});
+
+app.delete("/api/recurring/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const deleted = await prisma.recurringTransaction.deleteMany({
+    where: { id: String(req.params.id), userId: user.id },
+  });
+  if (deleted.count === 0) return res.status(404).json({ error: "Recorrência não encontrada" });
+  res.json({ ok: true });
+});
+
+// Manual trigger for the daily job (also runs automatically — see
+// startRecurringJobs below). Admin-only: it processes every user's rules.
+app.post("/api/admin/run-recurring", authenticate, requireAdmin, async (_req, res) => {
+  const result = await runDueRecurringTransactions();
+  res.json(result);
+});
+
+// ============================================================================
+// CSV / OFX — export and import
+// ============================================================================
+app.get("/api/reports/csv", authenticate, requireFeature("canUseReports"), async (req, res) => {
+  const user = (req as any).user;
+  const transactions = await prisma.transaction.findMany({
+    where: { userId: user.id },
+    orderBy: { date: "desc" },
+  });
+  const csv = transactionsToCsv(transactions);
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", 'attachment; filename="finix-transacoes.csv"');
+  res.send(csv);
+});
+
+app.get("/api/reports/ofx", authenticate, requireFeature("canUseReports"), async (req, res) => {
+  const user = (req as any).user;
+  const transactions = await prisma.transaction.findMany({
+    where: { userId: user.id },
+    orderBy: { date: "desc" },
+  });
+  const ofx = transactionsToOfx(transactions, user.name || "Finix");
+  res.setHeader("Content-Type", "application/x-ofx");
+  res.setHeader("Content-Disposition", 'attachment; filename="finix-transacoes.ofx"');
+  res.send(ofx);
+});
+
+app.post(
+  "/api/transactions/import",
+  authenticate,
+  requireFeature("canUseReports"),
+  upload.single("file"),
+  async (req, res) => {
+    const user = (req as any).user;
+    if (!req.file) return res.status(400).json({ error: "Nenhum arquivo enviado" });
+
+    const isOfx = /\.(ofx|qfx)$/i.test(req.file.originalname);
+    let rows;
+    try {
+      rows = isOfx
+        ? parseOfxTransactions(req.file.buffer.toString("utf-8"))
+        : parseCsvTransactions(req.file.buffer);
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message || "Falha ao ler arquivo" });
+    }
+    if (rows.length === 0) {
+      return res.status(400).json({ error: "Nenhuma transação reconhecida no arquivo" });
+    }
+
+    const plan = PLANS[user.plan] || PLANS.FREE;
+    if (plan.transactionsLimit !== -1 && user.transactionsUsed + rows.length > plan.transactionsLimit) {
+      return res.status(403).json({
+        error: `Importar ${rows.length} transações excede o limite mensal do plano ${plan.name}.`,
+        upgrade: true,
+      });
+    }
+
+    const created = await prisma.$transaction(
+      rows.map((r) =>
+        prisma.transaction.create({
+          data: {
+            userId: user.id,
+            title: r.title,
+            amount: r.amount,
+            type: r.type,
+            category: r.category,
+            date: r.date,
+            description: "Importado via arquivo",
+          },
+        }),
+      ),
+    );
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { transactionsUsed: { increment: created.length } },
+    });
+    res.json({ imported: created.length });
+  },
+);
+
+// ============================================================================
+// SHARED-GOAL CONTRIBUTIONS (webhook on completion is handled in PUT /api/goals/:id)
+// PUSH NOTIFICATIONS (Web Push — self-hosted, VAPID)
+// ============================================================================
+app.get("/api/push/vapid-public-key", (_req, res) => {
+  const key = getVapidPublicKey();
+  if (!key) return res.status(501).json({ error: "Push não configurado no servidor" });
+  res.json({ publicKey: key });
+});
+
+const pushSubscribeSchema = z.object({
+  endpoint: z.string().url(),
+  keys: z.object({ p256dh: z.string(), auth: z.string() }),
+});
+
+app.post("/api/push/subscribe", authenticate, async (req, res) => {
+  if (!isPushConfigured) return res.status(501).json({ error: "Push não configurado no servidor" });
+  const user = (req as any).user;
+  const data = pushSubscribeSchema.parse(req.body);
+  await prisma.pushSubscription.upsert({
+    where: { endpoint: data.endpoint },
+    create: { userId: user.id, endpoint: data.endpoint, p256dh: data.keys.p256dh, auth: data.keys.auth },
+    update: { userId: user.id, p256dh: data.keys.p256dh, auth: data.keys.auth },
+  });
+  res.status(201).json({ ok: true });
+});
+
+app.post("/api/push/unsubscribe", authenticate, async (req, res) => {
+  const { endpoint } = z.object({ endpoint: z.string() }).parse(req.body);
+  await prisma.pushSubscription.deleteMany({ where: { endpoint } });
+  res.json({ ok: true });
+});
+
+app.post("/api/push/test", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  await sendPushToUser(user.id, { title: "Finix", body: "Notificação de teste — tudo funcionando!" });
+  res.json({ ok: true });
+});
+
+// ============================================================================
+// OUTBOUND WEBHOOKS
+// ============================================================================
+const webhookSchema = z.object({
+  url: z.string().url(),
+  events: z.array(
+    z.enum([
+      "transaction.created",
+      "transaction.deleted",
+      "goal.created",
+      "goal.completed",
+      "installment.created",
+      "alert.due_soon",
+    ]),
+  ).min(1),
+});
+
+app.get("/api/webhooks", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const webhooks = await prisma.webhookSubscription.findMany({ where: { userId: user.id } });
+  res.json(webhooks.map((w) => ({ ...w, events: JSON.parse(w.events) })));
+});
+
+app.post("/api/webhooks", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = webhookSchema.parse(req.body);
+  const secret = generateWebhookSecret();
+  const webhook = await prisma.webhookSubscription.create({
+    data: { userId: user.id, url: data.url, events: JSON.stringify(data.events), secret },
+  });
+  // The signing secret is only ever returned here, at creation time.
+  res.status(201).json({ ...webhook, events: data.events });
+});
+
+app.delete("/api/webhooks/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const deleted = await prisma.webhookSubscription.deleteMany({
+    where: { id: String(req.params.id), userId: user.id },
+  });
+  if (deleted.count === 0) return res.status(404).json({ error: "Webhook não encontrado" });
+  res.json({ ok: true });
+});
+
+// ============================================================================
+// API KEYS — programmatic read access (Zapier, planilhas, scripts)
+// ============================================================================
+app.get("/api/api-keys", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const keys = await prisma.apiKey.findMany({
+    where: { userId: user.id },
+    select: { id: true, label: true, keyPrefix: true, lastUsedAt: true, createdAt: true },
+    orderBy: { createdAt: "desc" },
+  });
+  res.json(keys);
+});
+
+app.post("/api/api-keys", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const { label } = z.object({ label: z.string().min(1).max(60) }).parse(req.body);
+  const rawKey = `fnx_${crypto.randomBytes(24).toString("hex")}`;
+  const keyPrefix = rawKey.slice(0, 12);
+  const keyHash = await bcrypt.hash(rawKey, 10);
+  const keyFingerprint = crypto.createHash("sha256").update(rawKey).digest("hex");
+
+  await prisma.apiKey.create({
+    data: { userId: user.id, label, keyPrefix, keyHash, keyFingerprint },
+  });
+  // Raw key shown exactly once — same pattern as the webhook secret above.
+  res.status(201).json({ key: rawKey, label, keyPrefix });
+});
+
+app.delete("/api/api-keys/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const deleted = await prisma.apiKey.deleteMany({
+    where: { id: String(req.params.id), userId: user.id },
+  });
+  if (deleted.count === 0) return res.status(404).json({ error: "Chave não encontrada" });
+  res.json({ ok: true });
+});
+
+// ============================================================================
+// OPEN FINANCE (Pluggy) — connected bank accounts.
+// Every route 501s until PLUGGY_CLIENT_ID/PLUGGY_CLIENT_SECRET are set.
+// ============================================================================
+app.post("/api/open-finance/connect-token", authenticate, async (req, res) => {
+  if (!openFinance.isConfigured) {
+    return res.status(501).json({
+      error: "Conexão bancária não configurada. Defina PLUGGY_CLIENT_ID/PLUGGY_CLIENT_SECRET.",
+    });
+  }
+  const user = (req as any).user;
+  try {
+    const accessToken = await openFinance.createConnectToken(user.id);
+    res.json({ accessToken });
+  } catch (err: any) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// Called by Pluggy after the user finishes connecting their bank in the
+// widget (frontend passes the resulting itemId here — Pluggy also supports
+// a server-to-server webhook for the same event, wireable later at
+// dashboard.pluggy.ai once this endpoint has a public URL).
+app.post("/api/open-finance/connections", authenticate, async (req, res) => {
+  if (!openFinance.isConfigured) {
+    return res.status(501).json({ error: "Conexão bancária não configurada." });
+  }
+  const user = (req as any).user;
+  const { itemId } = z.object({ itemId: z.string() }).parse(req.body);
+  try {
+    const item = (await openFinance.fetchItem(itemId)) as any;
+    const connection = await prisma.externalConnection.upsert({
+      where: { itemId },
+      create: {
+        userId: user.id,
+        itemId,
+        status: item.status || "connected",
+        institution: item.connector?.name || null,
+      },
+      update: { status: item.status || "connected" },
+    });
+    res.status(201).json(connection);
+  } catch (err: any) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.get("/api/open-finance/connections", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const connections = await prisma.externalConnection.findMany({
+    where: { userId: user.id },
+    include: { accounts: true },
+  });
+  res.json(connections);
+});
+
+app.post("/api/open-finance/connections/:id/sync", authenticate, async (req, res) => {
+  if (!openFinance.isConfigured) {
+    return res.status(501).json({ error: "Conexão bancária não configurada." });
+  }
+  const user = (req as any).user;
+  const connection = await prisma.externalConnection.findFirst({
+    where: { id: String(req.params.id), userId: user.id },
+  });
+  if (!connection) return res.status(404).json({ error: "Conexão não encontrada" });
+
+  try {
+    const accounts = (await openFinance.fetchAccounts(connection.itemId)) as any[];
+    for (const acc of accounts) {
+      await prisma.externalAccount.upsert({
+        where: { id: `${connection.id}:${acc.id}` },
+        create: {
+          id: `${connection.id}:${acc.id}`,
+          connectionId: connection.id,
+          externalId: acc.id,
+          name: acc.name || "Conta",
+          balance: acc.balance || 0,
+          currency: acc.currencyCode || "BRL",
+        },
+        update: { balance: acc.balance || 0 },
+      });
+    }
+    await prisma.externalConnection.update({
+      where: { id: connection.id },
+      data: { lastSyncedAt: new Date() },
+    });
+    res.json({ accounts: accounts.length });
+  } catch (err: any) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.delete("/api/open-finance/connections/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const deleted = await prisma.externalConnection.deleteMany({
+    where: { id: String(req.params.id), userId: user.id },
+  });
+  if (deleted.count === 0) return res.status(404).json({ error: "Conexão não encontrada" });
+  res.json({ ok: true });
 });
 
 // ============================================================================
@@ -2998,6 +3417,29 @@ const createOrUpdateAdmin = async (): Promise<void> => {
   console.log(`[ADMIN] ✅ Administrador configurado: ${admin.email}`);
 };
 
+// Single-process in-memory scheduler: fires the recurring-transaction and
+// due-alert jobs once at boot (catches up on anything missed while the
+// server was down) and then once every 24h. Fine for the current one-replica
+// deploy; would need to move to a real cron/queue (or a leader-election
+// guard) if the backend ever scales to more than one instance, so it doesn't
+// run the same job N times.
+const DAY_MS = 24 * 60 * 60 * 1000;
+const startBackgroundJobs = () => {
+  const runJobs = async () => {
+    try {
+      const recurring = await runDueRecurringTransactions();
+      const alerts = await sendDueAlertNotifications();
+      console.log(
+        `[JOBS] Recorrências criadas: ${recurring.created} · Alertas notificados: ${alerts.notified}`,
+      );
+    } catch (err: any) {
+      console.error("[JOBS] Falha ao rodar jobs agendados:", err.message);
+    }
+  };
+  runJobs();
+  setInterval(runJobs, DAY_MS);
+};
+
 const startServer = async (): Promise<void> => {
   try {
     await connectDatabase();
@@ -3026,6 +3468,7 @@ const startServer = async (): Promise<void> => {
         !!process.env.STRIPE_SECRET_KEY,
       );
       console.log("[SERVER] ✅ Servidor pronto para requisições");
+      startBackgroundJobs();
     });
   } catch (error) {
     console.error("[SERVER] ❌ Não foi possível iniciar a aplicação:", error);

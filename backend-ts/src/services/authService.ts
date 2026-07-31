@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import {
   createAccessToken,
   createRefreshTokenForUser,
+  createTwoFactorPendingToken,
   buildSafeUser,
 } from "./tokenService";
 import { sendVerificationEmail } from "./emailService";
@@ -124,6 +125,29 @@ export const login = async (email: string, password: string) => {
       "E-mail não verificado. Verifique seu e-mail antes de fazer login.",
     );
   }
+
+  if (user.twoFactorEnabled) {
+    return {
+      requiresTwoFactor: true as const,
+      pendingToken: createTwoFactorPendingToken(user.id),
+      message: "Informe o código do seu aplicativo autenticador",
+    };
+  }
+
+  const accessToken = createAccessToken(user);
+  const refreshTokenResult = await createRefreshTokenForUser(user.id);
+
+  return {
+    user: buildSafeUser(user),
+    token: accessToken,
+    refreshToken: refreshTokenResult.token,
+    message: "Login realizado com sucesso",
+  };
+};
+
+export const completeTwoFactorLogin = async (userId: string) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user || user.blocked) throw new Error("Usuário não encontrado ou bloqueado");
 
   const accessToken = createAccessToken(user);
   const refreshTokenResult = await createRefreshTokenForUser(user.id);

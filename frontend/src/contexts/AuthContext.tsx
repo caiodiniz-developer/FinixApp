@@ -11,7 +11,16 @@ import { User } from "../types";
 
 interface AuthCtx {
   user: User | null | undefined; // undefined = loading, null = not logged in
-  login: (email: string, password: string, remember?: boolean) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    remember?: boolean,
+  ) => Promise<{ requiresTwoFactor: true; pendingToken: string } | void>;
+  completeTwoFactorLogin: (
+    pendingToken: string,
+    codeOrBackup: { token?: string; backupCode?: string },
+    remember?: boolean,
+  ) => Promise<void>;
   loginWithToken: (token: string, remember?: boolean) => Promise<void>;
   register: (
     name: string,
@@ -69,6 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("[AuthContext] Starting login request for:", email);
       const { data } = await api.post("/api/auth/login", { email, password });
+      if (data.requiresTwoFactor) {
+        return { requiresTwoFactor: true as const, pendingToken: data.pendingToken };
+      }
       console.log("[AuthContext] Login response received:", {
         userId: data.user?.id,
         verified: data.user?.isVerified,
@@ -78,6 +90,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("[AuthContext] Login completed successfully");
     } catch (e) {
       console.error("[AuthContext] Login error:", e);
+      throw new Error(apiErrorMessage(e));
+    }
+  };
+
+  const completeTwoFactorLogin = async (
+    pendingToken: string,
+    codeOrBackup: { token?: string; backupCode?: string },
+    remember = true,
+  ) => {
+    try {
+      const { data } = await api.post("/api/auth/2fa/login", { pendingToken, ...codeOrBackup });
+      storeToken(data.token, remember);
+      setUser(data.user);
+    } catch (e) {
       throw new Error(apiErrorMessage(e));
     }
   };
@@ -150,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         login,
+        completeTwoFactorLogin,
         loginWithToken,
         register,
         setUser,

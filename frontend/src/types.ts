@@ -19,6 +19,7 @@ export interface User {
   hasCompanyLogo?: boolean;
   businessPurpose?: string;
   primaryColor?: string;
+  twoFactorEnabled?: boolean;
 }
 
 export interface Transaction {
@@ -115,6 +116,27 @@ export interface CalendarData {
   dailySummary: CalendarDay[];
 }
 
+export interface GoalMember {
+  id: string;
+  goalId: string;
+  userId: string;
+  role: "owner" | "member";
+  joinedAt: string;
+  user?: { id: string; name: string; email: string };
+}
+
+export interface GoalInvite {
+  id: string;
+  goalId: string;
+  senderId: string;
+  receiverEmail: string;
+  receiverId?: string | null;
+  status: "pending" | "accepted" | "declined";
+  createdAt: string;
+  goal?: Goal;
+  sender?: { id: string; name: string; email: string };
+}
+
 export interface Goal {
   id: string;
   userId: string;
@@ -123,13 +145,65 @@ export interface Goal {
   currentAmount: number;
   deadline: string;
   createdAt: string;
+  members?: GoalMember[];
 }
 
 export interface Category {
   id: string;
   userId: string;
   name: string;
+  icon?: string;
+  color?: string;
+  type?: "income" | "expense";
+  isDefault?: boolean;
+  isActive?: boolean;
   createdAt: string;
+}
+
+export interface RecurringTransaction {
+  id: string;
+  userId: string;
+  title: string;
+  amount: number;
+  type: "INCOME" | "EXPENSE";
+  category: string;
+  frequency: "weekly" | "monthly" | "yearly";
+  startDate: string;
+  nextRunDate: string;
+  lastRunDate?: string | null;
+  active: boolean;
+  accountId?: string | null;
+  cardId?: string | null;
+  createdAt: string;
+}
+
+export interface WebhookSubscription {
+  id: string;
+  userId: string;
+  url: string;
+  secret?: string;
+  events: string[];
+  active: boolean;
+  createdAt: string;
+}
+
+export interface ApiKeySummary {
+  id: string;
+  label: string;
+  keyPrefix: string;
+  lastUsedAt?: string | null;
+  createdAt: string;
+}
+
+export interface ExternalConnection {
+  id: string;
+  userId: string;
+  provider: string;
+  itemId: string;
+  status: string;
+  institution?: string | null;
+  lastSyncedAt?: string | null;
+  accounts?: { id: string; name: string; balance: number; currency: string }[];
 }
 
 export interface Insight {

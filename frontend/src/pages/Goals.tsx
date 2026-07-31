@@ -8,6 +8,9 @@ import {
   Loader2,
   CalendarDays,
   Trophy,
+  UserPlus,
+  Users,
+  Check,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -15,7 +18,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
-import { Goal } from "../types";
+import { Goal, GoalInvite } from "../types";
 import { currency, dateBR, dateISOForInput } from "../utils/format";
 
 const schema = yup.object({
@@ -44,13 +47,24 @@ export default function Goals() {
   const [items, setItems] = useState<Goal[] | null>(null);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Goal | null>(null);
+  const [inviteFor, setInviteFor] = useState<Goal | null>(null);
+  const [invites, setInvites] = useState<GoalInvite[]>([]);
 
   const fetchData = async () => {
     const r = await api.get("/api/goals");
     setItems(r.data);
   };
+  const fetchInvites = async () => {
+    try {
+      const r = await api.get("/api/goals/invites");
+      setInvites(r.data);
+    } catch {
+      /* not critical to the page render */
+    }
+  };
   useEffect(() => {
     fetchData().catch(() => toast.error("Erro ao carregar"));
+    fetchInvites();
   }, []);
 
   const onDelete = async (g: Goal) => {
@@ -59,6 +73,19 @@ export default function Goals() {
       await api.delete(`/api/goals/${g.id}`);
       toast.success("Excluída");
       fetchData();
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    }
+  };
+
+  const respondInvite = async (invite: GoalInvite, accept: boolean) => {
+    try {
+      await api.post(`/api/goals/invites/${invite.id}/${accept ? "accept" : "decline"}`);
+      setInvites((prev) => prev.filter((i) => i.id !== invite.id));
+      if (accept) {
+        toast.success("Meta compartilhada adicionada!");
+        fetchData();
+      }
     } catch (e) {
       toast.error(apiErrorMessage(e));
     }
@@ -86,6 +113,29 @@ export default function Goals() {
           <Plus className="w-4 h-4" /> Nova meta
         </button>
       </div>
+
+      {invites.length > 0 && (
+        <div className="card space-y-2">
+          <p className="text-sm font-semibold flex items-center gap-2">
+            <Users className="w-4 h-4" /> Convites de metas compartilhadas
+          </p>
+          {invites.map((inv) => (
+            <div key={inv.id} className="flex items-center justify-between gap-3 rounded-xl bg-surface-strong p-3 text-sm">
+              <span>
+                <strong>{inv.sender?.name || inv.sender?.email}</strong> te convidou para "{inv.goal?.title}"
+              </span>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={() => respondInvite(inv, true)} className="btn-primary !py-1.5 !px-3 text-xs">
+                  <Check className="w-3.5 h-3.5" /> Aceitar
+                </button>
+                <button onClick={() => respondInvite(inv, false)} className="btn-outline !py-1.5 !px-3 text-xs">
+                  Recusar
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {items === null ? (
         <div className="grid sm:grid-cols-2 gap-4">
@@ -136,6 +186,14 @@ export default function Goals() {
                   <div className="flex gap-1">
                     <button
                       className="btn-ghost !p-2"
+                      onClick={() => setInviteFor(g)}
+                      title="Convidar alguém para esta meta"
+                      data-testid={`invite-goal-${g.id}`}
+                    >
+                      <UserPlus className="w-4 h-4" />
+                    </button>
+                    <button
+                      className="btn-ghost !p-2"
                       onClick={() => {
                         setEditing(g);
                         setOpen(true);
@@ -153,6 +211,12 @@ export default function Goals() {
                     </button>
                   </div>
                 </div>
+                {g.members && g.members.length > 0 && (
+                  <div className="relative flex items-center gap-1.5 mt-2 text-xs text-muted">
+                    <Users className="w-3.5 h-3.5" />
+                    {g.members.map((m) => m.user?.name).filter(Boolean).join(", ")}
+                  </div>
+                )}
                 <div className="relative mt-5">
                   <div className="flex items-baseline justify-between mb-2">
                     <span className="text-2xl font-display font-bold">
@@ -195,8 +259,69 @@ export default function Goals() {
             }}
           />
         )}
+        {inviteFor && (
+          <InviteModal goal={inviteFor} onClose={() => setInviteFor(null)} />
+        )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function InviteModal({ goal, onClose }: { goal: Goal; onClose: () => void }) {
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const onInvite = async () => {
+    if (!email) return;
+    setSending(true);
+    try {
+      await api.post(`/api/goals/${goal.id}/invite`, { email });
+      toast.success("Convite enviado!");
+      onClose();
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0.95 }}
+        className="bg-surface dark:bg-surface-strong rounded-2xl shadow-2xl w-full max-w-sm p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-lg font-bold">Convidar para "{goal.title}"</h2>
+          <button onClick={onClose} className="btn-ghost !p-2">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <p className="text-sm text-muted mt-2">
+          A pessoa precisa já ter uma conta Finix com esse e-mail para aceitar o convite.
+        </p>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="input mt-4"
+          placeholder="email@exemplo.com"
+          autoFocus
+        />
+        <button onClick={onInvite} disabled={sending || !email} className="btn-primary w-full mt-4">
+          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enviar convite"}
+        </button>
+      </motion.div>
+    </motion.div>
   );
 }
 

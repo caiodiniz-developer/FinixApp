@@ -29,6 +29,7 @@ const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Transactions = lazy(() => import("./pages/Transactions"));
+const Recurring = lazy(() => import("./pages/Recurring"));
 const Goals = lazy(() => import("./pages/Goals"));
 const Budgets = lazy(() => import("./pages/Budgets"));
 const Accounts = lazy(() => import("./pages/Accounts"));
@@ -194,6 +195,7 @@ export default function App() {
               <Route index element={<Navigate to="/app/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="transactions" element={<Transactions />} />
+              <Route path="recurring" element={<Recurring />} />
               <Route path="goals" element={<Goals />} />
               <Route path="budgets" element={<Budgets />} />
               <Route path="accounts" element={<Accounts />} />

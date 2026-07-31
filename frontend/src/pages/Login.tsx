@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { Eye, EyeOff, Loader2, Mail, Lock, ArrowRight, TrendingUp, Shield, Zap } from "lucide-react";
+import { Eye, EyeOff, Loader2, Mail, Lock, ArrowRight, TrendingUp, Shield, Zap, KeyRound } from "lucide-react";
 import { motion } from "framer-motion";
 import { Logo } from "../components/Logo";
 import { useAuth } from "../contexts/AuthContext";
@@ -36,19 +36,46 @@ const STATS = [
 ];
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, completeTwoFactorLogin } = useAuth();
   const nav = useNavigate();
   const [show, setShow] = useState(false);
   const [remember, setRemember] = useState(true);
+  const [pendingToken, setPendingToken] = useState<string | null>(null);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [useBackupCode, setUseBackupCode] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({ resolver: yupResolver(schema) });
 
   const onSubmit = async (data: Form) => {
     try {
-      await login(data.email, data.password, remember);
+      const result = await login(data.email, data.password, remember);
+      if (result?.requiresTwoFactor) {
+        setPendingToken(result.pendingToken);
+        return;
+      }
       toast.success("Bem-vindo de volta!");
       nav("/app/dashboard");
     } catch (e: any) {
       toast.error(e.message || "Falha ao entrar");
+    }
+  };
+
+  const onSubmitTwoFactor = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!pendingToken) return;
+    setVerifying(true);
+    try {
+      await completeTwoFactorLogin(
+        pendingToken,
+        useBackupCode ? { backupCode: twoFactorCode } : { token: twoFactorCode },
+        remember,
+      );
+      toast.success("Bem-vindo de volta!");
+      nav("/app/dashboard");
+    } catch (e: any) {
+      toast.error(e.message || "Código inválido");
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -132,6 +159,46 @@ export default function Login() {
             </Link>
           </p>
 
+          {pendingToken ? (
+            <form onSubmit={onSubmitTwoFactor} className="mt-7 space-y-4" data-testid="twofactor-form">
+              <div className="p-4 rounded-xl flex items-start gap-3" style={{ background: "var(--color-background)", border: "1px solid var(--color-border)" }}>
+                <KeyRound className="w-5 h-5 text-brand-blue shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-text">Verificação em duas etapas</p>
+                  <p className="text-xs text-muted mt-1">
+                    {useBackupCode
+                      ? "Digite um dos seus códigos de backup."
+                      : "Abra seu aplicativo autenticador e digite o código de 6 dígitos."}
+                  </p>
+                </div>
+              </div>
+              <input
+                value={twoFactorCode}
+                onChange={(e) => setTwoFactorCode(e.target.value)}
+                autoFocus
+                className="input text-center text-lg tracking-[0.3em] font-mono"
+                placeholder={useBackupCode ? "código de backup" : "000000"}
+                maxLength={useBackupCode ? 20 : 6}
+              />
+              <button type="submit" disabled={verifying || !twoFactorCode} className="btn-primary w-full !py-3">
+                {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Verificar</span>}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setUseBackupCode((p) => !p); setTwoFactorCode(""); }}
+                className="text-xs text-muted hover:text-text w-full text-center"
+              >
+                {useBackupCode ? "Usar código do aplicativo" : "Usar um código de backup"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setPendingToken(null); setTwoFactorCode(""); }}
+                className="text-xs text-muted hover:text-text w-full text-center"
+              >
+                Voltar
+              </button>
+            </form>
+          ) : (
           <div className="mt-7 space-y-4">
             {/* Google button */}
             <button onClick={handleGoogleLogin}
@@ -202,6 +269,7 @@ export default function Login() {
               </div>
             </div>
           </div>
+          )}
         </motion.div>
       </div>
     </div>

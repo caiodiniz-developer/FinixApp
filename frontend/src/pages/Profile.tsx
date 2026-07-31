@@ -11,11 +11,27 @@ import {
   ShieldCheck,
   Loader2,
   Camera,
+  Webhook,
+  KeyRound,
+  Copy,
+  Trash2,
+  Landmark,
+  FileSpreadsheet,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useUserPhoto } from "../hooks/useUserPhoto";
+import { WebhookSubscription, ApiKeySummary, ExternalConnection } from "../types";
+
+// Standard VAPID-key conversion (base64url -> Uint8Array) required by the
+// browser's PushManager.subscribe — same snippet every Web Push guide uses.
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+}
 
 const nameSchema = yup.object({
   name: yup.string().min(2).required("Informe seu nome"),
@@ -34,7 +50,8 @@ type Tab =
   | "Assinatura"
   | "Notificações"
   | "Empresa"
-  | "Exportação";
+  | "Exportação"
+  | "Integrações";
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
@@ -48,6 +65,200 @@ export default function Profile() {
     push: true,
     whatsapp: true,
   });
+
+  // 2FA
+  const [twoFactorSetup, setTwoFactorSetup] = useState<{ secret: string; qrCode: string } | null>(null);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
+  const [disablePassword, setDisablePassword] = useState("");
+  const [disableCode, setDisableCode] = useState("");
+  const [twoFactorLoading, setTwoFactorLoading] = useState(false);
+
+  // Push notifications
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+
+  // Integrações: webhooks, API keys, Open Finance
+  const [webhooks, setWebhooks] = useState<WebhookSubscription[]>([]);
+  const [apiKeys, setApiKeys] = useState<ApiKeySummary[]>([]);
+  const [connections, setConnections] = useState<ExternalConnection[]>([]);
+  const [newWebhookUrl, setNewWebhookUrl] = useState("");
+  const [newApiKeyLabel, setNewApiKeyLabel] = useState("");
+  const [createdApiKey, setCreatedApiKey] = useState<string | null>(null);
+  const [createdWebhookSecret, setCreatedWebhookSecret] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  useEffect(() => {
+    if (tab === "Integrações") {
+      api.get("/api/webhooks").then((r) => setWebhooks(r.data)).catch(() => {});
+      api.get("/api/api-keys").then((r) => setApiKeys(r.data)).catch(() => {});
+      api.get("/api/open-finance/connections").then((r) => setConnections(r.data)).catch(() => {});
+    }
+  }, [tab]);
+
+  const startTwoFactorSetup = async () => {
+    setTwoFactorLoading(true);
+    try {
+      const { data } = await api.post("/api/2fa/setup");
+      setTwoFactorSetup(data);
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setTwoFactorLoading(false);
+    }
+  };
+
+  const confirmTwoFactorSetup = async () => {
+    setTwoFactorLoading(true);
+    try {
+      const { data } = await api.post("/api/2fa/verify", { token: twoFactorCode });
+      setBackupCodes(data.backupCodes);
+      setTwoFactorSetup(null);
+      setTwoFactorCode("");
+      await refreshUser();
+      toast.success("2FA ativado! Guarde seus códigos de backup.");
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setTwoFactorLoading(false);
+    }
+  };
+
+  const disableTwoFactor = async () => {
+    setTwoFactorLoading(true);
+    try {
+      await api.post("/api/2fa/disable", { password: disablePassword, token: disableCode });
+      setDisablePassword("");
+      setDisableCode("");
+      await refreshUser();
+      toast.success("2FA desativado");
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setTwoFactorLoading(false);
+    }
+  };
+
+  const enablePush = async () => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      toast.error("Seu navegador não suporta notificações push");
+      return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        toast.error("Permissão de notificação negada");
+        return;
+      }
+      const { data: vapid } = await api.get("/api/push/vapid-public-key");
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapid.publicKey),
+      });
+      await api.post("/api/push/subscribe", sub.toJSON());
+      setPushSubscribed(true);
+      toast.success("Notificações push ativadas!");
+    } catch (err: any) {
+      toast.error(err?.response?.status === 501 ? "Push não configurado no servidor" : apiErrorMessage(err));
+    }
+  };
+
+  const createWebhook = async () => {
+    if (!newWebhookUrl) return;
+    try {
+      const { data } = await api.post("/api/webhooks", {
+        url: newWebhookUrl,
+        events: ["transaction.created", "goal.completed", "alert.due_soon"],
+      });
+      setCreatedWebhookSecret(data.secret);
+      setWebhooks((prev) => [...prev, data]);
+      setNewWebhookUrl("");
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    }
+  };
+
+  const deleteWebhook = async (id: string) => {
+    await api.delete(`/api/webhooks/${id}`).catch(() => {});
+    setWebhooks((prev) => prev.filter((w) => w.id !== id));
+  };
+
+  const createApiKey = async () => {
+    if (!newApiKeyLabel) return;
+    try {
+      const { data } = await api.post("/api/api-keys", { label: newApiKeyLabel });
+      setCreatedApiKey(data.key);
+      setApiKeys((prev) => [{ id: data.key, label: data.label, keyPrefix: data.keyPrefix, createdAt: new Date().toISOString() }, ...prev]);
+      setNewApiKeyLabel("");
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    }
+  };
+
+  const deleteApiKey = async (id: string) => {
+    await api.delete(`/api/api-keys/${id}`).catch(() => {});
+    setApiKeys((prev) => prev.filter((k) => k.id !== id));
+  };
+
+  const connectBank = async () => {
+    try {
+      await api.post("/api/open-finance/connect-token");
+      toast("Conexão bancária: fluxo de widget ainda não embutido — token gerado com sucesso.");
+    } catch (err: any) {
+      toast.error(
+        err?.response?.status === 501
+          ? "Conexão bancária não configurada (faltam credenciais Pluggy no servidor)"
+          : apiErrorMessage(err),
+      );
+    }
+  };
+
+  const exportCsv = async () => {
+    try {
+      const response = await api.get("/api/reports/csv", { responseType: "blob" });
+      const url = URL.createObjectURL(response.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "finix-transacoes.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    }
+  };
+
+  const exportOfx = async () => {
+    try {
+      const response = await api.get("/api/reports/ofx", { responseType: "blob" });
+      const url = URL.createObjectURL(response.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "finix-transacoes.ofx";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    }
+  };
+
+  const importFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const { data } = await api.post("/api/transactions/import", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success(`${data.imported} transações importadas!`);
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setImporting(false);
+      event.target.value = "";
+    }
+  };
 
   const nameForm = useForm<{ name: string }>({
     resolver: yupResolver(nameSchema) as any,
@@ -232,6 +443,7 @@ export default function Profile() {
                 "Notificações",
                 "Empresa",
                 "Exportação",
+                "Integrações",
               ] as Tab[]
             ).map((item) => (
               <button
@@ -493,6 +705,74 @@ export default function Profile() {
                   )}
                 </button>
               </form>
+
+              <div className="mt-8 pt-6 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-text">Autenticação em duas etapas (2FA)</h3>
+                    <p className="text-sm text-muted mt-1">
+                      {user.twoFactorEnabled
+                        ? "Ativada — seu login pede um código do aplicativo autenticador."
+                        : "Adicione uma camada extra de proteção usando um aplicativo autenticador (Google Authenticator, Authy...)."}
+                    </p>
+                  </div>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${user.twoFactorEnabled ? "bg-emerald-500/10 text-emerald-500" : "bg-surface-strong text-muted"}`}>
+                    {user.twoFactorEnabled ? "Ativado" : "Desativado"}
+                  </span>
+                </div>
+
+                {!user.twoFactorEnabled && !twoFactorSetup && !backupCodes && (
+                  <button onClick={startTwoFactorSetup} disabled={twoFactorLoading} className="btn-primary mt-4">
+                    {twoFactorLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ativar 2FA"}
+                  </button>
+                )}
+
+                {twoFactorSetup && (
+                  <div className="mt-4 rounded-3xl border border-border bg-surface-strong p-4 space-y-3">
+                    <p className="text-sm text-text">1. Escaneie o QR code com seu app autenticador:</p>
+                    <img src={twoFactorSetup.qrCode} alt="QR code 2FA" className="w-40 h-40 rounded-xl border border-border" />
+                    <p className="text-xs text-muted">Ou digite manualmente: <code className="font-mono">{twoFactorSetup.secret}</code></p>
+                    <p className="text-sm text-text">2. Digite o código de 6 dígitos gerado:</p>
+                    <input
+                      value={twoFactorCode}
+                      onChange={(e) => setTwoFactorCode(e.target.value)}
+                      className="input text-center font-mono tracking-widest"
+                      placeholder="000000"
+                      maxLength={6}
+                    />
+                    <button onClick={confirmTwoFactorSetup} disabled={twoFactorLoading || !twoFactorCode} className="btn-primary w-full">
+                      {twoFactorLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirmar e ativar"}
+                    </button>
+                  </div>
+                )}
+
+                {backupCodes && (
+                  <div className="mt-4 rounded-3xl border border-amber-500/30 bg-amber-500/5 p-4">
+                    <p className="text-sm font-semibold text-text">Guarde seus códigos de backup</p>
+                    <p className="text-xs text-muted mt-1">Cada um funciona uma vez, caso você perca acesso ao autenticador. Eles não serão mostrados novamente.</p>
+                    <div className="mt-3 grid grid-cols-2 gap-2 font-mono text-xs">
+                      {backupCodes.map((c) => (
+                        <div key={c} className="rounded-lg bg-surface-strong px-2 py-1.5 text-text">{c}</div>
+                      ))}
+                    </div>
+                    <button onClick={() => setBackupCodes(null)} className="btn-outline mt-3 w-full">Já guardei</button>
+                  </div>
+                )}
+
+                {user.twoFactorEnabled && (
+                  <div className="mt-4 rounded-3xl border border-border bg-surface-strong p-4 space-y-3">
+                    <p className="text-sm text-text">Para desativar, confirme sua senha e um código atual:</p>
+                    <input type="password" value={disablePassword} onChange={(e) => setDisablePassword(e.target.value)}
+                      className="input" placeholder="Senha atual" />
+                    <input value={disableCode} onChange={(e) => setDisableCode(e.target.value)}
+                      className="input font-mono tracking-widest" placeholder="Código 2FA" maxLength={6} />
+                    <button onClick={disableTwoFactor} disabled={twoFactorLoading || !disablePassword || !disableCode}
+                      className="btn-outline w-full text-rose-500">
+                      {twoFactorLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Desativar 2FA"}
+                    </button>
+                  </div>
+                )}
+              </div>
             </section>
           )}
 
@@ -605,17 +885,27 @@ export default function Profile() {
                         .
                       </p>
                     </div>
-                    <input
-                      type="checkbox"
-                      checked={notifSettings[channel]}
-                      onChange={(e) =>
-                        setNotifSettings((prev) => ({
-                          ...prev,
-                          [channel]: e.target.checked,
-                        }))
-                      }
-                      className="h-5 w-5 rounded border-border text-brand-blue focus:ring-brand-blue"
-                    />
+                    {channel === "push" ? (
+                      <button
+                        onClick={enablePush}
+                        disabled={pushSubscribed}
+                        className={`rounded-full px-4 py-1.5 text-xs font-semibold ${pushSubscribed ? "bg-emerald-500/10 text-emerald-500" : "btn-primary !py-1.5"}`}
+                      >
+                        {pushSubscribed ? "Ativado" : "Ativar"}
+                      </button>
+                    ) : (
+                      <input
+                        type="checkbox"
+                        checked={notifSettings[channel]}
+                        onChange={(e) =>
+                          setNotifSettings((prev) => ({
+                            ...prev,
+                            [channel]: e.target.checked,
+                          }))
+                        }
+                        className="h-5 w-5 rounded border-border text-brand-blue focus:ring-brand-blue"
+                      />
+                    )}
                   </label>
                 ))}
               </div>
@@ -709,6 +999,133 @@ export default function Profile() {
               <p className="mt-4 text-sm text-muted">
                 Exportação Excel disponível apenas no plano Pro.
               </p>
+
+              <div className="mt-8 pt-6 border-t border-border">
+                <h3 className="font-semibold text-text">CSV e OFX</h3>
+                <p className="mt-1 text-sm text-muted">
+                  CSV abre em qualquer planilha; OFX é lido por apps de finanças (Money, Quicken, GnuCash).
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <button onClick={exportCsv} className="btn-outline w-full inline-flex items-center justify-center gap-2">
+                    <FileSpreadsheet className="w-4 h-4" /> Exportar CSV
+                  </button>
+                  <button onClick={exportOfx} className="btn-outline w-full inline-flex items-center justify-center gap-2">
+                    <Landmark className="w-4 h-4" /> Exportar OFX
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-border">
+                <h3 className="font-semibold text-text">Importar transações</h3>
+                <p className="mt-1 text-sm text-muted">
+                  Envie um arquivo .csv (colunas: data, título, valor, tipo, categoria) ou .ofx/.qfx do seu banco.
+                </p>
+                <label className="btn-primary mt-4 inline-flex items-center gap-2 cursor-pointer">
+                  {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  Escolher arquivo
+                  <input type="file" accept=".csv,.ofx,.qfx" onChange={importFile} className="hidden" disabled={importing} />
+                </label>
+              </div>
+            </section>
+          )}
+
+          {/* Integrações tab */}
+          {tab === "Integrações" && (
+            <section className="space-y-6">
+              {/* Open Finance */}
+              <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
+                      <Landmark className="w-5 h-5" /> Contas conectadas (Open Finance)
+                    </h2>
+                    <p className="mt-2 text-sm text-muted">
+                      Conecte contas bancárias para importar transações automaticamente.
+                    </p>
+                  </div>
+                  <button onClick={connectBank} className="btn-primary shrink-0">Conectar banco</button>
+                </div>
+                {connections.length > 0 ? (
+                  <div className="mt-4 space-y-2">
+                    {connections.map((c) => (
+                      <div key={c.id} className="rounded-2xl bg-surface-strong p-3 text-sm text-text flex items-center justify-between">
+                        <span>{c.institution || c.provider} — {c.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-4 text-xs text-muted">
+                    Nenhuma conta conectada ainda. Requer configuração de credenciais Pluggy no servidor.
+                  </p>
+                )}
+              </div>
+
+              {/* Webhooks */}
+              <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+                <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
+                  <Webhook className="w-5 h-5" /> Webhooks
+                </h2>
+                <p className="mt-2 text-sm text-muted">
+                  Receba um POST assinado (HMAC) quando uma transação, meta ou alerta acontecer — útil para integrar com Zapier, n8n ou seu próprio backend.
+                </p>
+                <div className="mt-4 flex gap-2">
+                  <input value={newWebhookUrl} onChange={(e) => setNewWebhookUrl(e.target.value)}
+                    className="input flex-1" placeholder="https://seu-endpoint.com/webhook" />
+                  <button onClick={createWebhook} className="btn-primary shrink-0">Adicionar</button>
+                </div>
+                {createdWebhookSecret && (
+                  <div className="mt-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
+                    <p className="font-semibold text-text">Segredo de assinatura (mostrado uma única vez):</p>
+                    <code className="block mt-1 font-mono break-all text-text">{createdWebhookSecret}</code>
+                  </div>
+                )}
+                <div className="mt-4 space-y-2">
+                  {webhooks.map((w) => (
+                    <div key={w.id} className="rounded-2xl bg-surface-strong p-3 text-sm text-text flex items-center justify-between gap-2">
+                      <span className="truncate">{w.url}</span>
+                      <button onClick={() => deleteWebhook(w.id)} className="text-muted hover:text-rose-500 shrink-0">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* API Keys */}
+              <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+                <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
+                  <KeyRound className="w-5 h-5" /> Chaves de API
+                </h2>
+                <p className="mt-2 text-sm text-muted">
+                  Use uma chave no header <code>X-Api-Key</code> para ler seus dados de fora do Finix (planilha, script, Zapier).
+                </p>
+                <div className="mt-4 flex gap-2">
+                  <input value={newApiKeyLabel} onChange={(e) => setNewApiKeyLabel(e.target.value)}
+                    className="input flex-1" placeholder="Nome da chave (ex: Planilha mensal)" />
+                  <button onClick={createApiKey} className="btn-primary shrink-0">Gerar</button>
+                </div>
+                {createdApiKey && (
+                  <div className="mt-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
+                    <p className="font-semibold text-text">Chave gerada (mostrada uma única vez):</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="block font-mono break-all text-text flex-1">{createdApiKey}</code>
+                      <button onClick={() => { navigator.clipboard.writeText(createdApiKey); toast.success("Copiado!"); }}>
+                        <Copy className="w-4 h-4 text-muted hover:text-text" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <div className="mt-4 space-y-2">
+                  {apiKeys.map((k) => (
+                    <div key={k.id} className="rounded-2xl bg-surface-strong p-3 text-sm text-text flex items-center justify-between gap-2">
+                      <span>{k.label} <span className="text-muted font-mono text-xs">({k.keyPrefix}…)</span></span>
+                      <button onClick={() => deleteApiKey(k.id)} className="text-muted hover:text-rose-500 shrink-0">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </section>
           )}
         </main>

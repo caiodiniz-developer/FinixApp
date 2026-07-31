@@ -30,6 +30,7 @@ export interface SafeUser {
    * (login/me/refresh-token). Fetch the real value once from GET /api/auth/photo. */
   hasPhoto: boolean;
   hasCompanyLogo: boolean;
+  twoFactorEnabled: boolean;
 }
 
 // This is the single point every auth response (login, /me, refresh-token)
@@ -55,7 +56,29 @@ export const buildSafeUser = (user: User): SafeUser => ({
   createdAt: user.createdAt,
   hasPhoto: !!user.photo,
   hasCompanyLogo: !!user.companyLogo,
+  twoFactorEnabled: (user as any).twoFactorEnabled ?? false,
 });
+
+/** Short-lived token issued after password check when 2FA is enabled — proves
+ * the password step passed, but is NOT a valid access token on its own (no
+ * `sub`-only claim collision risk: `authenticate` middlewares require a plain
+ * `sub`, this carries `twoFactorPending` too and is only accepted by the
+ * dedicated /api/auth/2fa/login route). */
+export const createTwoFactorPendingToken = (userId: string): string => {
+  return jwt.sign({ sub: userId, twoFactorPending: true }, JWT_SECRET, {
+    expiresIn: "5m",
+  } as jwt.SignOptions);
+};
+
+export const verifyTwoFactorPendingToken = (token: string): string | null => {
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as any;
+    if (!payload?.twoFactorPending || !payload?.sub) return null;
+    return payload.sub as string;
+  } catch {
+    return null;
+  }
+};
 
 export const createAccessToken = (user: User): string => {
   const secret = (JWT_SECRET || "finix-dev-secret") as any;

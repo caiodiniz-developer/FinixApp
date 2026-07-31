@@ -325,6 +325,7 @@ export default function AppLayout() {
       label: "Finanças",
       items: [
         { to: "/app/transactions", icon: ArrowLeftRight, label: "Transações", testid: "nav-transactions" },
+        { to: "/app/recurring", icon: Repeat, label: "Recorrências", testid: "nav-recurring" },
         { to: "/app/accounts", icon: Landmark, label: "Contas", testid: "nav-accounts" },
         { to: "/app/cards", icon: CardIcon, label: "Cartões", testid: "nav-cards" },
         { to: "/app/budgets", icon: Wallet, label: "Orçamentos", testid: "nav-budgets" },

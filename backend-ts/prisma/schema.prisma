@@ -53,6 +53,20 @@ model User {
   contacts            Contact[]
   splitExpenses       SplitExpense[]
 
+  // 2FA (TOTP)
+  twoFactorSecret      String?
+  twoFactorEnabled     Boolean @default(false)
+  twoFactorBackupCodes String? // JSON array of bcrypt-hashed backup codes
+
+  recurringTransactions RecurringTransaction[]
+  pushSubscriptions     PushSubscription[]
+  webhookSubscriptions  WebhookSubscription[]
+  apiKeys               ApiKey[]
+  externalConnections   ExternalConnection[]
+  goalMemberships       GoalMember[]
+  sentGoalInvites       GoalInvite[]           @relation("GoalInviteSender")
+  receivedGoalInvites   GoalInvite[]           @relation("GoalInviteReceiver")
+
   @@map("users")
 }
 
@@ -94,10 +108,10 @@ model Transaction {
   dueDate            DateTime?
   createdAt          DateTime  @default(now())
 
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  installment   Installment?    @relation(fields: [installmentId], references: [id], onDelete: SetNull)
-  account       Account?        @relation(fields: [accountId], references: [id], onDelete: SetNull)
-  card          CreditCard?     @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  installment   Installment?   @relation(fields: [installmentId], references: [id], onDelete: SetNull)
+  account       Account?       @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  card          CreditCard?    @relation(fields: [cardId], references: [id], onDelete: SetNull)
   splitExpenses SplitExpense[]
 
   @@index([userId])
@@ -109,14 +123,14 @@ model Transaction {
 }
 
 model Account {
-  id         String   @id @default(uuid())
-  userId     String
-  name       String
-  type       String   @default("corrente")
-  color      String?  @default("#2563eb")
-  isDefault  Boolean  @default(false)
-  archived   Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  type      String   @default("corrente")
+  color     String?  @default("#2563eb")
+  isDefault Boolean  @default(false)
+  archived  Boolean  @default(false)
+  createdAt DateTime @default(now())
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
@@ -189,11 +203,50 @@ model Goal {
   deadline      DateTime
   createdAt     DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members GoalMember[]
+  invites GoalInvite[]
 
   @@index([userId])
   @@index([userId, deadline])
   @@map("goals")
+}
+
+// A goal has exactly one implicit owner (Goal.userId, kept for backward
+// compatibility with existing rows/queries) plus zero or more members added
+// via an accepted GoalInvite — both owner and members can view/contribute.
+model GoalMember {
+  id       String   @id @default(uuid())
+  goalId   String
+  userId   String
+  role     String   @default("member") // owner | member
+  joinedAt DateTime @default(now())
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, userId])
+  @@index([userId])
+  @@map("goal_members")
+}
+
+model GoalInvite {
+  id            String    @id @default(uuid())
+  goalId        String
+  senderId      String
+  receiverEmail String
+  receiverId    String?
+  status        String    @default("pending") // pending | accepted | declined
+  createdAt     DateTime  @default(now())
+  respondedAt   DateTime?
+
+  goal     Goal  @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  sender   User  @relation("GoalInviteSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User? @relation("GoalInviteReceiver", fields: [receiverId], references: [id], onDelete: SetNull)
+
+  @@index([receiverEmail])
+  @@index([goalId])
+  @@map("goal_invites")
 }
 
 model Budget {
@@ -324,6 +377,7 @@ model FinancialAlert {
   daysUntilDue  Int?
   dueDate       DateTime?
   isRead        Boolean   @default(false)
+  notifiedAt    DateTime? // when the email/push reminder was last sent — prevents re-notifying every day
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -335,4 +389,126 @@ model FinancialAlert {
   @@index([installmentId])
   @@index([dueDate])
   @@map("financial_alerts")
+}
+
+// ============================================================================
+// RECURRING TRANSACTIONS — template that spawns a real Transaction every
+// period (weekly/monthly/yearly), advancing nextRunDate as it fires.
+// ============================================================================
+model RecurringTransaction {
+  id          String    @id @default(uuid())
+  userId      String
+  title       String
+  amount      Float
+  type        String // INCOME | EXPENSE
+  category    String
+  frequency   String // weekly | monthly | yearly
+  startDate   DateTime
+  nextRunDate DateTime
+  lastRunDate DateTime?
+  active      Boolean   @default(true)
+  accountId   String?
+  cardId      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([nextRunDate, active])
+  @@map("recurring_transactions")
+}
+
+// ============================================================================
+// WEB PUSH — self-hosted (VAPID keypair), no third-party account required.
+// ============================================================================
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+// ============================================================================
+// OUTBOUND WEBHOOKS — user-configured endpoints notified on domain events,
+// signed with an HMAC-SHA256 secret (X-Finix-Signature header).
+// ============================================================================
+model WebhookSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  url       String
+  secret    String
+  events    String // JSON array, e.g. ["transaction.created","goal.completed"]
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("webhook_subscriptions")
+}
+
+// ============================================================================
+// API KEYS — read-only programmatic access (Zapier, spreadsheets, scripts).
+// Only the bcrypt hash is stored; the raw key is shown once at creation time.
+// ============================================================================
+model ApiKey {
+  id             String    @id @default(uuid())
+  userId         String
+  label          String
+  keyPrefix      String // first 8 chars of the raw key, shown in the UI to identify it
+  keyHash        String // bcrypt hash, verified on every request
+  keyFingerprint String    @unique // sha256 of the raw key — O(1) lookup, same pattern as RefreshToken
+  lastUsedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("api_keys")
+}
+
+// ============================================================================
+// OPEN FINANCE — connected bank accounts via an aggregator (Pluggy by
+// default). Requires PLUGGY_CLIENT_ID/PLUGGY_CLIENT_SECRET to actually work;
+// the schema and routes exist independently of that configuration.
+// ============================================================================
+model ExternalConnection {
+  id           String    @id @default(uuid())
+  userId       String
+  provider     String    @default("pluggy")
+  itemId       String    @unique
+  status       String    @default("pending") // pending | connected | error | disconnected
+  institution  String?
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
+
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts ExternalAccount[]
+
+  @@index([userId])
+  @@map("external_connections")
+}
+
+model ExternalAccount {
+  id           String   @id @default(uuid())
+  connectionId String
+  externalId   String
+  accountId    String? // linked local Account once mapped by the user
+  name         String
+  balance      Float    @default(0)
+  currency     String   @default("BRL")
+  createdAt    DateTime @default(now())
+
+  connection ExternalConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId])
+  @@map("external_accounts")
 }
