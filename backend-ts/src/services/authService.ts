@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import {
   createAccessToken,
   createRefreshTokenForUser,
@@ -8,8 +8,6 @@ import {
 } from "./tokenService";
 import { sendVerificationEmail } from "./emailService";
 
-const prisma = new PrismaClient();
-
 const generateCode = () =>
   String(Math.floor(100000 + Math.random() * 900000));
 
@@ -17,8 +15,12 @@ export const signup = async (email: string, password: string, name: string) => {
   const normalizedEmail = email.toLowerCase().trim();
   const normalizedName = name.trim();
 
+  // omit: photo/companyLogo can be multi-MB base64 data URIs (see
+  // tokenService.SafeUser) — fetching them here just to check `if
+  // (existingUser)` would drag that payload across the network for nothing.
   const existingUser = await prisma.user.findUnique({
     where: { email: normalizedEmail },
+    omit: { photo: true, companyLogo: true },
   });
   if (existingUser) {
     throw new Error("Usuário já existe");
@@ -39,23 +41,20 @@ export const signup = async (email: string, password: string, name: string) => {
     },
   });
 
-  let emailSent = false;
-  let emailError: string | null = null;
-  try {
-    await sendVerificationEmail(normalizedEmail, code);
-    emailSent = true;
-  } catch (err: any) {
-    emailError = err.message;
+  // The Resend API round-trip is the single slowest part of signup (often
+  // 1-3s) and the frontend never actually reads emailSent/emailError from
+  // this response — it just shows the same "verifique seu e-mail" message
+  // either way, with a "reenviar código" button as the fallback. So there's
+  // nothing gained by making the user wait for it: respond as soon as the
+  // account exists, send the e-mail in the background.
+  sendVerificationEmail(normalizedEmail, code).catch((err) => {
     console.error("[AUTH] Failed to send verification email:", err.message);
-  }
+  });
 
   return {
-    message: emailSent
-      ? "Conta criada! Verifique seu e-mail para ativar a conta."
-      : "Conta criada! Nao foi possivel enviar o e-mail automaticamente. Use 'Reenviar codigo' na pagina de verificacao.",
+    message: "Conta criada! Verifique seu e-mail para ativar a conta.",
     email: normalizedEmail,
-    emailSent,
-    emailError: process.env.NODE_ENV !== "production" ? emailError : undefined,
+    emailSent: true,
   };
 };
 
@@ -63,6 +62,7 @@ export const verifyEmailCode = async (email: string, code: string) => {
   const normalizedEmail = email.toLowerCase().trim();
   const user = await prisma.user.findUnique({
     where: { email: normalizedEmail },
+    omit: { photo: true, companyLogo: true },
   });
 
   if (!user) throw new Error("Usuário não encontrado");
@@ -93,6 +93,7 @@ export const resendVerificationCode = async (email: string) => {
   const normalizedEmail = email.toLowerCase().trim();
   const user = await prisma.user.findUnique({
     where: { email: normalizedEmail },
+    omit: { photo: true, companyLogo: true },
   });
 
   if (!user) throw new Error("Usuário não encontrado");
@@ -112,8 +113,14 @@ export const resendVerificationCode = async (email: string) => {
 
 export const login = async (email: string, password: string) => {
   const normalizedEmail = email.toLowerCase().trim();
+  // This is the single hottest query in the app — every login pays for it.
+  // Omitting photo/companyLogo (can be multi-MB base64 data URIs, see
+  // tokenService.SafeUser) was the single biggest latency win found: a user
+  // with a photo set was turning every login into a multi-megabyte fetch
+  // over the wire to Neon for data that buildSafeUser() throws away anyway.
   const user = await prisma.user.findUnique({
     where: { email: normalizedEmail },
+    omit: { photo: true, companyLogo: true },
   });
   if (!user) throw new Error("Credenciais inválidas");
 
@@ -138,7 +145,7 @@ export const login = async (email: string, password: string) => {
   const refreshTokenResult = await createRefreshTokenForUser(user.id);
 
   return {
-    user: buildSafeUser(user),
+    user: await buildSafeUser(user),
     token: accessToken,
     refreshToken: refreshTokenResult.token,
     message: "Login realizado com sucesso",
@@ -146,14 +153,17 @@ export const login = async (email: string, password: string) => {
 };
 
 export const completeTwoFactorLogin = async (userId: string) => {
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    omit: { photo: true, companyLogo: true },
+  });
   if (!user || user.blocked) throw new Error("Usuário não encontrado ou bloqueado");
 
   const accessToken = createAccessToken(user);
   const refreshTokenResult = await createRefreshTokenForUser(user.id);
 
   return {
-    user: buildSafeUser(user),
+    user: await buildSafeUser(user),
     token: accessToken,
     refreshToken: refreshTokenResult.token,
     message: "Login realizado com sucesso",

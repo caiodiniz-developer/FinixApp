@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import { dispatchWebhook } from "./webhookService";
-
-const prisma = new PrismaClient();
 
 export type RecurrenceFrequency = "weekly" | "monthly" | "yearly";
 

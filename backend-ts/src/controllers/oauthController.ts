@@ -13,9 +13,8 @@ import {
   accessTokenCookieOptions,
   buildSafeUser,
 } from "../services/tokenService";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 
-const prisma = new PrismaClient();
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -113,7 +112,7 @@ export const refreshTokenController = async (req: Request, res: Response) => {
 
     return res.json({
       token: accessToken,
-      user: buildSafeUser(refreshRecord.user),
+      user: await buildSafeUser(refreshRecord.user),
     });
   } catch (error: any) {
     console.error("[OAuth] refreshTokenController error:", error);

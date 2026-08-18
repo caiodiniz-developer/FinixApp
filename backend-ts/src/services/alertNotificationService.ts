@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import { sendAlertEmail } from "./emailService";
 import { sendPushToUser } from "./pushService";
 import { dispatchWebhook } from "./webhookService";
-
-const prisma = new PrismaClient();
 
 /**
  * Finds FinancialAlerts due within the next 3 days that haven't been

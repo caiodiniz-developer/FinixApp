@@ -1,14 +1,12 @@
 import { OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import {
   createAccessToken,
   createRefreshTokenForUser,
   buildSafeUser,
 } from "./tokenService";
-
-const prisma = new PrismaClient();
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
@@ -126,6 +124,6 @@ export const buildGoogleAuthResponse = async (user: any) => {
   return {
     accessToken,
     refreshToken: refreshTokenResult.token,
-    user: buildSafeUser(user),
+    user: await buildSafeUser(user),
   };
 };

@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "finix-dev-secret";
 
 export interface AuthRequest extends Request {
@@ -23,7 +22,14 @@ export const authenticate = async (
     }
 
     const decoded = jwt.verify(token, JWT_SECRET) as any;
-    const user = await prisma.user.findUnique({ where: { id: decoded.sub } });
+    // req.user here is only ever used for authorization checks (blocked,
+    // role, plan...) — never re-serialized with its photo. Omitting it is
+    // what keeps this middleware (it runs on every authenticated request)
+    // from dragging a multi-MB base64 image across the network each time.
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.sub },
+      omit: { photo: true, companyLogo: true },
+    });
 
     if (!user || user.blocked) {
       return res

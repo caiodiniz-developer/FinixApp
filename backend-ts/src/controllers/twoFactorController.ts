@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import bcrypt from "bcrypt";
 import { AuthRequest } from "../middlewares/auth";
 import {
@@ -15,8 +15,6 @@ import {
   verifyTwoFactorPendingToken,
 } from "../services/tokenService";
 import { completeTwoFactorLogin } from "../services/authService";
-
-const prisma = new PrismaClient();
 
 // Step 1: generate a secret + QR code, but DON'T enable 2FA yet — the user
 // must prove they scanned it correctly via POST /api/2fa/verify first.
@@ -86,7 +84,10 @@ export const completeTwoFactorLoginController = async (req: AuthRequest, res: Re
     if (!userId) {
       return res.status(401).json({ error: "Sessão de login expirada, faça login novamente" });
     }
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      omit: { photo: true, companyLogo: true },
+    });
     if (!user || !user.twoFactorEnabled) {
       return res.status(401).json({ error: "2FA não está ativo para esta conta" });
     }

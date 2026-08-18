@@ -87,7 +87,7 @@ export const getMeController = async (req: AuthRequest, res: Response) => {
     }
     // req.user is the raw Prisma row (passwordHash, verificationCode and all)
     // — never return it directly. buildSafeUser() is the sanctioned filter.
-    res.json(buildSafeUser(req.user));
+    res.json(await buildSafeUser(req.user));
   } catch (error: any) {
     res.status(500).json({ error: "Erro interno do servidor" });
   }

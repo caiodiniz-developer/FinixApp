@@ -5,7 +5,7 @@ import "express-async-errors";
 import crypto from "crypto";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./lib/prisma";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
@@ -49,7 +49,6 @@ if (
 }
 
 const app = express();
-const prisma = new PrismaClient();
 const upload = multer({ storage: multer.memoryStorage() });
 
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -378,7 +377,10 @@ const authenticateApiKey = async (
       res.status(401).json({ error: "API key inválida" });
       return;
     }
-    const user = await prisma.user.findUnique({ where: { id: apiKey.userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: apiKey.userId },
+      omit: { photo: true, companyLogo: true },
+    });
     if (!user || user.blocked) {
       res.status(401).json({ error: "Usuário não encontrado ou bloqueado" });
       return;
@@ -407,7 +409,14 @@ const authenticate = async (
   const token = auth.substring(7);
   try {
     const payload = jwt.verify(token, JWT_SECRET) as any;
-    const user = await prisma.user.findUnique({ where: { id: payload.sub } });
+    // This runs on nearly every request in the app — never fetch
+    // photo/companyLogo here (can be multi-MB base64 data URIs). The one
+    // route that needs the real image (GET /api/auth/photo) fetches it
+    // itself with an explicit `select`, on demand.
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      omit: { photo: true, companyLogo: true },
+    });
     if (!user || user.blocked) {
       return res
         .status(401)
@@ -781,9 +790,16 @@ const userPublic = (u: any) => ({
 // ============================================================================
 // Separate from userPublic() on purpose — see comment there. Fetched once by
 // whichever component actually renders an avatar, not on every auth check.
-app.get("/api/auth/photo", authenticate, (req, res) => {
-  const user = (req as any).user;
-  res.json({ photo: user.photo || null, companyLogo: user.companyLogo || null });
+// `authenticate` now omits photo/companyLogo (see comment there), so this is
+// its own dedicated query — `select` (not the default fetch-everything)
+// keeps it to exactly the two columns actually needed here.
+app.get("/api/auth/photo", authenticate, async (req, res) => {
+  const authUser = (req as any).user;
+  const user = await prisma.user.findUnique({
+    where: { id: authUser.id },
+    select: { photo: true, companyLogo: true },
+  });
+  res.json({ photo: user?.photo || null, companyLogo: user?.companyLogo || null });
 });
 
 // ============================================================================
