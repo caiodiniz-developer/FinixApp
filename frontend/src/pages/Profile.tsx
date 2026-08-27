@@ -1187,6 +1187,113 @@ export default function Profile() {
               </div>
             </section>
           )}
+
+          {/* Ferramentas tab */}
+          {tab === "Ferramentas" && (
+            <section className="space-y-6">
+              {/* Round-up */}
+              <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
+                      <Coins className="w-5 h-5" /> Arredondamento automático
+                    </h2>
+                    <p className="mt-2 text-sm text-muted">
+                      Cada despesa arredonda pro próximo real e a diferença cai direto numa meta — sem você perceber.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={roundUpEnabled}
+                    onChange={(e) => setRoundUpEnabled(e.target.checked)}
+                    className="h-5 w-5 rounded border-border text-brand-blue focus:ring-brand-blue shrink-0"
+                  />
+                </div>
+                {roundUpEnabled && (
+                  <div className="mt-4">
+                    <label className="text-sm font-medium text-muted">Meta que recebe o arredondamento</label>
+                    <select value={roundUpGoalId} onChange={(e) => setRoundUpGoalId(e.target.value)} className="input mt-1">
+                      <option value="">Selecione uma meta</option>
+                      {goals.map((g) => <option key={g.id} value={g.id}>{g.title}</option>)}
+                    </select>
+                  </div>
+                )}
+                <button onClick={saveRoundUp} disabled={toolsSaving || (roundUpEnabled && !roundUpGoalId)} className="btn-primary mt-4">
+                  {toolsSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
+                </button>
+              </div>
+
+              {/* Modo Autônomo/MEI */}
+              <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
+                      <Briefcase className="w-5 h-5" /> Modo Autônomo / MEI
+                    </h2>
+                    <p className="mt-2 text-sm text-muted">
+                      Estimativa de DAS-MEI ou Carnê-Leão com base na sua receita do mês.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={isAutonomous}
+                    onChange={(e) => setIsAutonomous(e.target.checked)}
+                    className="h-5 w-5 rounded border-border text-brand-blue focus:ring-brand-blue shrink-0"
+                  />
+                </div>
+
+                {isAutonomous && (
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="text-sm font-medium text-muted">Regime</label>
+                      <select value={taxRegime} onChange={(e) => setTaxRegime(e.target.value as any)} className="input mt-1">
+                        <option value="MEI">MEI (DAS)</option>
+                        <option value="CARNE_LEAO">Autônomo (Carnê-Leão)</option>
+                      </select>
+                    </div>
+                    {taxRegime === "MEI" && (
+                      <div>
+                        <label className="text-sm font-medium text-muted">Atividade</label>
+                        <select value={meiActivity} onChange={(e) => setMeiActivity(e.target.value as any)} className="input mt-1">
+                          <option value="COMERCIO_INDUSTRIA">Comércio/Indústria</option>
+                          <option value="SERVICOS">Serviços</option>
+                          <option value="COMERCIO_SERVICOS">Comércio e Serviços</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                )}
+                <button onClick={saveAutonomous} disabled={toolsSaving} className="btn-primary mt-4">
+                  {toolsSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
+                </button>
+
+                {taxData?.current && (
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="rounded-2xl bg-surface-strong p-4">
+                      <p className="text-xs text-muted uppercase tracking-wide font-semibold">
+                        Estimativa de {taxData.current.type === "DAS_MEI" ? "DAS-MEI" : "Carnê-Leão"} — {taxData.current.referenceMonth}
+                      </p>
+                      <p className="text-2xl font-display font-bold text-text mt-1">
+                        R$ {taxData.current.estimatedAmount.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-muted mt-1">Receita do mês: R$ {taxData.current.grossIncome.toFixed(2)}</p>
+                    </div>
+                    {taxData.clients.length > 0 && (
+                      <div className="mt-3 space-y-1.5">
+                        {taxData.clients.map((c) => (
+                          <div key={c.client} className="flex items-center justify-between text-sm">
+                            <span className="text-muted">{c.client}</span>
+                            <span className="font-semibold text-text">R$ {c.amount.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <p className="mt-4 text-xs text-amber-600 dark:text-amber-400">⚠ {taxData.disclaimer}</p>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
         </main>
       </div>
     </div>

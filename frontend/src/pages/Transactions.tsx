@@ -581,6 +581,13 @@ function TxModal({
       if (isRec)
         payload.recurringFrequency = data.recurringFrequency || "monthly";
 
+      // Pausa de 24h pra compra por impulso: só pergunta em despesas novas
+      // (não em edição) acima de um piso razoável — o backend decide se ela
+      // é "grande o bastante pra este usuário" comparando com a média dele.
+      if (!editing && payload.type === "EXPENSE" && payload.amount >= 150) {
+        payload.plannedPurchase = window.confirm("Essa compra foi planejada?");
+      }
+
       if (
         payload.type === "EXPENSE" &&
         selectedBudget &&
