@@ -98,6 +98,61 @@ export default function Profile() {
     }
   }, [tab]);
 
+  // Ferramentas: round-up e Modo Autônomo/MEI
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [roundUpEnabled, setRoundUpEnabled] = useState(false);
+  const [roundUpGoalId, setRoundUpGoalId] = useState("");
+  const [isAutonomous, setIsAutonomous] = useState(false);
+  const [taxRegime, setTaxRegime] = useState<"MEI" | "CARNE_LEAO">("MEI");
+  const [meiActivity, setMeiActivity] = useState<"COMERCIO_INDUSTRIA" | "SERVICOS" | "COMERCIO_SERVICOS">("SERVICOS");
+  const [taxData, setTaxData] = useState<{ current: TaxObligation | null; clients: { client: string; amount: number }[]; disclaimer: string } | null>(null);
+  const [toolsSaving, setToolsSaving] = useState(false);
+
+  useEffect(() => {
+    if (tab !== "Ferramentas" || !user) return;
+    setRoundUpEnabled(!!user.roundUpEnabled);
+    setRoundUpGoalId(user.roundUpGoalId || "");
+    setIsAutonomous(!!user.isAutonomous);
+    if (user.taxRegime) setTaxRegime(user.taxRegime);
+    if (user.meiActivity) setMeiActivity(user.meiActivity);
+    api.get("/api/goals").then((r) => setGoals(r.data)).catch(() => {});
+    if (user.isAutonomous) {
+      api.get("/api/tax/estimate").then((r) => setTaxData(r.data)).catch(() => {});
+    }
+  }, [tab, user]);
+
+  const saveRoundUp = async () => {
+    setToolsSaving(true);
+    try {
+      await api.put("/api/settings/roundup", { enabled: roundUpEnabled, goalId: roundUpEnabled ? roundUpGoalId : null });
+      await refreshUser();
+      toast.success("Arredondamento atualizado!");
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setToolsSaving(false);
+    }
+  };
+
+  const saveAutonomous = async () => {
+    setToolsSaving(true);
+    try {
+      await api.put("/api/settings/autonomous", { isAutonomous, taxRegime, meiActivity });
+      await refreshUser();
+      if (isAutonomous) {
+        const { data } = await api.get("/api/tax/estimate");
+        setTaxData(data);
+      } else {
+        setTaxData(null);
+      }
+      toast.success("Modo Autônomo atualizado!");
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setToolsSaving(false);
+    }
+  };
+
   const startTwoFactorSetup = async () => {
     setTwoFactorLoading(true);
     try {
