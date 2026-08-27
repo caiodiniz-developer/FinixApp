@@ -47,6 +47,9 @@ export interface Transaction {
   currency?: "BRL" | "USD" | "EUR" | "GBP";
   accountId?: string | null;
   cardId?: string | null;
+  client?: string | null;
+  flaggedImpulse?: boolean;
+  reflectedAt?: string | null;
   createdAt: string;
 }
 
@@ -236,4 +239,84 @@ export interface Budget {
   spent: number;
   percentage: number;
   createdAt: string;
+}
+
+export interface ForecastDay {
+  date: string;
+  balance: number;
+  events: { title: string; amount: number; type: "INCOME" | "EXPENSE"; source: "transaction" | "recurring" }[];
+}
+
+export interface ForecastRiskWindow {
+  start: string;
+  end: string;
+  lowestBalance: number;
+  reason: string;
+}
+
+export interface Forecast {
+  currentBalance: number;
+  days: ForecastDay[];
+  riskWindows: ForecastRiskWindow[];
+}
+
+export interface DetectedSubscription {
+  signature: string;
+  title: string;
+  avgAmount: number;
+  occurrences: number;
+  totalSpent: number;
+  firstDate: string;
+  lastDate: string;
+  avgIntervalDays: number;
+}
+
+export interface Debt {
+  id: string;
+  userId: string;
+  creditor: string;
+  totalAmount: number;
+  remainingAmount: number;
+  interestRate: number;
+  minPayment: number;
+  dueDay?: number | null;
+  negotiationUrl?: string | null;
+  paidOff: boolean;
+  createdAt: string;
+}
+
+export interface DebtPayoffStep {
+  id: string;
+  creditor: string;
+  order: number;
+  monthsToPayOff: number;
+}
+
+export interface TaxObligation {
+  id: string;
+  userId: string;
+  referenceMonth: string;
+  type: "DAS_MEI" | "CARNE_LEAO";
+  grossIncome: number;
+  estimatedAmount: number;
+  dueDate: string;
+  paid: boolean;
+  paidAt?: string | null;
+}
+
+export interface Challenge {
+  id: string;
+  creatorId: string;
+  title: string;
+  targetAmount: number;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  creator?: { id: string; name: string };
+  participants: {
+    id: string;
+    userId: string;
+    progressAmount: number;
+    user?: { id: string; name: string };
+  }[];
 }

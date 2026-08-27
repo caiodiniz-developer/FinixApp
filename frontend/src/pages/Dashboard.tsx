@@ -6,15 +6,17 @@ import {
   Plus, Target, X, Activity, Zap, Clock, Flame,
   ChevronRight, Lightbulb, ShieldCheck, Award,
   Download, Receipt, Bell, BarChart3, AreaChart as AreaChartIcon,
+  CalendarClock, TriangleAlert,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend,
+  LineChart, Line, ReferenceLine,
 } from "recharts";
 import { api, apiErrorMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
-import { DashboardData, Insight, Budget, Goal } from "../types";
+import { DashboardData, Insight, Budget, Goal, Forecast } from "../types";
 import { currency, dateBR, CATEGORY_COLORS } from "../utils/format";
 import { UpgradeModal } from "../components/UpgradeModal";
 import { Reveal } from "../components/dashboard/Reveal";
@@ -288,6 +290,7 @@ export default function Dashboard() {
   const [categories, setCategories] = useState<string[]>([]);
   const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([]);
   const [calDays, setCalDays] = useState<CalendarDay[]>([]);
+  const [forecast, setForecast] = useState<Forecast | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [topExpenses, setTopExpenses] = useState<TopExpense[]>([]);
@@ -318,13 +321,15 @@ export default function Dashboard() {
     Promise.allSettled([
       api.get("/api/alerts"), api.get("/api/budgets"), api.get("/api/goals"),
       api.get("/api/categories"), api.get(`/api/calendar?month=${mp}`), api.get("/api/accounts"),
-    ]).then(([al, bu, go, ca, cl, ac]) => {
+      api.get("/api/forecast?days=30"),
+    ]).then(([al, bu, go, ca, cl, ac, fc]) => {
       if (al.status === "fulfilled") setAlerts(al.value.data);
       if (bu.status === "fulfilled") setBudgets(bu.value.data.slice(0, 4));
       if (go.status === "fulfilled") setGoals(go.value.data.slice(0, 3));
       if (ca.status === "fulfilled") setCategories(ca.value.data.map((c: any) => c.name));
       if (cl.status === "fulfilled") setCalDays(cl.value.data.dailySummary || []);
       if (ac.status === "fulfilled") setAccounts(ac.value.data);
+      if (fc.status === "fulfilled") setForecast(fc.value.data);
     });
   }, [user]);
 
