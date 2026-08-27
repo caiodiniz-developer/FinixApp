@@ -3483,8 +3483,9 @@ const startBackgroundJobs = () => {
     try {
       const recurring = await runDueRecurringTransactions();
       const alerts = await sendDueAlertNotifications();
+      const impulse = await sendDueImpulseReflections();
       console.log(
-        `[JOBS] Recorrências criadas: ${recurring.created} · Alertas notificados: ${alerts.notified}`,
+        `[JOBS] Recorrências criadas: ${recurring.created} · Alertas notificados: ${alerts.notified} · Reflexões de compra: ${impulse.notified}`,
       );
     } catch (err: any) {
       console.error("[JOBS] Falha ao rodar jobs agendados:", err.message);
