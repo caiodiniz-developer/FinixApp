@@ -264,6 +264,23 @@ export default function Transactions() {
         </div>
       )}
 
+      {impulseReview.length > 0 && (
+        <div className="rounded-3xl border border-amber-500/30 bg-amber-500/5 p-5">
+          <h2 className="font-semibold text-text flex items-center gap-2">
+            <HeartCrack className="w-4 h-4 text-amber-500" /> Ainda vale a pena?
+          </h2>
+          <p className="mt-1 text-sm text-muted">Compras que você marcou como "não planejadas" — dá uma olhada de novo com a cabeça fria.</p>
+          <div className="mt-3 space-y-2">
+            {impulseReview.map((t) => (
+              <div key={t.id} className="flex items-center justify-between gap-3 rounded-xl bg-surface p-3 text-sm">
+                <span>{t.title} — <strong>{currency(t.amount)}</strong></span>
+                <button onClick={() => reflectImpulse(t.id)} className="btn-outline !py-1.5 !px-3 text-xs">Já refleti</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="card !p-4">
         <div className="grid sm:grid-cols-4 gap-3">
