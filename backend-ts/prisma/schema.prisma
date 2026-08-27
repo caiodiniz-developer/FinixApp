@@ -88,7 +88,7 @@ model User {
   receipts               TransactionReceipt[]
   ownedHousehold         Household?                     @relation("HouseholdOwner")
   householdMemberships   HouseholdMember[]
-  sentHouseholdInvites   HouseholdInvite[]               @relation("HouseholdInviteSender")
+  sentHouseholdInvites   HouseholdInvite[]              @relation("HouseholdInviteSender")
 
   @@map("users")
 }
@@ -209,6 +209,7 @@ model Contact {
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   splitExpenses SplitExpense[]
+  personalLoans PersonalLoan[]
 
   @@index([userId])
   @@map("contacts")
@@ -656,15 +657,15 @@ model SubscriptionInsightDismissal {
 // Finance no futuro). Alimenta o patrimônio líquido junto com Account e Debt.
 // ============================================================================
 model Investment {
-  id             String   @id @default(uuid())
-  userId         String
-  name           String
-  type           String // RENDA_FIXA | ACOES | FUNDOS_IMOBILIARIOS | CRIPTO | TESOURO_DIRETO | OUTRO
-  investedAmount Float
-  currentValue   Float
+  id                String   @id @default(uuid())
+  userId            String
+  name              String
+  type              String // RENDA_FIXA | ACOES | FUNDOS_IMOBILIARIOS | CRIPTO | TESOURO_DIRETO | OUTRO
+  investedAmount    Float
+  currentValue      Float
   externalAccountId String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -698,18 +699,18 @@ model TransactionReceipt {
 // lembrete de cobrança.
 // ============================================================================
 model PersonalLoan {
-  id           String    @id @default(uuid())
+  id           String   @id @default(uuid())
   userId       String
   contactId    String
   direction    String // LENT (eu emprestei) | BORROWED (peguei emprestado)
   principal    Float
   remaining    Float
-  installments Int       @default(1)
+  installments Int      @default(1)
   dueDay       Int?
   note         String?
-  settled      Boolean   @default(false)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  settled      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
