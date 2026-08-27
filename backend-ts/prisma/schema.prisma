@@ -142,6 +142,12 @@ model Transaction {
   flaggedImpulse Boolean   @default(false)
   reflectedAt    DateTime?
 
+  // Alerta de gasto anômalo — z-score contra a média/desvio da própria
+  // categoria do usuário, calculado na criação (ver anomalyDetectionService).
+  flaggedAnomaly Boolean @default(false)
+
+  receipt TransactionReceipt?
+
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   installment   Installment?   @relation(fields: [installmentId], references: [id], onDelete: SetNull)
   account       Account?       @relation(fields: [accountId], references: [id], onDelete: SetNull)
@@ -643,4 +649,121 @@ model SubscriptionInsightDismissal {
   @@unique([userId, signature])
   @@index([userId])
   @@map("subscription_insight_dismissals")
+}
+
+// ============================================================================
+// INVESTIMENTOS — atualização manual (ou puxado de ExternalAccount via Open
+// Finance no futuro). Alimenta o patrimônio líquido junto com Account e Debt.
+// ============================================================================
+model Investment {
+  id             String   @id @default(uuid())
+  userId         String
+  name           String
+  type           String // RENDA_FIXA | ACOES | FUNDOS_IMOBILIARIOS | CRIPTO | TESOURO_DIRETO | OUTRO
+  investedAmount Float
+  currentValue   Float
+  externalAccountId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("investments")
+}
+
+// ============================================================================
+// COMPROVANTE DE TRANSAÇÃO — tabela separada de propósito: Transaction é
+// consultada em massa (dashboard, previsão, orçamentos) e uma foto em base64
+// ali dentro reintroduziria o mesmo problema de performance já corrigido no
+// User.photo — aqui só é buscada quando alguém abre o comprovante.
+// ============================================================================
+model TransactionReceipt {
+  id            String   @id @default(uuid())
+  transactionId String   @unique
+  userId        String
+  imageData     String // data URI
+  createdAt     DateTime @default(now())
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("transaction_receipts")
+}
+
+// ============================================================================
+// EMPRÉSTIMOS ENTRE PESSOAS — diferente de SplitExpense (que divide uma
+// despesa pontual): aqui é "emprestei/peguei emprestado", com parcelas e
+// lembrete de cobrança.
+// ============================================================================
+model PersonalLoan {
+  id           String    @id @default(uuid())
+  userId       String
+  contactId    String
+  direction    String // LENT (eu emprestei) | BORROWED (peguei emprestado)
+  principal    Float
+  remaining    Float
+  installments Int       @default(1)
+  dueDay       Int?
+  note         String?
+  settled      Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([contactId])
+  @@map("personal_loans")
+}
+
+// ============================================================================
+// MODO CASAL/FAMÍLIA — visão combinada de renda/gastos entre membros, sem
+// misturar contas bancárias de verdade. Cada membro continua dono dos
+// próprios dados; o household só agrega os totais na leitura.
+// ============================================================================
+model Household {
+  id        String   @id @default(uuid())
+  ownerId   String   @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  owner   User              @relation("HouseholdOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members HouseholdMember[]
+  invites HouseholdInvite[]
+
+  @@map("households")
+}
+
+model HouseholdMember {
+  id          String   @id @default(uuid())
+  householdId String
+  userId      String
+  joinedAt    DateTime @default(now())
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, userId])
+  @@index([userId])
+  @@map("household_members")
+}
+
+model HouseholdInvite {
+  id            String    @id @default(uuid())
+  householdId   String
+  senderId      String
+  receiverEmail String
+  status        String    @default("pending") // pending | accepted | declined
+  createdAt     DateTime  @default(now())
+  respondedAt   DateTime?
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  sender    User      @relation("HouseholdInviteSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([receiverEmail])
+  @@index([householdId])
+  @@map("household_invites")
 }
