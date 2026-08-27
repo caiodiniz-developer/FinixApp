@@ -6,7 +6,7 @@ import {
   CalendarDays, Tag, Plus, TrendingUp, TrendingDown, X,
   BarChart3, Calculator, ChevronDown, ChevronUp, Percent,
   Hash, Repeat, PiggyBank, PanelLeftClose, PanelLeftOpen,
-  Landmark, CreditCard as CardIcon, Users,
+  Landmark, CreditCard as CardIcon, Users, Ghost, Trophy,
 } from "lucide-react";
 import { Logo } from "../components/Logo";
 import { useAuth, useAutoRefreshUser } from "../contexts/AuthContext";
