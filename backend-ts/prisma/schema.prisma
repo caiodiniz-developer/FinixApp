@@ -83,6 +83,12 @@ model User {
   challengesCreated      Challenge[]                    @relation("ChallengeCreator")
   challengeEntries       ChallengeParticipant[]
   subscriptionDismissals SubscriptionInsightDismissal[]
+  investments            Investment[]
+  personalLoans          PersonalLoan[]
+  receipts               TransactionReceipt[]
+  ownedHousehold         Household?                     @relation("HouseholdOwner")
+  householdMemberships   HouseholdMember[]
+  sentHouseholdInvites   HouseholdInvite[]               @relation("HouseholdInviteSender")
 
   @@map("users")
 }
