@@ -56,6 +56,18 @@ export default function Contacts() {
     }
   };
 
+  const settleAll = async (c: Contact) => {
+    if (!window.confirm(`Marcar tudo que ${c.name} te deve como pago?`)) return;
+    try {
+      await api.post(`/api/contacts/${c.id}/settle-all`);
+      toast.success("Liquidado!");
+      fetchData();
+      if (expanded === c.id) toggleExpand(c);
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    }
+  };
+
   const toggleExpand = async (c: Contact) => {
     if (expanded === c.id) {
       setExpanded(null);
@@ -145,6 +157,14 @@ export default function Contacts() {
                       {currency(c.totalOwed)}
                     </p>
                   </div>
+                  {c.totalOwed > 0 && (
+                    <button
+                      className="btn-outline !py-1.5 !px-3 text-xs shrink-0"
+                      onClick={(e) => { e.stopPropagation(); settleAll(c); }}
+                    >
+                      Liquidar tudo
+                    </button>
+                  )}
                   <div className="flex gap-1 items-center">
                     <button
                       className="btn-ghost !p-2"
