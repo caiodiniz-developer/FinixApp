@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Clock,
   Split,
+  HeartCrack,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -119,7 +120,16 @@ export default function Transactions() {
   const [cards, setCards] = useState<{ id: string; name: string }[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [splitting, setSplitting] = useState<Transaction | null>(null);
+  const [impulseReview, setImpulseReview] = useState<Transaction[]>([]);
   const isFree = user?.plan === "FREE";
+
+  const fetchImpulseReview = () =>
+    api.get("/api/transactions/impulse-review").then((r) => setImpulseReview(r.data)).catch(() => {});
+
+  const reflectImpulse = async (id: string) => {
+    await api.post(`/api/transactions/${id}/reflect`).catch(() => {});
+    setImpulseReview((prev) => prev.filter((t) => t.id !== id));
+  };
 
   const effectiveCategories =
     user?.plan === "PRO" ? userCategories : DEFAULT_CATEGORIES;
@@ -177,6 +187,7 @@ export default function Transactions() {
     api.get("/api/accounts").then((r) => setAccounts(r.data)).catch(() => {});
     api.get("/api/cards").then((r) => setCards(r.data)).catch(() => {});
     api.get("/api/contacts").then((r) => setContacts(r.data)).catch(() => {});
+    fetchImpulseReview();
   }, [isFree]);
 
   const openUpgrade = () => setUpgradeOpen(true);
