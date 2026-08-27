@@ -2569,6 +2569,261 @@ app.delete("/api/open-finance/connections/:id", authenticate, async (req, res) =
 });
 
 // ============================================================================
+// PREVISÃO DE APERTO FINANCEIRO
+// ============================================================================
+app.get("/api/forecast", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const days = Math.min(90, Math.max(7, Number(req.query.days) || 30));
+  const forecast = await buildForecast(user.id, days);
+  res.json(forecast);
+});
+
+// ============================================================================
+// CAÇA-FANTASMA DE ASSINATURAS
+// ============================================================================
+app.get("/api/subscriptions/detected", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const detected = await detectZombieSubscriptions(user.id);
+  res.json(detected);
+});
+
+app.post("/api/subscriptions/dismiss", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const { signature } = z.object({ signature: z.string() }).parse(req.body);
+  await prisma.subscriptionInsightDismissal.upsert({
+    where: { userId_signature: { userId: user.id, signature } },
+    create: { userId: user.id, signature },
+    update: {},
+  });
+  res.json({ ok: true });
+});
+
+app.post("/api/subscriptions/convert", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = z
+    .object({ title: z.string().min(1), amount: z.number().positive(), category: z.string().min(1) })
+    .parse(req.body);
+  const rule = await prisma.recurringTransaction.create({
+    data: {
+      userId: user.id,
+      title: data.title,
+      amount: data.amount,
+      type: "EXPENSE",
+      category: data.category,
+      frequency: "monthly",
+      startDate: new Date(),
+      nextRunDate: computeNextRunDate(new Date(), "monthly"),
+    },
+  });
+  res.status(201).json(rule);
+});
+
+// ============================================================================
+// ROUND-UP ("ARREDONDAMENTO") E MODO AUTÔNOMO/MEI — configurações
+// ============================================================================
+app.put("/api/settings/roundup", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = z
+    .object({ enabled: z.boolean(), goalId: z.string().nullable().optional() })
+    .parse(req.body);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { roundUpEnabled: data.enabled, roundUpGoalId: data.enabled ? data.goalId : null },
+  });
+  res.json({ ok: true });
+});
+
+app.put("/api/settings/autonomous", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = z
+    .object({
+      isAutonomous: z.boolean(),
+      taxRegime: z.enum(["MEI", "CARNE_LEAO"]).nullable().optional(),
+      meiActivity: z.enum(["COMERCIO_INDUSTRIA", "SERVICOS", "COMERCIO_SERVICOS"]).nullable().optional(),
+    })
+    .parse(req.body);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      isAutonomous: data.isAutonomous,
+      taxRegime: data.isAutonomous ? data.taxRegime : null,
+      meiActivity: data.isAutonomous ? data.meiActivity : null,
+    },
+  });
+  res.json({ ok: true });
+});
+
+app.get("/api/tax/estimate", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  if (!user.isAutonomous || !user.taxRegime) {
+    return res.status(400).json({ error: "Modo Autônomo não está ativado. Configure em /api/settings/autonomous." });
+  }
+  const current = await refreshCurrentMonthEstimate(user.id);
+  const history = await prisma.taxObligation.findMany({
+    where: { userId: user.id },
+    orderBy: { referenceMonth: "desc" },
+    take: 12,
+  });
+  const clients = current ? await clientBreakdown(user.id, current.referenceMonth) : [];
+  res.json({
+    current,
+    history,
+    clients,
+    disclaimer:
+      "Estimativa de planejamento — confira o valor oficial no app MEI (Portal do Empreendedor) ou no Carnê-Leão da Receita Federal antes de pagar.",
+  });
+});
+
+app.post("/api/tax/:id/mark-paid", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const updated = await prisma.taxObligation.updateMany({
+    where: { id: String(req.params.id), userId: user.id },
+    data: { paid: true, paidAt: new Date() },
+  });
+  if (updated.count === 0) return res.status(404).json({ error: "Obrigação não encontrada" });
+  res.json({ ok: true });
+});
+
+// ============================================================================
+// DÍVIDAS — priorização avalanche/snowball
+// ============================================================================
+const debtSchema = z.object({
+  creditor: z.string().min(1).max(120),
+  totalAmount: z.number().positive(),
+  remainingAmount: z.number().min(0),
+  interestRate: z.number().min(0).optional().default(0),
+  minPayment: z.number().min(0).optional().default(0),
+  dueDay: z.number().min(1).max(31).optional().nullable(),
+  negotiationUrl: z.string().url().optional().nullable(),
+});
+
+app.get("/api/debts", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const debts = await prisma.debt.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" } });
+  res.json(debts);
+});
+
+app.post("/api/debts", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = debtSchema.parse(req.body);
+  const debt = await prisma.debt.create({ data: { ...data, userId: user.id } });
+  res.status(201).json(debt);
+});
+
+app.put("/api/debts/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = debtSchema.partial().parse(req.body);
+  const updated = await prisma.debt.updateMany({
+    where: { id: String(req.params.id), userId: user.id },
+    data: { ...data, paidOff: data.remainingAmount === 0 ? true : undefined },
+  });
+  if (updated.count === 0) return res.status(404).json({ error: "Dívida não encontrada" });
+  res.json({ ok: true });
+});
+
+app.delete("/api/debts/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const deleted = await prisma.debt.deleteMany({ where: { id: String(req.params.id), userId: user.id } });
+  if (deleted.count === 0) return res.status(404).json({ error: "Dívida não encontrada" });
+  res.json({ ok: true });
+});
+
+app.get("/api/debts/strategy", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const method = req.query.method === "snowball" ? "snowball" : "avalanche";
+  const extraPayment = Math.max(0, Number(req.query.extraPayment) || 0);
+  const debts = await prisma.debt.findMany({ where: { userId: user.id, paidOff: false } });
+  const order = prioritizeDebts(debts, method);
+  const payoff = simulatePayoff(debts, method, extraPayment);
+  res.json({ method, order: order.map((d) => d.id), payoff });
+});
+
+// ============================================================================
+// PAUSA DE 24H PRA COMPRA POR IMPULSO
+// ============================================================================
+app.get("/api/transactions/impulse-review", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const items = await prisma.transaction.findMany({
+    where: { userId: user.id, flaggedImpulse: true, reflectedAt: null },
+    orderBy: { createdAt: "desc" },
+  });
+  res.json(items);
+});
+
+app.post("/api/transactions/:id/reflect", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const updated = await prisma.transaction.updateMany({
+    where: { id: String(req.params.id), userId: user.id },
+    data: { reflectedAt: new Date() },
+  });
+  if (updated.count === 0) return res.status(404).json({ error: "Transação não encontrada" });
+  res.json({ ok: true });
+});
+
+// ============================================================================
+// DESAFIOS EM GRUPO
+// ============================================================================
+app.get("/api/challenges", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const challenges = await prisma.challenge.findMany({
+    where: { OR: [{ creatorId: user.id }, { participants: { some: { userId: user.id } } }] },
+    include: {
+      participants: { include: { user: { select: { id: true, name: true } } }, orderBy: { progressAmount: "desc" } },
+      creator: { select: { id: true, name: true } },
+    },
+    orderBy: { startDate: "desc" },
+  });
+  res.json(challenges);
+});
+
+app.post("/api/challenges", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = z
+    .object({
+      title: z.string().min(1).max(120),
+      targetAmount: z.number().positive(),
+      startDate: z.string().transform((s) => new Date(s)),
+      endDate: z.string().transform((s) => new Date(s)),
+    })
+    .parse(req.body);
+  const challenge = await prisma.challenge.create({
+    data: { ...data, creatorId: user.id, participants: { create: { userId: user.id } } },
+    include: { participants: true },
+  });
+  res.status(201).json(challenge);
+});
+
+app.post("/api/challenges/:id/join", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const challenge = await prisma.challenge.findUnique({ where: { id: String(req.params.id) } });
+  if (!challenge) return res.status(404).json({ error: "Desafio não encontrado" });
+  const participant = await prisma.challengeParticipant.upsert({
+    where: { challengeId_userId: { challengeId: challenge.id, userId: user.id } },
+    create: { challengeId: challenge.id, userId: user.id },
+    update: {},
+  });
+  res.status(201).json(participant);
+});
+
+app.put("/api/challenges/:id/progress", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const { amount } = z.object({ amount: z.number() }).parse(req.body);
+  const updated = await prisma.challengeParticipant.updateMany({
+    where: { challengeId: String(req.params.id), userId: user.id },
+    data: { progressAmount: { increment: amount } },
+  });
+  if (updated.count === 0) return res.status(404).json({ error: "Você não participa deste desafio" });
+  res.json({ ok: true });
+});
+
+app.delete("/api/challenges/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const deleted = await prisma.challenge.deleteMany({ where: { id: String(req.params.id), creatorId: user.id } });
+  if (deleted.count === 0) return res.status(404).json({ error: "Desafio não encontrado" });
+  res.json({ ok: true });
+});
+
+// ============================================================================
 // ADMIN
 // ============================================================================
 app.get("/api/users", authenticate, requireAdmin, async (req, res) => {
