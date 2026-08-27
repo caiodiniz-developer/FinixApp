@@ -51,7 +51,8 @@ type Tab =
   | "Notificações"
   | "Empresa"
   | "Exportação"
-  | "Integrações";
+  | "Integrações"
+  | "Ferramentas";
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
@@ -444,6 +445,7 @@ export default function Profile() {
                 "Empresa",
                 "Exportação",
                 "Integrações",
+                "Ferramentas",
               ] as Tab[]
             ).map((item) => (
               <button
