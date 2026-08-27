@@ -25,6 +25,11 @@ import { sendDueAlertNotifications } from "./services/alertNotificationService";
 import { transactionsToCsv, parseCsvTransactions } from "./services/csvService";
 import { transactionsToOfx, parseOfxTransactions } from "./services/ofxService";
 import * as openFinance from "./services/openFinanceService";
+import { buildForecast } from "./services/forecastService";
+import { detectZombieSubscriptions, normalizeTitle, buildSignature } from "./services/subscriptionDetectorService";
+import { estimateDasMei, estimateCarneLeao, refreshCurrentMonthEstimate, clientBreakdown } from "./services/taxService";
+import { prioritizeDebts, simulatePayoff } from "./services/debtService";
+import { sendDueImpulseReflections } from "./services/impulseReflectionService";
 
 dotenv.config();
 
@@ -498,6 +503,10 @@ const transactionSchema = z.object({
     .nullable()
     .optional()
     .transform((s) => (s ? new Date(s) : null)),
+  client: z.string().max(80).optional().nullable(),
+  // Pausa de 24h pra compra por impulso: omitted/true = normal; explicit
+  // `false` means the user said "não" to "essa compra foi planejada?".
+  plannedPurchase: z.boolean().optional().default(true),
 });
 
 const installmentSchema = z.object({
@@ -1135,18 +1144,47 @@ app.post("/api/transactions", authenticate, async (req, res) => {
       return res.json(response.transactions);
     }
 
+    // Pausa de 24h pra compra por impulso: only worth asking about on
+    // expenses that are unusually large for THIS user — comparing against a
+    // flat threshold would either spam frugal users or never trigger for
+    // big spenders. 2.5x their own historical average, floored at R$150 so
+    // it doesn't fire on someone whose average is near zero.
+    let flaggedImpulse = false;
+    if (data.type === "EXPENSE" && data.plannedPurchase === false) {
+      const agg = await prisma.transaction.aggregate({
+        where: { userId: user.id, type: "EXPENSE" },
+        _avg: { amount: true },
+      });
+      const threshold = Math.max(150, (agg._avg.amount || 0) * 2.5);
+      flaggedImpulse = data.amount >= threshold;
+    }
+
+    const { plannedPurchase, ...transactionData } = data;
     const transaction = await prisma.transaction.create({
       data: {
-        ...data,
+        ...transactionData,
         id: uuidv4(),
         userId: user.id,
         dueDate: data.dueDate ?? null,
+        flaggedImpulse,
       },
     });
     await prisma.user.update({
       where: { id: user.id },
       data: { transactionsUsed: { increment: 1 } },
     });
+
+    // Round-up ("arredondamento"): sweep the difference to the next whole
+    // real into the user's chosen goal. Fire-and-forget — never let this
+    // side effect slow down or fail the actual transaction creation.
+    if (data.type === "EXPENSE" && user.roundUpEnabled && user.roundUpGoalId) {
+      const roundUp = Number((Math.ceil(data.amount) - data.amount).toFixed(2));
+      if (roundUp > 0) {
+        prisma.goal
+          .update({ where: { id: user.roundUpGoalId }, data: { currentAmount: { increment: roundUp } } })
+          .catch((err) => console.error("[ROUNDUP] Falha ao aplicar arredondamento:", err));
+      }
+    }
 
     // If this is a credit-card charge, create a FinancialAlert for the user
     try {
