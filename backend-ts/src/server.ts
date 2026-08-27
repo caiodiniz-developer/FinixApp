@@ -30,6 +30,12 @@ import { detectZombieSubscriptions, normalizeTitle, buildSignature } from "./ser
 import { estimateDasMei, estimateCarneLeao, refreshCurrentMonthEstimate, clientBreakdown } from "./services/taxService";
 import { prioritizeDebts, simulatePayoff } from "./services/debtService";
 import { sendDueImpulseReflections } from "./services/impulseReflectionService";
+import { calculateNetWorth } from "./services/netWorthService";
+import { simulateFire } from "./services/fireSimulatorService";
+import { compareCltVsPj } from "./services/cltVsPjService";
+import { isAnomalousExpense } from "./services/anomalyDetectionService";
+import { buildYearReview } from "./services/yearReviewService";
+import { buildHouseholdSummary } from "./services/householdService";
 
 dotenv.config();
 
