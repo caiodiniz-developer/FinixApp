@@ -17,12 +17,14 @@ import {
   Trash2,
   Landmark,
   FileSpreadsheet,
+  Coins,
+  Briefcase,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useUserPhoto } from "../hooks/useUserPhoto";
-import { WebhookSubscription, ApiKeySummary, ExternalConnection } from "../types";
+import { WebhookSubscription, ApiKeySummary, ExternalConnection, Goal, TaxObligation } from "../types";
 
 // Standard VAPID-key conversion (base64url -> Uint8Array) required by the
 // browser's PushManager.subscribe — same snippet every Web Push guide uses.
