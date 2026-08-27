@@ -33,6 +33,9 @@ const Recurring = lazy(() => import("./pages/Recurring"));
 const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 const Debts = lazy(() => import("./pages/Debts"));
 const Challenges = lazy(() => import("./pages/Challenges"));
+const NetWorthPage = lazy(() => import("./pages/NetWorth"));
+const YearReview = lazy(() => import("./pages/YearReview"));
+const Household = lazy(() => import("./pages/Household"));
 const Goals = lazy(() => import("./pages/Goals"));
 const Budgets = lazy(() => import("./pages/Budgets"));
 const Accounts = lazy(() => import("./pages/Accounts"));
@@ -202,6 +205,9 @@ export default function App() {
               <Route path="subscriptions" element={<Subscriptions />} />
               <Route path="debts" element={<Debts />} />
               <Route path="challenges" element={<Challenges />} />
+              <Route path="net-worth" element={<NetWorthPage />} />
+              <Route path="year-review" element={<YearReview />} />
+              <Route path="household" element={<Household />} />
               <Route path="goals" element={<Goals />} />
               <Route path="budgets" element={<Budgets />} />
               <Route path="accounts" element={<Accounts />} />

@@ -49,6 +49,8 @@ export interface Transaction {
   cardId?: string | null;
   client?: string | null;
   flaggedImpulse?: boolean;
+  flaggedAnomaly?: boolean;
+  reviewReason?: "impulse" | "anomaly";
   reflectedAt?: string | null;
   createdAt: string;
 }
@@ -319,4 +321,105 @@ export interface Challenge {
     progressAmount: number;
     user?: { id: string; name: string };
   }[];
+}
+
+export interface NetWorth {
+  liquidCash: number;
+  goalsSaved: number;
+  investedTotal: number;
+  totalDebt: number;
+  netWorth: number;
+  investmentsByType: { type: string; value: number }[];
+}
+
+export type InvestmentType = "RENDA_FIXA" | "ACOES" | "FUNDOS_IMOBILIARIOS" | "CRIPTO" | "TESOURO_DIRETO" | "OUTRO";
+
+export interface Investment {
+  id: string;
+  userId: string;
+  name: string;
+  type: InvestmentType;
+  investedAmount: number;
+  currentValue: number;
+  createdAt: string;
+}
+
+export interface FireSimulation {
+  currentNetWorth: number;
+  monthlySavings: number;
+  monthlyExpenseAvg: number;
+  fireNumber: number;
+  monthsToFire: number | null;
+  yearsToFire: number | null;
+  extraMonthlyNeeded?: number;
+}
+
+export interface CltVsPjResult {
+  clt: {
+    grossSalary: number;
+    inss: number;
+    irrf: number;
+    netMonthly: number;
+    fgtsMonthlyEquivalent: number;
+    thirteenthAndVacationMonthlyEquivalent: number;
+    totalMonthlyEquivalent: number;
+  };
+  pj: {
+    contractedMonthly: number;
+    taxRegime: "MEI" | "CARNE_LEAO";
+    estimatedTax: number;
+    accountingFee: number;
+    netMonthly: number;
+  };
+  difference: number;
+  breakEvenAccountingFee: number;
+  disclaimer: string;
+}
+
+export interface PersonalLoan {
+  id: string;
+  userId: string;
+  contactId: string;
+  direction: "LENT" | "BORROWED";
+  principal: number;
+  remaining: number;
+  installments: number;
+  dueDay?: number | null;
+  note?: string | null;
+  settled: boolean;
+  createdAt: string;
+  contact?: { id: string; name: string; color?: string };
+}
+
+export interface HouseholdSummary {
+  id: string;
+  name: string;
+  members: { userId: string; name: string; income: number; expense: number; balance: number }[];
+  combinedIncome: number;
+  combinedExpense: number;
+  combinedBalance: number;
+}
+
+export interface HouseholdInvite {
+  id: string;
+  householdId: string;
+  senderId: string;
+  receiverEmail: string;
+  status: "pending" | "accepted" | "declined";
+  createdAt: string;
+  household?: { id: string; name: string };
+  sender?: { id: string; name: string };
+}
+
+export interface YearReview {
+  year: number;
+  totalIncome: number;
+  totalExpense: number;
+  totalSaved: number;
+  topCategory: { category: string; amount: number } | null;
+  bestMonth: { month: string; net: number } | null;
+  worstMonth: { month: string; net: number } | null;
+  transactionCount: number;
+  goalsCompleted: number;
+  biggestExpense: { title: string; amount: number } | null;
 }

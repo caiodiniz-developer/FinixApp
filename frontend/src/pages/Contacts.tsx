@@ -10,6 +10,7 @@ import {
   ChevronUp,
   CheckCircle2,
   Circle,
+  HandCoins,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -17,7 +18,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
-import { Contact, SplitExpense } from "../types";
+import { Contact, SplitExpense, PersonalLoan } from "../types";
 import { currency, dateBR } from "../utils/format";
 import { UpgradeModal } from "../components/UpgradeModal";
 
@@ -42,6 +43,43 @@ export default function Contacts() {
   useEffect(() => {
     fetchData().catch(() => toast.error("Erro ao carregar contatos"));
   }, []);
+
+  // Empréstimos entre pessoas
+  const [loans, setLoans] = useState<PersonalLoan[]>([]);
+  const [loanForm, setLoanForm] = useState({ contactId: "", direction: "LENT" as "LENT" | "BORROWED", principal: "" });
+  const fetchLoans = () => api.get("/api/personal-loans").then((r) => setLoans(r.data)).catch(() => {});
+  useEffect(() => { fetchLoans(); }, []);
+
+  const addLoan = async () => {
+    if (!loanForm.contactId || !loanForm.principal) return;
+    try {
+      await api.post("/api/personal-loans", {
+        contactId: loanForm.contactId,
+        direction: loanForm.direction,
+        principal: Number(loanForm.principal),
+        remaining: Number(loanForm.principal),
+      });
+      setLoanForm({ contactId: "", direction: "LENT", principal: "" });
+      fetchLoans();
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    }
+  };
+
+  const settleLoan = async (loan: PersonalLoan) => {
+    try {
+      await api.put(`/api/personal-loans/${loan.id}`, { remaining: 0 });
+      fetchLoans();
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    }
+  };
+
+  const deleteLoan = async (loan: PersonalLoan) => {
+    if (!window.confirm("Remover este empréstimo?")) return;
+    await api.delete(`/api/personal-loans/${loan.id}`).catch(() => {});
+    fetchLoans();
+  };
 
   const onDelete = async (c: Contact) => {
     if (!window.confirm(`Excluir o contato "${c.name}"? Os itens divididos com ele também somem.`))
@@ -115,6 +153,51 @@ export default function Contacts() {
           <Plus className="w-4 h-4" /> Novo contato
         </button>
       </div>
+
+      {items && items.length > 0 && (
+        <div className="card">
+          <h2 className="font-display font-bold text-lg flex items-center gap-2">
+            <HandCoins className="w-5 h-5 text-emerald-500" /> Empréstimos entre pessoas
+          </h2>
+          <p className="text-sm text-muted mt-1">Diferente de dividir uma conta — isso é "emprestei/peguei emprestado", com controle de quitação.</p>
+
+          {loans.filter((l) => !l.settled).length > 0 && (
+            <div className="mt-4 space-y-2">
+              {loans.filter((l) => !l.settled).map((l) => (
+                <div key={l.id} className="flex items-center justify-between gap-3 rounded-xl bg-surface-strong p-3 text-sm">
+                  <span>
+                    {l.direction === "LENT" ? "Você emprestou pra" : "Você pegou emprestado de"} <strong>{l.contact?.name}</strong>
+                  </span>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className={`font-bold ${l.direction === "LENT" ? "text-emerald-500" : "text-red-500"}`}>{currency(l.remaining)}</span>
+                    <button onClick={() => settleLoan(l)} className="btn-outline !py-1 !px-2 text-xs">Quitar</button>
+                    <button onClick={() => deleteLoan(l)} className="text-muted hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2 mt-4">
+            <select value={loanForm.contactId} onChange={(e) => setLoanForm((f) => ({ ...f, contactId: e.target.value }))} className="input !w-40">
+              <option value="">Contato</option>
+              {items.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <select value={loanForm.direction} onChange={(e) => setLoanForm((f) => ({ ...f, direction: e.target.value as any }))} className="input !w-44">
+              <option value="LENT">Eu emprestei</option>
+              <option value="BORROWED">Peguei emprestado</option>
+            </select>
+            <input
+              type="number"
+              value={loanForm.principal}
+              onChange={(e) => setLoanForm((f) => ({ ...f, principal: e.target.value }))}
+              className="input !w-32"
+              placeholder="Valor (R$)"
+            />
+            <button onClick={addLoan} className="btn-primary">Registrar</button>
+          </div>
+        </div>
+      )}
 
       {items === null ? (
         <div className="space-y-3">

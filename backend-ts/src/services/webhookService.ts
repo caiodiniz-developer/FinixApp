@@ -7,7 +7,8 @@ export type WebhookEvent =
   | "goal.created"
   | "goal.completed"
   | "installment.created"
-  | "alert.due_soon";
+  | "alert.due_soon"
+  | "alert.anomaly_detected";
 
 const sign = (secret: string, body: string) =>
   crypto.createHmac("sha256", secret).update(body).digest("hex");

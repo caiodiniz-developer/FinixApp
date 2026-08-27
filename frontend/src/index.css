@@ -107,16 +107,17 @@
 }
 
 @layer components {
-  /* Primary button with 3D effect */
+  /* Primary button — restrained gradient, soft lift on hover instead of a
+     heavy glow. "Chic" means the shadow should be felt, not seen. */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-brand-blue to-brand-purple shadow-glow hover:brightness-110 active:scale-[0.98] transition-all duration-200 hover:shadow-3d active:shadow-soft;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-brand-blue to-brand-purple shadow-glow hover:brightness-105 active:scale-[0.98] transition-all duration-200 active:shadow-soft;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors duration-150;
     color: var(--color-text);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background: transparent;
+    border: 1px solid transparent;
   }
 
   .btn-ghost:hover {
@@ -124,7 +125,7 @@
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors duration-150;
     color: var(--color-text);
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -135,8 +136,10 @@
     border-color: var(--color-primary);
   }
 
+  /* Cards stay flat until touched — a static page full of cards that all
+     cast a heavy shadow reads as busy, not premium. */
   .card {
-    @apply rounded-2xl shadow-soft p-6 transition-all duration-300 hover:shadow-3d;
+    @apply rounded-2xl shadow-none p-6 transition-shadow duration-300 hover:shadow-soft;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
   }

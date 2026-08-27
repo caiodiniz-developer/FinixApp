@@ -570,6 +570,50 @@ const currentStatementMonth = (closingDay: number, ref: Date = new Date()) => {
   return { year: ref.getFullYear(), month0: ref.getMonth() };
 };
 
+const CARD_LIMIT_THRESHOLDS = [1, 0.9, 0.8]; // checked highest-first so only one alert fires per crossing
+const checkCardLimitAlert = async (userId: string, cardId: string) => {
+  const card = await prisma.creditCard.findUnique({ where: { id: cardId } });
+  if (!card || card.limit <= 0) return;
+
+  const now = new Date();
+  const { year, month0 } = currentStatementMonth(card.closingDay, now);
+  const { start, end } = cardStatementWindow(card.closingDay, year, month0);
+  const agg = await prisma.transaction.aggregate({
+    where: { userId, cardId, type: "EXPENSE", date: { gte: start, lte: end } },
+    _sum: { amount: true },
+  });
+  const used = agg._sum.amount || 0;
+  const pct = used / card.limit;
+
+  const crossed = CARD_LIMIT_THRESHOLDS.find((t) => pct >= t);
+  if (!crossed) return;
+
+  // Title is keyed off the fixed threshold (80/90/100), not the live
+  // percentage — so "already alerted for this card+statement+threshold"
+  // can be checked by an exact title match instead of a hidden dedup key.
+  const thresholdPct = Math.round(crossed * 100);
+  const title = `Cartão ${card.name}: ${thresholdPct}% do limite usado`;
+  const statementDueDate = new Date(year, month0, card.dueDay);
+
+  const existing = await prisma.financialAlert.findFirst({
+    where: { userId, type: "card_limit", title, dueDate: statementDueDate },
+  });
+  if (existing) return;
+
+  await prisma.financialAlert.create({
+    data: {
+      id: uuidv4(),
+      userId,
+      title,
+      description: `Fatura atual em R$ ${used.toFixed(2)} de R$ ${card.limit.toFixed(2)}.`,
+      type: "card_limit",
+      severity: crossed >= 1 ? "danger" : "warning",
+      amount: used,
+      dueDate: statementDueDate,
+    },
+  });
+};
+
 const buildInstallmentSchedule = async (user: any, data: any) => {
   const plan = PLANS[user.plan] || PLANS.FREE;
   if (!plan.hasInstallments) {
@@ -1165,6 +1209,12 @@ app.post("/api/transactions", authenticate, async (req, res) => {
       flaggedImpulse = data.amount >= threshold;
     }
 
+    // Alerta de gasto anômalo: outlier estatístico dentro da própria
+    // categoria do usuário (ver anomalyDetectionService) — não é "compra
+    // grande", é "compra fora do padrão dessa categoria específica".
+    const flaggedAnomaly =
+      data.type === "EXPENSE" && (await isAnomalousExpense(user.id, data.category, data.amount));
+
     const { plannedPurchase, ...transactionData } = data;
     const transaction = await prisma.transaction.create({
       data: {
@@ -1173,6 +1223,7 @@ app.post("/api/transactions", authenticate, async (req, res) => {
         userId: user.id,
         dueDate: data.dueDate ?? null,
         flaggedImpulse,
+        flaggedAnomaly,
       },
     });
     await prisma.user.update({
@@ -1190,6 +1241,22 @@ app.post("/api/transactions", authenticate, async (req, res) => {
           .update({ where: { id: user.roundUpGoalId }, data: { currentAmount: { increment: roundUp } } })
           .catch((err) => console.error("[ROUNDUP] Falha ao aplicar arredondamento:", err));
       }
+    }
+
+    // Gasto anômalo: avisa na hora (não espera o job do dia seguinte como o
+    // de impulso) — pode ser cartão clonado ou erro de digitação, então
+    // quanto antes o usuário vir, melhor.
+    if (flaggedAnomaly) {
+      sendPushToUser(user.id, {
+        title: "Gasto fora do padrão",
+        body: `"${transaction.title}" (R$ ${transaction.amount.toFixed(2)}) é bem diferente do que você costuma gastar em ${transaction.category}.`,
+        url: "/app/transactions?review=anomaly",
+      }).catch(() => {});
+      dispatchWebhook(user.id, "alert.anomaly_detected", {
+        title: "Gasto anômalo detectado",
+        amount: transaction.amount,
+        category: transaction.category,
+      });
     }
 
     // If this is a credit-card charge, create a FinancialAlert for the user
@@ -1215,6 +1282,15 @@ app.post("/api/transactions", authenticate, async (req, res) => {
     } catch (err: any) {
       console.error("Failed to create credit card alert:", err);
     }
+
+    // Alerta de limite do cartão: cruza 80/90/100% da fatura atual. Checa se
+    // já existe um alerta igual pra essa fatura antes de duplicar.
+    if (data.cardId) {
+      checkCardLimitAlert(user.id, data.cardId).catch((err) =>
+        console.error("[CARD LIMIT] Falha ao checar limite:", err),
+      );
+    }
+
     dispatchWebhook(user.id, "transaction.created", {
       id: transaction.id,
       title: transaction.title,
@@ -2419,6 +2495,7 @@ const webhookSchema = z.object({
       "goal.completed",
       "installment.created",
       "alert.due_soon",
+      "alert.anomaly_detected",
     ]),
   ).min(1),
 });
@@ -2760,13 +2837,23 @@ app.get("/api/debts/strategy", authenticate, async (req, res) => {
 // ============================================================================
 // PAUSA DE 24H PRA COMPRA POR IMPULSO
 // ============================================================================
+// Impulso (não planejada) e anomalia (fora do padrão da categoria) são
+// motivos diferentes, mas resolvem com a mesma ação — o usuário olha de
+// novo e confirma — então dividem a mesma fila de revisão e o mesmo
+// endpoint de dispensa (POST /:id/reflect).
 app.get("/api/transactions/impulse-review", authenticate, async (req, res) => {
   const user = (req as any).user;
   const items = await prisma.transaction.findMany({
-    where: { userId: user.id, flaggedImpulse: true, reflectedAt: null },
+    where: {
+      userId: user.id,
+      reflectedAt: null,
+      OR: [{ flaggedImpulse: true }, { flaggedAnomaly: true }],
+    },
     orderBy: { createdAt: "desc" },
   });
-  res.json(items);
+  res.json(
+    items.map((t) => ({ ...t, reviewReason: t.flaggedImpulse ? "impulse" : "anomaly" })),
+  );
 });
 
 app.post("/api/transactions/:id/reflect", authenticate, async (req, res) => {
@@ -2840,6 +2927,244 @@ app.delete("/api/challenges/:id", authenticate, async (req, res) => {
   const deleted = await prisma.challenge.deleteMany({ where: { id: String(req.params.id), creatorId: user.id } });
   if (deleted.count === 0) return res.status(404).json({ error: "Desafio não encontrado" });
   res.json({ ok: true });
+});
+
+// ============================================================================
+// PATRIMÔNIO LÍQUIDO E INVESTIMENTOS
+// ============================================================================
+app.get("/api/net-worth", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const netWorth = await calculateNetWorth(user.id);
+  res.json(netWorth);
+});
+
+const investmentSchema = z.object({
+  name: z.string().min(1).max(120),
+  type: z.enum(["RENDA_FIXA", "ACOES", "FUNDOS_IMOBILIARIOS", "CRIPTO", "TESOURO_DIRETO", "OUTRO"]),
+  investedAmount: z.number().min(0),
+  currentValue: z.number().min(0),
+});
+
+app.get("/api/investments", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const investments = await prisma.investment.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" } });
+  res.json(investments);
+});
+
+app.post("/api/investments", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = investmentSchema.parse(req.body);
+  const investment = await prisma.investment.create({ data: { ...data, userId: user.id } });
+  res.status(201).json(investment);
+});
+
+app.put("/api/investments/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = investmentSchema.partial().parse(req.body);
+  const updated = await prisma.investment.updateMany({
+    where: { id: String(req.params.id), userId: user.id },
+    data,
+  });
+  if (updated.count === 0) return res.status(404).json({ error: "Investimento não encontrado" });
+  res.json({ ok: true });
+});
+
+app.delete("/api/investments/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const deleted = await prisma.investment.deleteMany({ where: { id: String(req.params.id), userId: user.id } });
+  if (deleted.count === 0) return res.status(404).json({ error: "Investimento não encontrado" });
+  res.json({ ok: true });
+});
+
+// ============================================================================
+// SIMULADOR DE INDEPENDÊNCIA FINANCEIRA (FIRE)
+// ============================================================================
+app.get("/api/fire-simulation", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const desiredMonthlyIncome = req.query.desiredMonthlyIncome ? Number(req.query.desiredMonthlyIncome) : undefined;
+  const targetYears = req.query.targetYears ? Number(req.query.targetYears) : undefined;
+  const simulation = await simulateFire(user.id, { desiredMonthlyIncome, targetYears });
+  res.json(simulation);
+});
+
+// ============================================================================
+// CALCULADORA CLT vs PJ
+// ============================================================================
+app.post("/api/tax/clt-vs-pj", authenticate, async (req, res) => {
+  const data = z
+    .object({
+      cltGrossSalary: z.number().positive(),
+      pjContractedMonthly: z.number().positive(),
+      pjTaxRegime: z.enum(["MEI", "CARNE_LEAO"]),
+      pjMeiActivity: z.string().optional(),
+      pjAccountingFee: z.number().min(0).optional(),
+    })
+    .parse(req.body);
+  const result = compareCltVsPj(data);
+  res.json({
+    ...result,
+    disclaimer: "Estimativa de planejamento — tabelas de INSS/IRRF mudam por decreto, confira os valores vigentes.",
+  });
+});
+
+// ============================================================================
+// COMPROVANTE DE TRANSAÇÃO
+// ============================================================================
+app.post("/api/transactions/:id/receipt", authenticate, upload.single("file"), async (req, res) => {
+  const user = (req as any).user;
+  if (!req.file) return res.status(400).json({ error: "Nenhum arquivo enviado" });
+  const transaction = await prisma.transaction.findFirst({ where: { id: String(req.params.id), userId: user.id } });
+  if (!transaction) return res.status(404).json({ error: "Transação não encontrada" });
+
+  const imageData = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+  const receipt = await prisma.transactionReceipt.upsert({
+    where: { transactionId: transaction.id },
+    create: { transactionId: transaction.id, userId: user.id, imageData },
+    update: { imageData },
+  });
+  res.status(201).json({ id: receipt.id });
+});
+
+app.get("/api/transactions/:id/receipt", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const receipt = await prisma.transactionReceipt.findFirst({
+    where: { transactionId: String(req.params.id), userId: user.id },
+  });
+  if (!receipt) return res.status(404).json({ error: "Sem comprovante" });
+  res.json({ imageData: receipt.imageData });
+});
+
+app.delete("/api/transactions/:id/receipt", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  await prisma.transactionReceipt.deleteMany({ where: { transactionId: String(req.params.id), userId: user.id } });
+  res.json({ ok: true });
+});
+
+// ============================================================================
+// EMPRÉSTIMOS ENTRE PESSOAS
+// ============================================================================
+const personalLoanSchema = z.object({
+  contactId: z.string(),
+  direction: z.enum(["LENT", "BORROWED"]),
+  principal: z.number().positive(),
+  remaining: z.number().min(0),
+  installments: z.number().min(1).max(60).optional().default(1),
+  dueDay: z.number().min(1).max(31).optional().nullable(),
+  note: z.string().max(200).optional().nullable(),
+});
+
+app.get("/api/personal-loans", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const loans = await prisma.personalLoan.findMany({
+    where: { userId: user.id },
+    include: { contact: { select: { id: true, name: true, color: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  res.json(loans);
+});
+
+app.post("/api/personal-loans", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = personalLoanSchema.parse(req.body);
+  const loan = await prisma.personalLoan.create({ data: { ...data, userId: user.id } });
+  res.status(201).json(loan);
+});
+
+app.put("/api/personal-loans/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const data = personalLoanSchema.partial().parse(req.body);
+  const updated = await prisma.personalLoan.updateMany({
+    where: { id: String(req.params.id), userId: user.id },
+    data: { ...data, settled: data.remaining === 0 ? true : undefined },
+  });
+  if (updated.count === 0) return res.status(404).json({ error: "Empréstimo não encontrado" });
+  res.json({ ok: true });
+});
+
+app.delete("/api/personal-loans/:id", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const deleted = await prisma.personalLoan.deleteMany({ where: { id: String(req.params.id), userId: user.id } });
+  if (deleted.count === 0) return res.status(404).json({ error: "Empréstimo não encontrado" });
+  res.json({ ok: true });
+});
+
+// ============================================================================
+// MODO CASAL/FAMÍLIA (HOUSEHOLD)
+// ============================================================================
+app.get("/api/household", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const membership = await prisma.householdMember.findFirst({ where: { userId: user.id } });
+  const owned = await prisma.household.findUnique({ where: { ownerId: user.id } });
+  const householdId = owned?.id || membership?.householdId;
+  if (!householdId) return res.json(null);
+  const summary = await buildHouseholdSummary(householdId);
+  res.json(summary);
+});
+
+app.post("/api/household", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const { name } = z.object({ name: z.string().min(1).max(80) }).parse(req.body);
+  const existing = await prisma.household.findUnique({ where: { ownerId: user.id } });
+  if (existing) return res.status(400).json({ error: "Você já tem um household" });
+  const household = await prisma.household.create({ data: { ownerId: user.id, name } });
+  res.status(201).json(household);
+});
+
+app.post("/api/household/invite", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const { email } = z.object({ email: z.string().email() }).parse(req.body);
+  const household = await prisma.household.findUnique({ where: { ownerId: user.id } });
+  if (!household) return res.status(404).json({ error: "Crie um household primeiro" });
+  const invite = await prisma.householdInvite.create({
+    data: { householdId: household.id, senderId: user.id, receiverEmail: email.toLowerCase().trim() },
+  });
+  res.status(201).json(invite);
+});
+
+app.get("/api/household/invites", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const invites = await prisma.householdInvite.findMany({
+    where: { receiverEmail: user.email.toLowerCase(), status: "pending" },
+    include: { household: true, sender: { select: { id: true, name: true } } },
+  });
+  res.json(invites);
+});
+
+app.post("/api/household/invites/:id/accept", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const invite = await prisma.householdInvite.findUnique({ where: { id: String(req.params.id) } });
+  if (!invite || invite.receiverEmail !== user.email.toLowerCase() || invite.status !== "pending") {
+    return res.status(404).json({ error: "Convite não encontrado" });
+  }
+  await prisma.$transaction([
+    prisma.householdInvite.update({ where: { id: invite.id }, data: { status: "accepted", respondedAt: new Date() } }),
+    prisma.householdMember.upsert({
+      where: { householdId_userId: { householdId: invite.householdId, userId: user.id } },
+      create: { householdId: invite.householdId, userId: user.id },
+      update: {},
+    }),
+  ]);
+  res.json({ ok: true });
+});
+
+app.post("/api/household/invites/:id/decline", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const invite = await prisma.householdInvite.findUnique({ where: { id: String(req.params.id) } });
+  if (!invite || invite.receiverEmail !== user.email.toLowerCase() || invite.status !== "pending") {
+    return res.status(404).json({ error: "Convite não encontrado" });
+  }
+  await prisma.householdInvite.update({ where: { id: invite.id }, data: { status: "declined", respondedAt: new Date() } });
+  res.json({ ok: true });
+});
+
+// ============================================================================
+// RESUMO DO ANO
+// ============================================================================
+app.get("/api/year-review", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const year = req.query.year ? Number(req.query.year) : new Date().getFullYear();
+  const review = await buildYearReview(user.id, year);
+  res.json(review);
 });
 
 // ============================================================================

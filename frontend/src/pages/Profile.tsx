@@ -19,12 +19,13 @@ import {
   FileSpreadsheet,
   Coins,
   Briefcase,
+  Scale,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useUserPhoto } from "../hooks/useUserPhoto";
-import { WebhookSubscription, ApiKeySummary, ExternalConnection, Goal, TaxObligation } from "../types";
+import { WebhookSubscription, ApiKeySummary, ExternalConnection, Goal, TaxObligation, CltVsPjResult } from "../types";
 
 // Standard VAPID-key conversion (base64url -> Uint8Array) required by the
 // browser's PushManager.subscribe — same snippet every Web Push guide uses.
@@ -150,6 +151,32 @@ export default function Profile() {
       toast.error(apiErrorMessage(err));
     } finally {
       setToolsSaving(false);
+    }
+  };
+
+  // Calculadora CLT vs PJ
+  const [cltSalary, setCltSalary] = useState("5000");
+  const [pjMonthly, setPjMonthly] = useState("7000");
+  const [pjRegime, setPjRegime] = useState<"MEI" | "CARNE_LEAO">("CARNE_LEAO");
+  const [pjFee, setPjFee] = useState("0");
+  const [cltVsPj, setCltVsPj] = useState<CltVsPjResult | null>(null);
+  const [comparing, setComparing] = useState(false);
+
+  const compareCltVsPj = async () => {
+    setComparing(true);
+    try {
+      const { data } = await api.post("/api/tax/clt-vs-pj", {
+        cltGrossSalary: Number(cltSalary),
+        pjContractedMonthly: Number(pjMonthly),
+        pjTaxRegime: pjRegime,
+        pjMeiActivity: meiActivity,
+        pjAccountingFee: Number(pjFee) || 0,
+      });
+      setCltVsPj(data);
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setComparing(false);
     }
   };
 
@@ -1289,6 +1316,64 @@ export default function Profile() {
                       </div>
                     )}
                     <p className="mt-4 text-xs text-amber-600 dark:text-amber-400">⚠ {taxData.disclaimer}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* CLT vs PJ */}
+              <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+                <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
+                  <Scale className="w-5 h-5" /> Calculadora CLT vs PJ
+                </h2>
+                <p className="mt-2 text-sm text-muted">
+                  Compara o salário líquido CLT (com 13º, férias e FGTS) contra uma proposta PJ, descontando o imposto do regime que você escolher acima.
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="text-sm font-medium text-muted">Salário bruto CLT (R$)</label>
+                    <input type="number" value={cltSalary} onChange={(e) => setCltSalary(e.target.value)} className="input mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted">Valor mensal PJ (R$)</label>
+                    <input type="number" value={pjMonthly} onChange={(e) => setPjMonthly(e.target.value)} className="input mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted">Regime PJ</label>
+                    <select value={pjRegime} onChange={(e) => setPjRegime(e.target.value as any)} className="input mt-1">
+                      <option value="MEI">MEI</option>
+                      <option value="CARNE_LEAO">Autônomo (Carnê-Leão)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted">Contador (R$/mês, opcional)</label>
+                    <input type="number" value={pjFee} onChange={(e) => setPjFee(e.target.value)} className="input mt-1" />
+                  </div>
+                </div>
+                <button onClick={compareCltVsPj} disabled={comparing} className="btn-primary mt-4">
+                  {comparing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Comparar"}
+                </button>
+
+                {cltVsPj && (
+                  <div className="mt-6 pt-6 border-t border-border grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-surface-strong p-4">
+                      <p className="text-xs text-muted uppercase tracking-wide font-semibold">CLT — equivalente mensal</p>
+                      <p className="text-2xl font-display font-bold mt-1">R$ {cltVsPj.clt.totalMonthlyEquivalent.toFixed(2)}</p>
+                      <p className="text-xs text-muted mt-1">líquido R$ {cltVsPj.clt.netMonthly.toFixed(2)} + 13º/férias diluídos · FGTS à parte: R$ {cltVsPj.clt.fgtsMonthlyEquivalent.toFixed(2)}</p>
+                    </div>
+                    <div className="rounded-2xl bg-surface-strong p-4">
+                      <p className="text-xs text-muted uppercase tracking-wide font-semibold">PJ — líquido mensal</p>
+                      <p className="text-2xl font-display font-bold mt-1">R$ {cltVsPj.pj.netMonthly.toFixed(2)}</p>
+                      <p className="text-xs text-muted mt-1">após R$ {cltVsPj.pj.estimatedTax.toFixed(2)} de imposto estimado</p>
+                    </div>
+                    <div className={`sm:col-span-2 rounded-2xl p-4 ${cltVsPj.difference >= 0 ? "border border-emerald-500/30 bg-emerald-500/5" : "border border-amber-500/30 bg-amber-500/5"}`}>
+                      <p className="text-sm font-semibold text-text">
+                        {cltVsPj.difference >= 0
+                          ? `PJ compensa R$ ${cltVsPj.difference.toFixed(2)} a mais por mês.`
+                          : `CLT compensa R$ ${Math.abs(cltVsPj.difference).toFixed(2)} a mais por mês.`}
+                      </p>
+                      <p className="text-xs text-muted mt-1">Lembre: PJ não tem estabilidade, FGTS nem 13º/férias garantidos por lei — é você quem precisa se planejar pra isso.</p>
+                    </div>
+                    <p className="sm:col-span-2 text-xs text-amber-600 dark:text-amber-400">⚠ {cltVsPj.disclaimer}</p>
                   </div>
                 )}
               </div>

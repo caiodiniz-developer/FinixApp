@@ -14,6 +14,7 @@ import {
   Clock,
   Split,
   HeartCrack,
+  Paperclip,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -267,13 +268,16 @@ export default function Transactions() {
       {impulseReview.length > 0 && (
         <div className="rounded-3xl border border-amber-500/30 bg-amber-500/5 p-5">
           <h2 className="font-semibold text-text flex items-center gap-2">
-            <HeartCrack className="w-4 h-4 text-amber-500" /> Ainda vale a pena?
+            <HeartCrack className="w-4 h-4 text-amber-500" /> Vale a pena revisar
           </h2>
-          <p className="mt-1 text-sm text-muted">Compras que você marcou como "não planejadas" — dá uma olhada de novo com a cabeça fria.</p>
+          <p className="mt-1 text-sm text-muted">Compras não planejadas e gastos fora do seu padrão habitual — dá uma olhada de novo com a cabeça fria.</p>
           <div className="mt-3 space-y-2">
             {impulseReview.map((t) => (
               <div key={t.id} className="flex items-center justify-between gap-3 rounded-xl bg-surface p-3 text-sm">
-                <span>{t.title} — <strong>{currency(t.amount)}</strong></span>
+                <span>
+                  {t.title} — <strong>{currency(t.amount)}</strong>{" "}
+                  <span className="text-xs text-muted">({t.reviewReason === "anomaly" ? "fora do padrão" : "não planejada"})</span>
+                </span>
                 <button onClick={() => reflectImpulse(t.id)} className="btn-outline !py-1.5 !px-3 text-xs">Já refleti</button>
               </div>
             ))}
@@ -579,6 +583,40 @@ function TxModal({
   });
 
   const [isRec, setIsRec] = useState<boolean>(editing?.recurring ?? false);
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
+  const [receiptUploading, setReceiptUploading] = useState(false);
+
+  useEffect(() => {
+    if (!editing) return;
+    api.get(`/api/transactions/${editing.id}/receipt`).then((r) => setReceiptImage(r.data.imageData)).catch(() => {});
+  }, [editing]);
+
+  const uploadReceipt = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editing) return;
+    setReceiptUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      await api.post(`/api/transactions/${editing.id}/receipt`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const r = await api.get(`/api/transactions/${editing.id}/receipt`);
+      setReceiptImage(r.data.imageData);
+      toast.success("Comprovante anexado!");
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setReceiptUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const removeReceipt = async () => {
+    if (!editing) return;
+    await api.delete(`/api/transactions/${editing.id}/receipt`).catch(() => {});
+    setReceiptImage(null);
+  };
 
   const watchedCategory = watch("category");
   const watchedAmount = Number(watch("amount") || 0);
@@ -946,6 +984,24 @@ function TxModal({
               data-testid="tx-description"
             />
           </div>
+
+          {editing && (
+            <div>
+              <label className="text-sm font-medium text-muted dark:text-muted">Comprovante</label>
+              {receiptImage ? (
+                <div className="mt-2 flex items-center gap-3">
+                  <img src={receiptImage} alt="Comprovante" className="w-16 h-16 rounded-lg object-cover border border-border" />
+                  <button type="button" onClick={removeReceipt} className="btn-outline !py-1.5 !px-3 text-xs">Remover</button>
+                </div>
+              ) : (
+                <label className="btn-outline mt-2 inline-flex items-center gap-2 cursor-pointer !py-2">
+                  {receiptUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Paperclip className="w-4 h-4" />}
+                  Anexar foto do recibo
+                  <input type="file" accept="image/*" onChange={uploadReceipt} className="hidden" disabled={receiptUploading} />
+                </label>
+              )}
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="btn-outline">

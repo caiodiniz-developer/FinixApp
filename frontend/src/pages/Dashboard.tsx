@@ -506,7 +506,7 @@ export default function Dashboard() {
   const linkStyle = { color: "#60a5fa", fontSize: "10px", fontWeight: 600, display: "flex", alignItems: "center", gap: 2 };
 
   return (
-    <div className="space-y-4" data-testid="dashboard">
+    <div className="space-y-5" data-testid="dashboard">
       <Celebration trigger={healthScore >= 70} />
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
