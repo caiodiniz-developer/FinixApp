@@ -336,6 +336,14 @@ export default function AppLayout() {
       ],
     },
     {
+      label: "Descobertas",
+      items: [
+        { to: "/app/subscriptions", icon: Ghost, label: "Assinaturas", testid: "nav-subscriptions" },
+        { to: "/app/debts", icon: Landmark, label: "Dívidas", testid: "nav-debts" },
+        { to: "/app/challenges", icon: Trophy, label: "Desafios", testid: "nav-challenges" },
+      ],
+    },
+    {
       label: "Gestão",
       items: [
         { to: "/app/categories", icon: Tag, label: "Categorias", testid: "nav-categories" },
