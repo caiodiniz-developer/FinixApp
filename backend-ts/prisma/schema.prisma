@@ -59,14 +59,30 @@ model User {
   twoFactorEnabled     Boolean @default(false)
   twoFactorBackupCodes String? // JSON array of bcrypt-hashed backup codes
 
-  recurringTransactions RecurringTransaction[]
-  pushSubscriptions     PushSubscription[]
-  webhookSubscriptions  WebhookSubscription[]
-  apiKeys               ApiKey[]
-  externalConnections   ExternalConnection[]
-  goalMemberships       GoalMember[]
-  sentGoalInvites       GoalInvite[]           @relation("GoalInviteSender")
-  receivedGoalInvites   GoalInvite[]           @relation("GoalInviteReceiver")
+  // Round-up ("arredondamento"): every EXPENSE rounds up to the next whole
+  // real, the difference is swept into roundUpGoalId.
+  roundUpEnabled Boolean @default(false)
+  roundUpGoalId  String?
+
+  // Modo Autônomo/MEI — see services/taxService.ts. Purely a calculator
+  // (estimates, not official figures); never files anything with Receita Federal.
+  isAutonomous Boolean @default(false)
+  taxRegime    String? // "MEI" | "CARNE_LEAO"
+  meiActivity  String? // "COMERCIO_INDUSTRIA" | "SERVICOS" | "COMERCIO_SERVICOS" — affects DAS-MEI amount
+
+  recurringTransactions  RecurringTransaction[]
+  pushSubscriptions      PushSubscription[]
+  webhookSubscriptions   WebhookSubscription[]
+  apiKeys                ApiKey[]
+  externalConnections    ExternalConnection[]
+  goalMemberships        GoalMember[]
+  sentGoalInvites        GoalInvite[]                   @relation("GoalInviteSender")
+  receivedGoalInvites    GoalInvite[]                   @relation("GoalInviteReceiver")
+  debts                  Debt[]
+  taxObligations         TaxObligation[]
+  challengesCreated      Challenge[]                    @relation("ChallengeCreator")
+  challengeEntries       ChallengeParticipant[]
+  subscriptionDismissals SubscriptionInsightDismissal[]
 
   @@map("users")
 }
@@ -108,6 +124,17 @@ model Transaction {
   currency           String    @default("BRL")
   dueDate            DateTime?
   createdAt          DateTime  @default(now())
+
+  // Modo Autônomo: which client/source this income came from — powers the
+  // per-client breakdown in the tax estimate.
+  client String?
+
+  // Pausa de 24h pra compra por impulso — set client-side when the user
+  // answers "não" to "essa compra foi planejada?" on an unusually large
+  // expense. The transaction still counts immediately (money already left
+  // the account); this only drives the next-day reflection nudge.
+  flaggedImpulse Boolean   @default(false)
+  reflectedAt    DateTime?
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   installment   Installment?   @relation(fields: [installmentId], references: [id], onDelete: SetNull)
@@ -512,4 +539,102 @@ model ExternalAccount {
 
   @@index([connectionId])
   @@map("external_accounts")
+}
+
+// ============================================================================
+// DÍVIDAS — priorização por avalanche (maior juros primeiro) ou snowball
+// (menor saldo primeiro), ver services/debtService.ts.
+// ============================================================================
+model Debt {
+  id              String   @id @default(uuid())
+  userId          String
+  creditor        String
+  totalAmount     Float
+  remainingAmount Float
+  interestRate    Float    @default(0) // % ao mês
+  minPayment      Float    @default(0)
+  dueDay          Int?
+  negotiationUrl  String? // link externo (Serasa Limpa Nome etc.) — nunca uma integração real
+  paidOff         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("debts")
+}
+
+// ============================================================================
+// MODO AUTÔNOMO/MEI — estimativas de DAS-MEI e Carnê-Leão por mês.
+// ============================================================================
+model TaxObligation {
+  id              String    @id @default(uuid())
+  userId          String
+  referenceMonth  String // "2026-08"
+  type            String // "DAS_MEI" | "CARNE_LEAO"
+  grossIncome     Float     @default(0)
+  estimatedAmount Float
+  dueDate         DateTime
+  paid            Boolean   @default(false)
+  paidAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, referenceMonth, type])
+  @@index([userId])
+  @@map("tax_obligations")
+}
+
+// ============================================================================
+// DESAFIOS EM GRUPO — cada participante tem sua própria meta interna
+// (targetAmount compartilhado, progresso individual), com ranking.
+// ============================================================================
+model Challenge {
+  id           String   @id @default(uuid())
+  creatorId    String
+  title        String
+  targetAmount Float
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime @default(now())
+
+  creator      User                   @relation("ChallengeCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  participants ChallengeParticipant[]
+
+  @@index([creatorId])
+  @@map("challenges")
+}
+
+model ChallengeParticipant {
+  id             String   @id @default(uuid())
+  challengeId    String
+  userId         String
+  progressAmount Float    @default(0)
+  joinedAt       DateTime @default(now())
+
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, userId])
+  @@index([userId])
+  @@map("challenge_participants")
+}
+
+// ============================================================================
+// CAÇA-FANTASMA DE ASSINATURAS — assinaturas detectadas automaticamente que
+// o usuário decidiu ignorar (não reaparecem no próximo scan).
+// ============================================================================
+model SubscriptionInsightDismissal {
+  id          String   @id @default(uuid())
+  userId      String
+  signature   String // normalized title + rounded amount, identifies the pattern
+  dismissedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, signature])
+  @@index([userId])
+  @@map("subscription_insight_dismissals")
 }
