@@ -779,6 +779,56 @@ export default function Dashboard() {
         </div>
       </Reveal>
 
+      {/* ── PREVISÃO DE APERTO FINANCEIRO ──────────────────────────────── */}
+      {forecast && (
+        <Reveal className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <CalendarClock className="w-4 h-4" style={{ color: "var(--color-primary)" }} />
+              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Previsão dos próximos 30 dias</h3>
+            </div>
+          </div>
+          <p className="text-[11px] mb-4" style={{ color: "var(--color-text-low)" }}>
+            Simulação com base nas recorrências e parcelas já cadastradas — não é histórico, é o que ainda vai acontecer.
+          </p>
+
+          {forecast.riskWindows.length > 0 ? (
+            <div className="space-y-2 mb-4">
+              {forecast.riskWindows.map((w, i) => (
+                <div key={i} className="flex items-start gap-2.5 rounded-xl p-3"
+                  style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)" }}>
+                  <TriangleAlert className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#f87171" }} />
+                  <p className="text-xs" style={{ color: "var(--color-text)" }}>
+                    Entre <strong>{dateBR(w.start)}</strong> e <strong>{dateBR(w.end)}</strong> seu saldo projetado fica negativo
+                    (chega a {currency(w.lowestBalance)}) — por causa de {w.reason}.
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2.5 rounded-xl p-3 mb-4"
+              style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.25)" }}>
+              <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "#4ade80" }} />
+              <p className="text-xs" style={{ color: "var(--color-text)" }}>Nenhum aperto previsto nos próximos 30 dias.</p>
+            </div>
+          )}
+
+          <ResponsiveContainer width="100%" height={140}>
+            <LineChart data={forecast.days}>
+              <XAxis dataKey="date" hide />
+              <YAxis hide domain={["dataMin", "dataMax"]} />
+              <Tooltip
+                formatter={(v: number) => currency(v)}
+                labelFormatter={(l) => dateBR(String(l))}
+                contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, fontSize: 12 }}
+              />
+              <ReferenceLine y={0} stroke="#f87171" strokeDasharray="4 4" />
+              <Line type="monotone" dataKey="balance" stroke="var(--color-primary)" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </Reveal>
+      )}
+
       {/* ── HEATMAP + CATEGORY BARS ─────────────────────────────────────── */}
       <Reveal className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
