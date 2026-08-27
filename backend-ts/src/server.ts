@@ -1998,6 +1998,19 @@ app.delete("/api/contacts/:id", authenticate, async (req, res) => {
   res.json({ ok: true });
 });
 
+// "Quem deve quem" líquido: zera de uma vez todas as divisões em aberto com
+// este contato, em vez de marcar uma por uma.
+app.post("/api/contacts/:id/settle-all", authenticate, async (req, res) => {
+  const user = (req as any).user;
+  const contact = await prisma.contact.findUnique({ where: { id: String(req.params.id) } });
+  if (!contact || contact.userId !== user.id) return res.status(404).json({ error: "Contato não encontrado" });
+  const result = await prisma.splitExpense.updateMany({
+    where: { userId: user.id, contactId: contact.id, settled: false },
+    data: { settled: true, settledAt: new Date() },
+  });
+  res.json({ settled: result.count });
+});
+
 app.get("/api/contacts/:id/splits", authenticate, async (req, res) => {
   const user = (req as any).user;
   const contact = await prisma.contact.findUnique({
