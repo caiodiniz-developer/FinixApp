@@ -20,6 +20,11 @@ export interface User {
   businessPurpose?: string;
   primaryColor?: string;
   twoFactorEnabled?: boolean;
+  roundUpEnabled?: boolean;
+  roundUpGoalId?: string | null;
+  isAutonomous?: boolean;
+  taxRegime?: "MEI" | "CARNE_LEAO" | null;
+  meiActivity?: "COMERCIO_INDUSTRIA" | "SERVICOS" | "COMERCIO_SERVICOS" | null;
 }
 
 export interface Transaction {
