@@ -187,18 +187,3 @@ Migrations.
 Evita muitos erros em tempo de desenvolvimento.
 Dívidas técnicas
 
-Você pode comentar isso numa entrevista.
-
-server.ts muito grande (~3000 linhas)
-Gateway e Express dividindo Stripe
-Refresh Token implementado mas não usado pelo frontend
-Rate Limit em memória (ideal seria Redis)
-Algumas rotas antigas ainda existem e precisam ser removidas
-
-Mostrar que você sabe reconhecer essas melhorias costuma contar pontos.
-
-O que falar em 1 minuto para um recrutador
-
-"O Finix é um SaaS de gestão financeira desenvolvido com React, TypeScript, Express, Prisma e PostgreSQL. A arquitetura possui um frontend React, uma API Express responsável por toda a regra de negócio e um gateway FastAPI que gerencia o Stripe e encaminha as requisições para o backend principal. A autenticação utiliza JWT e bcrypt, as entradas são validadas com Zod e o banco é acessado pelo Prisma. O sistema possui controle de transações, parcelamentos, metas, orçamentos, dashboard financeiro, exportação de relatórios, integração com Stripe e um painel administrativo. Durante o desenvolvimento também considerei trade-offs de arquitetura e identifiquei pontos de melhoria, como modularizar melhor o backend e unificar a integração de pagamentos."
-
-Se você dominar esses tópicos e entender o código relacionado a cada um, já terá uma base sólida para explicar o projeto de forma técnica em uma entrevista.
