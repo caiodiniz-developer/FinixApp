@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../middlewares/auth";
-import { authRateLimit } from "../middlewares/rateLimit";
+import { authRateLimit, perEmailRateLimit } from "../middlewares/rateLimit";
 import {
   signupController,
   loginController,
@@ -16,14 +16,15 @@ import { completeTwoFactorLoginController } from "../controllers/twoFactorContro
 
 const router = Router();
 
-router.use(authRateLimit);
-
-router.post("/signup", signupController);
-router.post("/register", signupController);
-router.post("/login", loginController);
-router.post("/2fa/login", completeTwoFactorLoginController);
-router.post("/verify", verifyEmailController);
-router.post("/resend-code", resendCodeController);
+// Only the credential endpoints are rate limited. /me and /refresh-token are
+// called by every open tab on a timer — throttling them would log out
+// legitimate users.
+router.post("/signup", authRateLimit, signupController);
+router.post("/register", authRateLimit, signupController);
+router.post("/login", authRateLimit, perEmailRateLimit, loginController);
+router.post("/2fa/login", authRateLimit, completeTwoFactorLoginController);
+router.post("/verify", authRateLimit, perEmailRateLimit, verifyEmailController);
+router.post("/resend-code", authRateLimit, perEmailRateLimit, resendCodeController);
 router.post("/refresh-token", refreshTokenController);
 router.post("/logout", logoutController);
 router.get("/me", authenticate, getMeController);
