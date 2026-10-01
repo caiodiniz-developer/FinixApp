@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { expenseByCategory } from "../services/totalsService";
 import { appNow } from "../lib/dates";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
@@ -15,13 +16,12 @@ router.get("/api/budgets", authenticate, async (req, res) => {
   const budgets = await prisma.budget.findMany({ where: { userId: user.id } });
   const now = appNow();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const transactions = await prisma.transaction.findMany({
-    where: { userId: user.id, type: "EXPENSE", date: { gte: monthStart } },
-  });
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  // Bounded on both sides: future parcelas (dated next month onwards) used to
+  // be counted as already spent in the current month's budget.
+  const spent = await expenseByCategory(user.id, { gte: monthStart, lt: monthEnd });
   const spentByCategory: Record<string, number> = {};
-  transactions.forEach((t) => {
-    spentByCategory[t.category] = (spentByCategory[t.category] || 0) + t.amount;
-  });
+  for (const row of spent) spentByCategory[row.category] = row.amount;
   const result = budgets.map((b) => ({
     ...b,
     spent: spentByCategory[b.category] || 0,
