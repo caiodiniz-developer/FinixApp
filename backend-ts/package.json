@@ -11,15 +11,13 @@
     "typecheck": "tsc --noEmit",
     "start": "node dist/server.js",
     "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset --force",
-    "db:seed": "prisma db seed",
+    "db:push": "prisma db push",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
-    "@types/stripe": "^8.0.416",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
