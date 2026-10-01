@@ -1,4 +1,6 @@
 import { prisma } from "../lib/prisma";
+import { roundMoney } from "../lib/money";
+import { incomeExpenseTotals, goalsSavedTotal } from "./totalsService";
 import { appNow } from "../lib/dates";
 import { computeNextRunDate, RecurrenceFrequency } from "./recurringService";
 
@@ -31,28 +33,31 @@ export const buildForecast = async (
   userId: string,
   days = 30,
 ): Promise<{ currentBalance: number; days: ForecastDay[]; riskWindows: RiskWindow[] }> => {
-  const [allTx, goals, recurring] = await Promise.all([
-    prisma.transaction.findMany({ where: { userId } }),
-    prisma.goal.findMany({ where: { userId } }),
-    prisma.recurringTransaction.findMany({ where: { userId, active: true } }),
-  ]);
-
-  const income = allTx.filter((t) => t.type === "INCOME").reduce((s, t) => s + t.amount, 0);
-  const expense = allTx.filter((t) => t.type === "EXPENSE").reduce((s, t) => s + t.amount, 0);
-  const saved = goals.reduce((s, g) => s + g.currentAmount, 0);
-  const currentBalance = income - expense - saved;
-
   const today = appNow();
   today.setHours(0, 0, 0, 0);
   const horizonEnd = new Date(today);
   horizonEnd.setDate(horizonEnd.getDate() + days);
 
+  // "Current balance" is everything dated before today; what is dated from
+  // today on is replayed day by day below. (Summing ALL rows here, as before,
+  // counted future parcelas twice: once in the starting balance and again on
+  // their own day.) Only the rows inside the forecast window are fetched.
+  const [past, saved, windowTx, recurring] = await Promise.all([
+    incomeExpenseTotals(userId, { lt: today }),
+    goalsSavedTotal(userId),
+    prisma.transaction.findMany({
+      where: { userId, date: { gte: today, lte: horizonEnd } },
+      select: { title: true, amount: true, type: true, date: true },
+    }),
+    prisma.recurringTransaction.findMany({ where: { userId, active: true } }),
+  ]);
+  const currentBalance = roundMoney(past.income - past.expense - saved);
+
   // Bucket future-dated transactions (installments/scheduled) by day.
   const byDay = new Map<string, ForecastDay["events"]>();
-  for (const t of allTx) {
+  for (const t of windowTx) {
     const d = new Date(t.date);
     d.setHours(0, 0, 0, 0);
-    if (d < today || d > horizonEnd) continue;
     const key = toDateKey(d);
     const list = byDay.get(key) || [];
     list.push({ title: t.title, amount: t.amount, type: t.type as "INCOME" | "EXPENSE", source: "transaction" });
@@ -86,7 +91,7 @@ export const buildForecast = async (
     for (const e of events) {
       running += e.type === "INCOME" ? e.amount : -e.amount;
     }
-    result.push({ date: key, balance: Number(running.toFixed(2)), events });
+    result.push({ date: key, balance: roundMoney(running), events });
   }
 
   // A "risk window" is a run of consecutive days below zero — grouped so the
