@@ -60,7 +60,7 @@ const corsOptions: cors.CorsOptions = {
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "stripe-signature"],
-  exposedHeaders: ["Content-Range", "X-Content-Range"],
+  exposedHeaders: ["Content-Range", "X-Content-Range", "X-Total-Count"],
   maxAge: 86400,
 };
 

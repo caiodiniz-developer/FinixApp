@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Prisma } from "@prisma/client";
 import { toTransactionDto } from "../lib/transactionDto";
 import { assertOwnedRefs } from "../services/ownershipService";
 import { v4 as uuidv4 } from "uuid";
@@ -31,10 +32,13 @@ router.get("/api/transactions", authenticate, async (req, res) => {
     });
   }
   const { type, category, search, startDate, endDate, date } = req.query;
-  const where: any = { userId: user.id };
-  if (type) where.type = type;
-  if (category) where.category = category;
-  if (search) where.title = { contains: search as string };
+  const where: Prisma.TransactionWhereInput = { userId: user.id };
+  if (typeof type === "string") where.type = type;
+  if (typeof category === "string") where.category = category;
+  if (typeof search === "string" && search.trim())
+    where.title = { contains: search.trim(), mode: "insensitive" };
+  // ?installment=true → only parcelas of installment purchases
+  if (req.query.installment === "true") where.totalInstallments = { gt: 1 };
 
   const buildDateRange = (dateStr: string) => {
     const [year, month, day] = String(dateStr).split("-").map(Number);
@@ -50,15 +54,27 @@ router.get("/api/transactions", authenticate, async (req, res) => {
     const range = buildDateRange(String(date));
     if (range) where.date = range;
   } else if (startDate || endDate) {
-    where.date = {};
-    if (startDate) where.date.gte = new Date(startDate as string);
-    if (endDate) where.date.lte = new Date(endDate as string);
+    const range: Prisma.DateTimeFilter = {};
+    if (startDate) range.gte = new Date(startDate as string);
+    if (endDate) range.lte = new Date(endDate as string);
+    where.date = range;
   }
 
-  const transactions = await prisma.transaction.findMany({
-    where,
-    orderBy: { date: "desc" },
-  });
+  // Optional pagination: ?limit=50&offset=100. Without `limit` the full
+  // list comes back, as the existing screens expect. With it, the total
+  // number of matches is reported in the X-Total-Count header.
+  const limit = Math.min(1000, Math.max(0, Number(req.query.limit) || 0));
+  const offset = Math.max(0, Number(req.query.offset) || 0);
+
+  const [transactions, total] = await Promise.all([
+    prisma.transaction.findMany({
+      where,
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+      ...(limit ? { take: limit, skip: offset } : {}),
+    }),
+    limit ? prisma.transaction.count({ where }) : Promise.resolve(null),
+  ]);
+  if (total !== null) res.setHeader("X-Total-Count", String(total));
   res.json(transactions.map(toTransactionDto));
 });
 
