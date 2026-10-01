@@ -75,8 +75,8 @@ router.post("/api/stripe/checkout", authenticate, async (req, res) => {
       payment_method_types: ["card"],
       line_items: [{ price: plan.stripePriceId, quantity: 1 }],
       mode: "subscription",
-      success_url: `${FRONTEND_URL}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}/plans?canceled=true`,
+      success_url: `${FRONTEND_URL}/app/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_URL}/app/plans?canceled=true`,
       metadata: { userId: user.id, plan: plan_id },
     });
 
