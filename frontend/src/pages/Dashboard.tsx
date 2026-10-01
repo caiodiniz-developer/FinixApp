@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, lazy, Suspense } from "react";
+import { activePlan } from "../types";
 import {
   TrendingUp, TrendingDown, Wallet, PiggyBank,
   FileDown, FileSpreadsheet, ArrowUpRight, ArrowDownRight,
@@ -17,7 +18,7 @@ import {
 import { api, apiErrorMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { DashboardData, Insight, Budget, Goal, Forecast } from "../types";
-import { currency, dateBR, CATEGORY_COLORS } from "../utils/format";
+import { currency, dateBR, CATEGORY_COLORS, todayISO } from "../utils/format";
 import { UpgradeModal } from "../components/UpgradeModal";
 import { Reveal } from "../components/dashboard/Reveal";
 import { CountUpCurrency } from "../components/dashboard/CountUpCurrency";
@@ -46,7 +47,7 @@ interface TopExpense { id: string; title: string; amount: number; category: stri
 function QuickAddModal({ open, onClose, onAdded, categories, accounts }: {
   open: boolean; onClose: () => void; onAdded: () => void; categories: string[]; accounts: { id: string; name: string }[];
 }) {
-  const [form, setForm] = useState({ title: "", amount: "", type: "EXPENSE" as "INCOME" | "EXPENSE", category: categories[0] || "Outros", date: new Date().toISOString().split("T")[0], accountId: "" });
+  const [form, setForm] = useState({ title: "", amount: "", type: "EXPENSE" as "INCOME" | "EXPENSE", category: categories[0] || "Outros", date: todayISO(), accountId: "" });
   const [loading, setLoading] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -298,12 +299,13 @@ export default function Dashboard() {
   const [chartView, setChartView] = useState<"area" | "bar">("area");
   const heroRef = useRef<HTMLDivElement>(null);
 
-  const isFree = user?.plan === "FREE";
-  const canExportPdf = user?.plan !== "FREE";
-  const canExportExcel = user?.plan === "PRO";
-  const canExportCsv = user?.plan !== "FREE";
-  const canUseAi = user?.plan !== "FREE";
-  const canAddTx = user?.plan !== "FREE";
+  const plan = activePlan(user);
+  const isFree = plan === "FREE";
+  const canExportPdf = plan !== "FREE";
+  const canExportExcel = plan === "PRO" || plan === "TEST";
+  const canExportCsv = plan !== "FREE";
+  const canUseAi = plan !== "FREE";
+  const canAddTx = plan !== "FREE";
 
   const fetchAll = useCallback(async () => {
     if (!user) return;

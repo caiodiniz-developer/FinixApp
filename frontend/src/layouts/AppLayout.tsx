@@ -342,7 +342,7 @@ export default function AppLayout() {
                 <span data-testid="plan-badge"
                   className={`shrink-0 text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${user.plan === "PRO" ? "text-violet-300" : user.plan === "BASIC" ? "text-blue-300" : "text-zinc-500"}`}
                   style={{ background: user.plan === "PRO" ? "rgba(124,58,237,0.18)" : user.plan === "BASIC" ? "rgba(37,99,235,0.18)" : "var(--color-hairline)", border: "1px solid var(--color-hairline-strong)" }}>
-                  {user.plan}
+                  {user.trialEndsAt ? "TRIAL" : user.plan}
                 </span>
               )}
             </>

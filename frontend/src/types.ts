@@ -445,3 +445,11 @@ export interface YearReview {
   goalsCompleted: number;
   biggestExpense: { title: string; amount: number } | null;
 }
+
+/**
+ * The plan whose limits apply to the user right now — what feature gates
+ * should look at. `user.plan` is what they bought (shown in badges, used by
+ * billing); it differs during the 7-day trial and after a paid plan expires.
+ */
+export const activePlan = (user: User | null | undefined): string =>
+  user?.effectivePlan ?? user?.plan ?? "FREE";

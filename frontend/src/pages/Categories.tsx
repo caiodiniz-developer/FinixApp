@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { activePlan } from "../types";
 import { motion } from "framer-motion";
 import { Edit2, Trash2, RefreshCcw, Loader2, Tag } from "lucide-react";
 import toast from "react-hot-toast";
@@ -58,7 +59,8 @@ export default function Categories() {
     (n) => !hiddenDefaults.includes(n),
   );
 
-  const canManage = user?.plan === "PRO";
+  const plan = activePlan(user);
+  const canManage = plan === "PRO" || plan === "TEST";
 
   const fetchCategories = async () => {
     if (!user) return;
@@ -79,12 +81,12 @@ export default function Categories() {
   }, [user?.id]);
 
   const defaultMessage = useMemo(() => {
-    if (user?.plan === "FREE")
+    if (plan === "FREE")
       return "Você pode ver as categorias padrão, mas a criação e edição avançada estão disponíveis apenas no Plano Pro.";
-    if (user?.plan === "BASIC")
+    if (plan === "BASIC")
       return "Visualize categorias e filtros, mas o gerenciamento completo está disponível no Plano Pro.";
     return "Gerencie categorias personalizadas para organizar receitas e despesas.";
-  }, [user?.plan]);
+  }, [plan]);
 
   const resetForm = () =>
     setNewCategory({
