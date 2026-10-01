@@ -4,9 +4,11 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "dev:studio": "concurrently \"npm run dev:server\" \"npm run dev:studio\"",
+    "dev:studio": "concurrently \"npm run dev:server\" \"npm run db:studio\"",
     "dev:server": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "rm -rf dist && tsc",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc",
+    "typecheck": "tsc --noEmit",
     "start": "node dist/server.js",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
