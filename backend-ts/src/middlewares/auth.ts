@@ -28,8 +28,10 @@ export type AuthRequest = Request;
 
 // Accepts either a JWT bearer token (normal frontend session) or an
 // `X-Api-Key` header (external integrations — Zapier, scripts, spreadsheets;
-// see POST /api/api-keys). Both paths converge on the same `req.user`, so
-// every route works unmodified with either credential.
+// see POST /api/api-keys). Both paths converge on the same `req.user`; the
+// API key path only lets read requests through.
+const API_KEY_ALLOWED_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
 const authenticateApiKey = async (
   req: Request,
   res: Response,
@@ -53,6 +55,12 @@ const authenticateApiKey = async (
     });
     if (!user || user.blocked) {
       res.status(401).json({ error: "Usuário não encontrado ou bloqueado" });
+      return;
+    }
+    // API keys are read-only by design: a leaked key in a spreadsheet or a
+    // Zapier step must never be able to create, change or delete anything.
+    if (!API_KEY_ALLOWED_METHODS.has(req.method)) {
+      res.status(403).json({ error: "API keys têm acesso somente leitura" });
       return;
     }
     prisma.apiKey.update({ where: { id: apiKey.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
