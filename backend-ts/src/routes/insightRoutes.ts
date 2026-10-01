@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { roundMoney } from "../lib/money";
+import { incomeExpenseTotals, expenseByCategory } from "../services/totalsService";
 import { appNow } from "../lib/dates";
 import { prisma } from "../lib/prisma";
 import { authenticate, requireFeature } from "../middlewares/auth";
@@ -36,13 +38,33 @@ router.post(
   requireFeature("hasAI"),
   async (req, res) => {
     const user = req.user;
-    const transactions = await prisma.transaction.findMany({
-      where: { userId: user.id },
-      orderBy: { date: "desc" },
-    });
-    const goals = await prisma.goal.findMany({ where: { userId: user.id } });
+    const now = appNow();
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
-    if (transactions.length === 0) {
+    // Everything the rules below need, computed by the database — the only
+    // rows actually fetched are the 12 latest, for the AI prompt.
+    const [totals, goalsCount, categories, expenseAgg, recentAgg, latest] = await Promise.all([
+      incomeExpenseTotals(user.id),
+      prisma.goal.count({ where: { userId: user.id } }),
+      expenseByCategory(user.id),
+      prisma.transaction.aggregate({
+        where: { userId: user.id, type: "EXPENSE" },
+        _avg: { amount: true },
+      }),
+      prisma.transaction.aggregate({
+        where: { userId: user.id, type: "EXPENSE", date: { gte: fourteenDaysAgo } },
+        _avg: { amount: true },
+        _count: true,
+      }),
+      prisma.transaction.findMany({
+        where: { userId: user.id },
+        orderBy: { date: "desc" },
+        take: 12,
+        select: { title: true, amount: true, type: true, category: true },
+      }),
+    ]);
+
+    if (latest.length === 0) {
       return res.json({
         insights: [
           {
@@ -55,31 +77,16 @@ router.post(
       });
     }
 
-    const incomeTx = transactions.filter((t) => t.type === "INCOME");
-    const expenseTx = transactions.filter((t) => t.type === "EXPENSE");
-    const income = incomeTx.reduce((sum, t) => sum + t.amount, 0);
-    const expense = expenseTx.reduce((sum, t) => sum + t.amount, 0);
-    const balance = income - expense;
+    const { income, expense } = totals;
+    const balance = roundMoney(income - expense);
     const spendRatio = income > 0 ? expense / income : 1;
-    const avgExpense = expenseTx.length > 0 ? expense / expenseTx.length : 0;
-    const topCategory = expenseTx.reduce(
-      (acc, t) => {
-        acc[t.category] = (acc[t.category] || 0) + t.amount;
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
-    const bestCategory = Object.entries(topCategory).sort(
-      (a, b) => b[1] - a[1],
-    )[0];
-    const now = appNow();
-    const recentExpenses = expenseTx.filter(
-      (t) =>
-        (now.getTime() - new Date(t.date).getTime()) / (1000 * 60 * 60 * 24) <=
-        14,
-    );
+    const avgExpense = expenseAgg._avg.amount || 0;
+    const bestCategory = categories[0]
+      ? ([categories[0].category, categories[0].amount] as const)
+      : undefined;
 
-    const localInsights: any[] = [];
+    type Insight = { type: string; title: string; message: string };
+    const localInsights: Insight[] = [];
     if (income === 0)
       localInsights.push({
         type: "warning",
@@ -120,10 +127,8 @@ router.post(
           message: `${bestCategory[0]} responde por ${categoryRatio.toFixed(0)}% das despesas.`,
         });
     }
-    if (recentExpenses.length >= 3 && avgExpense > 0) {
-      const recentAvg =
-        recentExpenses.reduce((sum, t) => sum + t.amount, 0) /
-        recentExpenses.length;
+    if (recentAgg._count >= 3 && avgExpense > 0) {
+      const recentAvg = recentAgg._avg.amount || 0;
       if (recentAvg > avgExpense)
         localInsights.push({
           type: "info",
@@ -138,7 +143,7 @@ router.post(
         title: "Seu saldo está negativo",
         message: "As despesas superam sua renda registrada.",
       });
-    if (goals.length > 0 && spendRatio > 0.6)
+    if (goalsCount > 0 && spendRatio > 0.6)
       localInsights.push({
         type: "info",
         title: "Meta em risco de atraso",
@@ -150,8 +155,7 @@ router.post(
       const apiKey = process.env.EMERGENT_LLM_KEY;
       if (!apiKey) return res.json({ insights: localInsights.slice(0, 4) });
 
-      const summary = transactions
-        .slice(0, 12)
+      const summary = latest
         .map(
           (t) =>
             `${t.title}: R$ ${t.amount.toFixed(2)} (${t.type}/${t.category})`,
@@ -162,7 +166,7 @@ Renda total: R$ ${income.toFixed(2)}
 Despesas totais: R$ ${expense.toFixed(2)}
 Saldo: R$ ${balance.toFixed(2)}
 Porcentagem de renda gasta: ${(spendRatio * 100).toFixed(0)}%
-Metas cadastradas: ${goals.length}
+Metas cadastradas: ${goalsCount}
 Últimas transações: ${summary}
 Responda apenas com JSON válido no formato:
 { "insights": [{ "type": "success|warning|info", "title": "...", "message": "..." }] }`;
@@ -185,7 +189,7 @@ Responda apenas com JSON válido no formato:
       );
 
       const data = (await response.json()) as any;
-      let insights: any[] = localInsights.slice(0, 4);
+      let insights: Insight[] = localInsights.slice(0, 4);
       if (data.content?.[0]) {
         try {
           const jsonMatch = data.content[0].text.match(/\{[\s\S]*\}/);
