@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   motion,
@@ -34,7 +34,6 @@ import {
   BarChart2,
   CreditCard,
   Bell,
-  Users,
   ChevronDown,
   MessageCircle,
   Mail,
@@ -44,14 +43,15 @@ import {
 import { Logo } from "../components/Logo";
 import { useAuth } from "../contexts/AuthContext";
 import toast from "react-hot-toast";
+import { api, apiErrorMessage } from "../services/api";
 
-function useCountUp(to, duration = 1.6, start = false) {
+function useCountUp(to: number, duration = 1.6, start = false) {
   const [val, setVal] = useState(0);
   useEffect(() => {
     if (!start) return;
     let raf = 0;
     const t0 = performance.now();
-    const step = (t) => {
+    const step = (t: number) => {
       const p = Math.min(1, (t - t0) / (duration * 1000));
       setVal(Math.floor(to * (0.5 - Math.cos(Math.PI * p) / 2)));
       if (p < 1) raf = requestAnimationFrame(step);
@@ -62,7 +62,17 @@ function useCountUp(to, duration = 1.6, start = false) {
   return val;
 }
 
-function StatCounter({ value, label, suffix = "", prefix = "" }) {
+function StatCounter({
+  value,
+  label,
+  suffix = "",
+  prefix = "",
+}: {
+  value: number;
+  label: string;
+  suffix?: string;
+  prefix?: string;
+}) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
   const n = useCountUp(value, 1.8, inView);
@@ -162,26 +172,14 @@ const faqs = [
   },
 ];
 
-// Finix utilities for the hub section
-const finixUtils = [
-  { icon: BarChart3, label: "Dashboard", color: "#2563EB" },
-  { icon: Brain, label: "Finix IA", color: "#7C3AED" },
-  { icon: Target, label: "Metas", color: "#22C55E" },
-  { icon: Wallet, label: "Orçamentos", color: "#F59E0B" },
-  { icon: CreditCard, label: "Cartões", color: "#EC4899" },
-  { icon: FileDown, label: "Exportar", color: "#06B6D4" },
-  { icon: Bell, label: "Alertas", color: "#F97316" },
-  { icon: BarChart2, label: "Calendário", color: "#10B981" },
-];
-
 export default function Landing() {
   const { scrollYProgress } = useScroll();
   const heroY = useTransform(scrollYProgress, [0, 0.3], [0, -60]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.35], [1, 0.2]);
   const { user } = useAuth();
   const nav = useNavigate();
-  const [loadingPlan, setLoadingPlan] = useState(null);
-  const [openFaq, setOpenFaq] = useState(null);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [contactForm, setContactForm] = useState({
     nome: "",
     email: "",
@@ -189,9 +187,7 @@ export default function Landing() {
     mensagem: "",
   });
   const [sendingContact, setSendingContact] = useState(false);
-  const API_BASE = import.meta.env.VITE_API_URL;
-
-  const handleCheckout = async (planId) => {
+  const handleCheckout = async (planId: string) => {
     if (!user) {
       toast.error("Faça login para continuar");
       nav("/login");
@@ -199,29 +195,16 @@ export default function Landing() {
     }
     try {
       setLoadingPlan(planId);
-      const res = await fetch(`${API_BASE}/api/stripe/checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("finix_token")}`,
-        },
-        body: JSON.stringify({ plan_id: planId }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        toast.error(err.error || "Erro ao criar sessão");
-        return;
-      }
-      const data = await res.json();
+      const { data } = await api.post("/api/stripe/checkout", { plan_id: planId });
       window.location.href = data.url;
     } catch (e) {
-      toast.error(e.message || "Erro ao processar pagamento");
+      toast.error(apiErrorMessage(e) || "Erro ao processar pagamento");
     } finally {
       setLoadingPlan(null);
     }
   };
 
-  const handleContactSubmit = async (e) => {
+  const handleContactSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!contactForm.nome || !contactForm.email) {
       toast.error("Preencha nome e email");
@@ -1163,7 +1146,7 @@ export default function Landing() {
 
 /* ===== Visual components ===== */
 
-function FeatureCard({ feature }) {
+function FeatureCard({ feature }: { feature: (typeof features)[number] }) {
   return (
     <motion.div
       whileHover={{ y: -4 }}
@@ -1449,7 +1432,21 @@ function HeroDashboard() {
   );
 }
 
-function PreviewCard({ order, badge, title, desc, align, visual }) {
+function PreviewCard({
+  order,
+  badge,
+  title,
+  desc,
+  align,
+  visual,
+}: {
+  order: number;
+  badge: string;
+  title: string;
+  desc: string;
+  align: "left" | "right";
+  visual: ReactNode;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -1576,7 +1573,7 @@ function AIInsightsVisual() {
       msg: "R$ 19k é 62% da receita total. Ótima gestão.",
     },
   ];
-  const colors = {
+  const colors: Record<string, string> = {
     success: "bg-emerald-50 border-emerald-200 text-emerald-900",
     warning: "bg-amber-50 border-amber-200 text-amber-900",
     info: "bg-blue-50 border-blue-200 text-blue-900",
