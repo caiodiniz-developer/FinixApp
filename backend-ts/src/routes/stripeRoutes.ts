@@ -132,12 +132,9 @@ router.post("/api/stripe/change-plan", authenticate, async (req, res) => {
       items: [{ id: itemId, price: targetPlan.stripePriceId }],
       proration_behavior: "always_invoice",
     });
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: { plan: plan_id },
-    });
-    const updatedUser = await prisma.user.findUnique({
-      where: { id: user.id },
     });
     return res.json({
       message: `Plano alterado para ${targetPlan.name} com sucesso.`,

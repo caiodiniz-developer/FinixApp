@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { PLANS, planFor } from "../config/plans";
+import { PLANS, planFor, effectivePlanId } from "../config/plans";
 import { authenticate } from "../middlewares/auth";
 
 const router = Router();
@@ -11,6 +11,7 @@ router.get("/api/plans/me", authenticate, (req, res) => {
   const plan = planFor(user);
   res.json({
     plan: user.plan,
+    effectivePlan: effectivePlanId(user),
     planDetails: plan,
     transactionsUsed: user.transactionsUsed,
     transactionsMonth: user.transactionsMonth,

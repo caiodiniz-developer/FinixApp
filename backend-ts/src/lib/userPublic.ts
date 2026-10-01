@@ -1,3 +1,4 @@
+import type { AuthUser } from "../middlewares/auth";
 import { effectivePlanId, isInTrial, trialEndsAt } from "../config/plans";
 // ============================================================================
 // HELPERS
@@ -8,7 +9,9 @@ import { effectivePlanId, isInTrial, trialEndsAt } from "../config/plans";
 // so shipping the raw bytes there made every auth check multi-megabyte. Only
 // a boolean flag goes out here; the actual image is fetched once, on demand,
 // from GET /api/auth/photo by whichever screen renders an <img>.
-export const userPublic = (u: any) => ({
+export const userPublic = (
+  u: AuthUser & { photo?: string | null; companyLogo?: string | null },
+) => ({
   id: u.id,
   name: u.name,
   email: u.email,
