@@ -3,7 +3,7 @@ import { prisma } from "../lib/prisma";
 import { PLANS } from "../config/plans";
 import { authenticate } from "../middlewares/auth";
 import { userPublic } from "../lib/userPublic";
-import { stripe } from "../services/stripeService";
+import { stripe, subscriptionPeriodEnd, SubscriptionLike } from "../services/stripeService";
 import { FRONTEND_URL } from "../config/env";
 
 const router = Router();
@@ -159,16 +159,25 @@ router.post("/api/stripe/cancel-subscription", authenticate, async (req, res) =>
       .status(400)
       .json({ error: "Nenhuma assinatura ativa encontrada para cancelar." });
   try {
-    await stripe.subscriptions.update(user.stripeSubscriptionId, {
-      cancel_at_period_end: true,
-    });
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { plan: "FREE", stripeSubscriptionId: null, planExpiresAt: null },
-    });
+    // The customer already paid for the current period — keep the plan until
+    // it ends. Stripe fires customer.subscription.deleted at that point and
+    // the webhook does the actual downgrade to FREE.
+    const subscription = (await stripe.subscriptions.update(
+      user.stripeSubscriptionId,
+      { cancel_at_period_end: true },
+    )) as unknown as SubscriptionLike;
+    const periodEnd = subscriptionPeriodEnd(subscription);
+    if (periodEnd) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { planExpiresAt: periodEnd },
+      });
+    }
     return res.json({
-      message:
-        "Assinatura cancelada. Seu plano foi revertido para o plano gratuito.",
+      message: periodEnd
+        ? `Assinatura cancelada. Você continua com o plano até ${periodEnd.toLocaleDateString("pt-BR")}.`
+        : "Assinatura cancelada. Você continua com o plano até o fim do período já pago.",
+      planExpiresAt: periodEnd,
     });
   } catch (err: any) {
     console.error("Stripe cancel subscription error:", err);

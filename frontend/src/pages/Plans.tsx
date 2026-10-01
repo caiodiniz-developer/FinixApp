@@ -181,7 +181,7 @@ export default function Plans() {
 
   const handleCancel = async () => {
     if (!user || user.plan === "FREE") return;
-    if (!window.confirm("Cancelar assinatura? Você voltará ao plano Grátis.")) return;
+    if (!window.confirm("Cancelar assinatura? Você mantém o plano até o fim do período já pago e depois volta ao Grátis.")) return;
     setLoading("cancel");
     try {
       const r = await api.post("/api/stripe/cancel-subscription", {});
