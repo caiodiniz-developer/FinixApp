@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middlewares/auth";
-import { toLocalDateKey } from "../lib/dates";
+import { toLocalDateKey, appNow } from "../lib/dates";
 
 const router = Router();
 
@@ -16,7 +16,7 @@ router.get("/api/calendar", authenticate, async (req, res) => {
     const selected =
       Number.isInteger(year) && Number.isInteger(month)
         ? new Date(year, month - 1, 1)
-        : new Date();
+        : appNow();
 
     const startOfMonth = new Date(
       selected.getFullYear(),

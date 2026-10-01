@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { appNow } from "../lib/dates";
 import { prisma } from "../lib/prisma";
 import { authenticate, requireFeature } from "../middlewares/auth";
 import { buildForecast } from "../services/forecastService";
@@ -21,7 +22,7 @@ router.get("/api/forecast", authenticate, async (req, res) => {
 // ============================================================================
 router.get("/api/year-review", authenticate, async (req, res) => {
   const user = req.user;
-  const year = req.query.year ? Number(req.query.year) : new Date().getFullYear();
+  const year = req.query.year ? Number(req.query.year) : appNow().getFullYear();
   const review = await buildYearReview(user.id, year);
   res.json(review);
 });
@@ -71,7 +72,7 @@ router.post(
     const bestCategory = Object.entries(topCategory).sort(
       (a, b) => b[1] - a[1],
     )[0];
-    const now = new Date();
+    const now = appNow();
     const recentExpenses = expenseTx.filter(
       (t) =>
         (now.getTime() - new Date(t.date).getTime()) / (1000 * 60 * 60 * 24) <=

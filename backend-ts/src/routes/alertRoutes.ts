@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { authenticate, requireFeature } from "../middlewares/auth";
-import { diffDays } from "../lib/dates";
+import { diffDays, appNow } from "../lib/dates";
 
 const router = Router();
 
@@ -15,7 +15,7 @@ router.get(
   async (req, res) => {
     try {
       const user = req.user;
-      const today = new Date();
+      const today = appNow();
       today.setHours(0, 0, 0, 0);
       const futureLimit = new Date(today);
       futureLimit.setDate(futureLimit.getDate() + 7);

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
 import { planFor } from "../config/plans";
-import { getSafeDueDay, diffDays, toLocalDateKey } from "../lib/dates";
+import { getSafeDueDay, diffDays, toLocalDateKey, appNow } from "../lib/dates";
 
 export const buildInstallmentSchedule = async (user: any, data: any) => {
   const plan = planFor(user);
@@ -91,7 +91,7 @@ export const buildInstallmentSchedule = async (user: any, data: any) => {
         type: "installment",
         severity: "warning",
         amount: t.amount,
-        daysUntilDue: diffDays(new Date(t.date), new Date()),
+        daysUntilDue: diffDays(new Date(t.date), appNow()),
         dueDate: new Date(t.date),
       }));
     if (cardAlerts.length)

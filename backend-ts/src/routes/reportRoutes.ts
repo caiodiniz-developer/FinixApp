@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { appNow } from "../lib/dates";
 import PDFDocument from "pdfkit";
 import ExcelJS from "exceljs";
 import { prisma } from "../lib/prisma";
@@ -135,7 +136,7 @@ router.get(
       .fillColor("#475569")
       .text(`Usuário: ${user.name} (${user.email})`);
     doc.text(`Plano: ${PLANS[user.plan]?.name || user.plan}`);
-    doc.text(`Data de geração: ${new Date().toLocaleDateString("pt-BR")}`);
+    doc.text(`Data de geração: ${appNow().toLocaleDateString("pt-BR")}`);
     doc.moveDown(0.8);
 
     doc

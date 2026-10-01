@@ -5,6 +5,14 @@ import dotenv from "dotenv";
 // import time, so this file has to be the very first import of the entry.
 dotenv.config();
 
+// Transactions carry calendar dates ("2026-10-01"), stored as UTC midnight.
+// Pinning the process to UTC makes every `new Date(y, m, d)` / getDate() in
+// the codebase read those dates back exactly as written, on any machine —
+// a dev laptop in BRT used to bucket them one day early. "What day is it
+// for the user" is a separate question, answered by appNow() in lib/dates.
+process.env.TZ = "UTC";
+export const APP_TIMEZONE = process.env.APP_TIMEZONE || "America/Sao_Paulo";
+
 if (!process.env.DATABASE_URL) {
   console.warn("WARNING: DATABASE_URL is not set. Configure your .env file.");
 }

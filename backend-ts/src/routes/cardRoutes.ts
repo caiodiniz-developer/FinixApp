@@ -4,7 +4,7 @@ import { prisma } from "../lib/prisma";
 import { planFor } from "../config/plans";
 import { authenticate, requireFeature } from "../middlewares/auth";
 import { creditCardSchema } from "../schemas";
-import { getSafeDueDay, cardStatementWindow, currentStatementMonth } from "../lib/dates";
+import { getSafeDueDay, cardStatementWindow, currentStatementMonth, appNow } from "../lib/dates";
 
 const router = Router();
 
@@ -21,7 +21,7 @@ router.get(
       where: { userId: user.id, archived: false },
       orderBy: { createdAt: "asc" },
     });
-    const now = new Date();
+    const now = appNow();
     const result = await Promise.all(
       cards.map(async (c) => {
         const { year, month0 } = currentStatementMonth(c.closingDay, now);

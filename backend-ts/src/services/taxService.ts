@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import { appNow } from "../lib/dates";
 
 // ============================================================================
 // ⚠️ ESTIMATIVAS, NÃO CÁLCULO OFICIAL. Os valores abaixo (salário mínimo,
@@ -59,7 +60,7 @@ export const refreshCurrentMonthEstimate = async (userId: string) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user?.isAutonomous || !user.taxRegime) return null;
 
-  const now = new Date();
+  const now = appNow();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   const referenceMonth = monthKey(now);

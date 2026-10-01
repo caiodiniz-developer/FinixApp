@@ -1,13 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
-import { cardStatementWindow, currentStatementMonth } from "../lib/dates";
+import { cardStatementWindow, currentStatementMonth, appNow } from "../lib/dates";
 
 export const CARD_LIMIT_THRESHOLDS = [1, 0.9, 0.8]; // checked highest-first so only one alert fires per crossing
 export const checkCardLimitAlert = async (userId: string, cardId: string) => {
   const card = await prisma.creditCard.findUnique({ where: { id: cardId } });
   if (!card || card.limit <= 0) return;
 
-  const now = new Date();
+  const now = appNow();
   const { year, month0 } = currentStatementMonth(card.closingDay, now);
   const { start, end } = cardStatementWindow(card.closingDay, year, month0);
   const agg = await prisma.transaction.aggregate({

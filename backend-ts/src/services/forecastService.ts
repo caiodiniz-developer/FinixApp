@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import { appNow } from "../lib/dates";
 import { computeNextRunDate, RecurrenceFrequency } from "./recurringService";
 
 const toDateKey = (d: Date) => d.toISOString().slice(0, 10);
@@ -41,7 +42,7 @@ export const buildForecast = async (
   const saved = goals.reduce((s, g) => s + g.currentAmount, 0);
   const currentBalance = income - expense - saved;
 
-  const today = new Date();
+  const today = appNow();
   today.setHours(0, 0, 0, 0);
   const horizonEnd = new Date(today);
   horizonEnd.setDate(horizonEnd.getDate() + days);

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { appNow } from "../lib/dates";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middlewares/auth";
@@ -12,7 +13,7 @@ const router = Router();
 router.get("/api/budgets", authenticate, async (req, res) => {
   const user = req.user;
   const budgets = await prisma.budget.findMany({ where: { userId: user.id } });
-  const now = new Date();
+  const now = appNow();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const transactions = await prisma.transaction.findMany({
     where: { userId: user.id, type: "EXPENSE", date: { gte: monthStart } },

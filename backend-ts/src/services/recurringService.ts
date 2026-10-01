@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import { appNow } from "../lib/dates";
 import { dispatchWebhook } from "./webhookService";
 
 export type RecurrenceFrequency = "weekly" | "monthly" | "yearly";
@@ -19,7 +20,7 @@ export const computeNextRunDate = (from: Date, frequency: RecurrenceFrequency): 
  * skipping ahead to "now".
  */
 export const runDueRecurringTransactions = async (): Promise<{ created: number }> => {
-  const now = new Date();
+  const now = appNow();
   const due = await prisma.recurringTransaction.findMany({
     where: { active: true, nextRunDate: { lte: now } },
   });
@@ -63,7 +64,7 @@ export const runDueRecurringTransactions = async (): Promise<{ created: number }
 
     await prisma.recurringTransaction.update({
       where: { id: rule.id },
-      data: { nextRunDate: cursor, lastRunDate: now },
+      data: { nextRunDate: cursor, lastRunDate: new Date() },
     });
   }
 

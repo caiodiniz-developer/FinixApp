@@ -1,7 +1,8 @@
 import { prisma } from "../lib/prisma";
+import { appNow } from "../lib/dates";
 
 export const currentMonthKey = () => {
-  const d = new Date();
+  const d = appNow();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
 

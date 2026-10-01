@@ -5,7 +5,7 @@ import { prisma } from "../lib/prisma";
 import { planFor } from "../config/plans";
 import { authenticate } from "../middlewares/auth";
 import { transactionSchema } from "../schemas";
-import { diffDays } from "../lib/dates";
+import { diffDays, appNow } from "../lib/dates";
 import { checkCardLimitAlert } from "../services/cardService";
 import { buildInstallmentSchedule } from "../services/installmentService";
 import { upload } from "../lib/upload";
@@ -200,7 +200,7 @@ router.post("/api/transactions", authenticate, async (req, res) => {
             severity: "warning",
             amount: transaction.amount,
             daysUntilDue: transaction.dueDate
-              ? diffDays(new Date(transaction.dueDate), new Date())
+              ? diffDays(new Date(transaction.dueDate), appNow())
               : null,
             dueDate: transaction.dueDate || null,
           },
@@ -285,7 +285,7 @@ router.get("/api/installments", authenticate, async (req, res) => {
       orderBy: { startDate: "desc" },
       include: { transactions: true },
     });
-    const now = new Date();
+    const now = appNow();
     const result = installments.map((inst) => {
       const nextTransaction = inst.transactions
         .filter((t) => new Date(t.date) >= now)

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { appNow } from "../lib/dates";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middlewares/auth";
 
@@ -23,7 +24,7 @@ router.get("/api/dashboard", authenticate, async (req, res) => {
   const saved = goals.reduce((s, g) => s + g.currentAmount, 0);
   const balance = income - expense - saved;
 
-  const now = new Date();
+  const now = appNow();
   const months: Date[] = [];
   for (let i = 5; i >= 0; i--) {
     const y = now.getFullYear();
