@@ -43,6 +43,11 @@ import cronRoutes from "./routes/cronRoutes";
 
 export const app = express();
 
+// Behind Render/Vercel/any reverse proxy the socket address is the proxy's,
+// so without this every user shares one IP (and one rate-limit bucket).
+// TRUST_PROXY = number of proxy hops in front of the app (default 1).
+app.set("trust proxy", Number(process.env.TRUST_PROXY ?? 1));
+
 // ============================================================================
 // CORS — deve vir ANTES de qualquer rota
 // ============================================================================
