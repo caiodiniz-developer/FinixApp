@@ -75,15 +75,49 @@ router.put("/api/categories/:id", authenticate, async (req, res) => {
         .status(403)
         .json({ error: "Edição de categorias disponível apenas no plano Pro" });
     const data = categoryUpdateSchema.parse(req.body);
-    const updated = await prisma.category.updateMany({
+    const existing = await prisma.category.findFirst({
       where: { id: String(req.params.id), userId: user.id },
-      data,
     });
-    if (updated.count === 0)
+    if (!existing)
       return res.status(404).json({ error: "Categoria não encontrada" });
-    const category = await prisma.category.findUnique({
-      where: { id: String(req.params.id) },
-    });
+
+    const newName = data.name?.trim();
+    const renamed = !!newName && newName !== existing.name;
+    if (renamed) {
+      const clash = await prisma.category.findFirst({
+        where: { userId: user.id, name: newName, id: { not: existing.id } },
+        select: { id: true },
+      });
+      if (clash)
+        return res.status(400).json({ error: "Já existe uma categoria com esse nome" });
+    }
+
+    // Transactions, budgets and recurring rules point at a category by its
+    // NAME. Renaming only the category row would orphan all of them (history
+    // filed under a category that no longer exists, a budget that stops
+    // counting), so the rename is carried over to every row in one transaction.
+    const [category] = await prisma.$transaction([
+      prisma.category.update({
+        where: { id: existing.id },
+        data: { ...data, ...(newName ? { name: newName } : {}) },
+      }),
+      ...(renamed
+        ? [
+            prisma.transaction.updateMany({
+              where: { userId: user.id, category: existing.name },
+              data: { category: newName },
+            }),
+            prisma.recurringTransaction.updateMany({
+              where: { userId: user.id, category: existing.name },
+              data: { category: newName },
+            }),
+            prisma.budget.updateMany({
+              where: { userId: user.id, category: existing.name },
+              data: { category: newName },
+            }),
+          ]
+        : []),
+    ]);
     res.json(category);
   } catch (err: any) {
     console.error("Update category error:", err);
