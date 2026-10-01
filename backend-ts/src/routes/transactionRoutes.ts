@@ -234,7 +234,9 @@ router.post("/api/transactions", authenticate, async (req, res) => {
 
 router.put("/api/transactions/:id", authenticate, async (req, res) => {
   const user = (req as any).user;
-  const data = transactionSchema.parse(req.body);
+  // plannedPurchase is a request-only flag (see POST) — it isn't a column,
+  // so passing it through makes Prisma reject the whole update.
+  const { plannedPurchase, ...data } = transactionSchema.parse(req.body);
   const transaction = await prisma.transaction.updateMany({
     where: { id: String(req.params.id), userId: user.id },
     data,
