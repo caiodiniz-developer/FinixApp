@@ -48,7 +48,7 @@ const renewAccessToken = (): Promise<string | null> => {
   return renewal;
 };
 
-const PUBLIC_PATHS = ["/login", "/register", "/signup", "/verify-email", "/oauth-callback"];
+const PUBLIC_PATHS = ["/login", "/register", "/signup", "/oauth-callback"];
 
 const endSession = () => {
   clearSession();

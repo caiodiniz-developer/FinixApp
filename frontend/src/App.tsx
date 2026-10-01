@@ -24,7 +24,6 @@ const Landing = lazy(() => import("./pages/Landing"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
-const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Transactions = lazy(() => import("./pages/Transactions"));
@@ -163,7 +162,8 @@ export default function App() {
             />
             {/* Old duplicate of the register page — keep the URL working. */}
             <Route path="/signup" element={<Navigate to="/register" replace />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
+            {/* E-mail verification was removed — old links land on the login. */}
+            <Route path="/verify-email" element={<Navigate to="/login" replace />} />
             <Route
               path="/oauth-callback"
               element={
