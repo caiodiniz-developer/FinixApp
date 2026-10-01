@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import { roundMoney, sumMoney } from "../lib/money";
 
 export interface HouseholdMemberSummary {
   userId: string;
@@ -23,33 +24,38 @@ export const buildHouseholdSummary = async (householdId: string) => {
   });
   if (!household) return null;
 
-  const allUserIds = [household.ownerId, ...household.members.map((m) => m.userId)];
-  const uniqueUserIds = Array.from(new Set(allUserIds));
+  const names = new Map<string, string>([[household.ownerId, household.owner.name]]);
+  for (const m of household.members) if (!names.has(m.userId)) names.set(m.userId, m.user.name);
+  const userIds = Array.from(names.keys());
 
-  const members: HouseholdMemberSummary[] = [];
-  for (const userId of uniqueUserIds) {
-    const person =
-      userId === household.ownerId
-        ? household.owner
-        : household.members.find((m) => m.userId === userId)?.user;
-    const tx = await prisma.transaction.findMany({ where: { userId }, select: { amount: true, type: true } });
-    const income = tx.filter((t) => t.type === "INCOME").reduce((s, t) => s + t.amount, 0);
-    const expense = tx.filter((t) => t.type === "EXPENSE").reduce((s, t) => s + t.amount, 0);
-    members.push({
+  // One grouped query for the whole household instead of downloading every
+  // member's full transaction history.
+  const sums = await prisma.transaction.groupBy({
+    by: ["userId", "type"],
+    where: { userId: { in: userIds } },
+    _sum: { amount: true },
+  });
+  const sumOf = (userId: string, type: string) =>
+    roundMoney(sums.find((s) => s.userId === userId && s.type === type)?._sum.amount);
+
+  const members: HouseholdMemberSummary[] = userIds.map((userId) => {
+    const income = sumOf(userId, "INCOME");
+    const expense = sumOf(userId, "EXPENSE");
+    return {
       userId,
-      name: person?.name || "Membro",
-      income: Number(income.toFixed(2)),
-      expense: Number(expense.toFixed(2)),
-      balance: Number((income - expense).toFixed(2)),
-    });
-  }
+      name: names.get(userId) || "Membro",
+      income,
+      expense,
+      balance: roundMoney(income - expense),
+    };
+  });
 
   return {
     id: household.id,
     name: household.name,
     members,
-    combinedIncome: Number(members.reduce((s, m) => s + m.income, 0).toFixed(2)),
-    combinedExpense: Number(members.reduce((s, m) => s + m.expense, 0).toFixed(2)),
-    combinedBalance: Number(members.reduce((s, m) => s + m.balance, 0).toFixed(2)),
+    combinedIncome: sumMoney(members.map((m) => m.income)),
+    combinedExpense: sumMoney(members.map((m) => m.expense)),
+    combinedBalance: sumMoney(members.map((m) => m.balance)),
   };
 };
