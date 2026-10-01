@@ -23,7 +23,6 @@ import { Logo } from "./components/Logo";
 const Landing = lazy(() => import("./pages/Landing"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
-const Signup = lazy(() => import("./pages/Signup"));
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -51,7 +50,7 @@ const AppLayout = lazy(() => import("./layouts/AppLayout"));
 
 function FullScreenLoader() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-surface text-text text-text">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-surface text-text">
       <Logo />
       <div className="w-10 h-10 border-4 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin" />
     </div>
@@ -162,14 +161,8 @@ export default function App() {
                 </PublicOnly>
               }
             />
-            <Route
-              path="/signup"
-              element={
-                <PublicOnly>
-                  <Signup />
-                </PublicOnly>
-              }
-            />
+            {/* Old duplicate of the register page — keep the URL working. */}
+            <Route path="/signup" element={<Navigate to="/register" replace />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route
               path="/oauth-callback"
