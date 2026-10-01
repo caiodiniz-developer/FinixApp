@@ -185,5 +185,4 @@ ORM moderno.
 Tipagem automática.
 Migrations.
 Evita muitos erros em tempo de desenvolvimento.
-Dívidas técnicas
 
