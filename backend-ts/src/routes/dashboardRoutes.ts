@@ -1,67 +1,69 @@
 import { Router } from "express";
-import { appNow } from "../lib/dates";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middlewares/auth";
+import { appNow } from "../lib/dates";
+import { roundMoney, toCents, fromCents } from "../lib/money";
+import { toTransactionDto } from "../lib/transactionDto";
+import {
+  incomeExpenseTotals,
+  goalsSavedTotal,
+  expenseByCategory,
+} from "../services/totalsService";
 
 const router = Router();
 
 // ============================================================================
 // DASHBOARD
 // ============================================================================
+// Totals and the category breakdown are aggregated by the database; only the
+// last six months of rows (for the monthly chart) and the five most recent
+// transactions are actually fetched.
 router.get("/api/dashboard", authenticate, async (req, res) => {
   const user = req.user;
-  const transactions = await prisma.transaction.findMany({
-    where: { userId: user.id },
-  });
-  const goals = await prisma.goal.findMany({ where: { userId: user.id } });
-
-  const income = transactions
-    .filter((t) => t.type === "INCOME")
-    .reduce((s, t) => s + t.amount, 0);
-  const expense = transactions
-    .filter((t) => t.type === "EXPENSE")
-    .reduce((s, t) => s + t.amount, 0);
-  const saved = goals.reduce((s, g) => s + g.currentAmount, 0);
-  const balance = income - expense - saved;
-
   const now = appNow();
   const months: Date[] = [];
   for (let i = 5; i >= 0; i--) {
-    const y = now.getFullYear();
-    const m = now.getMonth() - i;
-    const d = new Date(y, m < 0 ? m + 12 : m, 1);
-    if (m < 0) d.setFullYear(y - 1);
-    months.push(d);
+    months.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
   }
+
+  const [totals, saved, categories, windowTx, recent] = await Promise.all([
+    incomeExpenseTotals(user.id),
+    goalsSavedTotal(user.id),
+    expenseByCategory(user.id),
+    prisma.transaction.findMany({
+      where: { userId: user.id, date: { gte: months[0] } },
+      select: { type: true, amount: true, date: true },
+    }),
+    prisma.transaction.findMany({
+      where: { userId: user.id },
+      orderBy: { date: "desc" },
+      take: 5,
+    }),
+  ]);
+
+  const { income, expense } = totals;
+  const balance = roundMoney(income - expense - saved);
+
   const monthly = months.map((start) => {
     const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
-    const inc = transactions
-      .filter((t) => t.type === "INCOME" && t.date >= start && t.date < end)
-      .reduce((s, t) => s + t.amount, 0);
-    const exp = transactions
-      .filter((t) => t.type === "EXPENSE" && t.date >= start && t.date < end)
-      .reduce((s, t) => s + t.amount, 0);
+    let inc = 0;
+    let exp = 0;
+    for (const t of windowTx) {
+      if (t.date < start || t.date >= end) continue;
+      if (t.type === "INCOME") inc += toCents(t.amount);
+      else if (t.type === "EXPENSE") exp += toCents(t.amount);
+    }
     return {
       month: start.toLocaleDateString("pt-BR", {
         month: "short",
         year: "2-digit",
       }),
-      income: inc,
-      expense: exp,
+      income: fromCents(inc),
+      expense: fromCents(exp),
     };
   });
 
-  const byCat: Record<string, number> = {};
-  transactions
-    .filter((t) => t.type === "EXPENSE")
-    .forEach((t) => {
-      byCat[t.category] = (byCat[t.category] || 0) + t.amount;
-    });
-  const categories = Object.entries(byCat)
-    .sort((a, b) => b[1] - a[1])
-    .map(([category, amount]) => ({ category, amount }));
-
-  const insights: any[] = [];
+  const insights: { type: string; title: string; message: string }[] = [];
   if (monthly.length >= 2) {
     const cur = monthly[monthly.length - 1].expense;
     const prev = monthly[monthly.length - 2].expense;
@@ -103,9 +105,6 @@ router.get("/api/dashboard", authenticate, async (req, res) => {
       message: `Economizou ${((balance / income) * 100).toFixed(0)}% da sua renda.`,
     });
 
-  const recent = transactions
-    .sort((a, b) => b.date.getTime() - a.date.getTime())
-    .slice(0, 5);
   res.json({
     balance,
     income,
@@ -113,7 +112,7 @@ router.get("/api/dashboard", authenticate, async (req, res) => {
     saved,
     monthly,
     categories,
-    recent,
+    recent: recent.map(toTransactionDto),
     insights,
   });
 });
