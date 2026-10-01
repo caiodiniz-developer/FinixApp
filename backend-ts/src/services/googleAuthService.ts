@@ -79,18 +79,28 @@ export const verifyGoogleCode = async (
 export const findOrCreateGoogleUser = async (profile: GoogleProfile) => {
   const normalizedEmail = profile.email.toLowerCase().trim();
 
+  // The e-mail is what links a Google login to an existing Finix account, so
+  // it must be one Google itself has verified — otherwise anyone could claim
+  // someone else's address and walk into their account.
+  if (!profile.verified_email) {
+    throw new Error("Seu e-mail do Google ainda não foi verificado");
+  }
+
   let user = await prisma.user.findUnique({ where: { googleId: profile.sub } });
   if (!user) {
     user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   }
 
   if (user) {
+    if (user.blocked) throw new Error("Conta bloqueada");
+    // Keep what the user set up in Finix: the name and photo are only taken
+    // from Google when the account has none (they used to be overwritten on
+    // every login, wiping a photo uploaded in the profile).
     const updates: Prisma.UserUpdateInput = {
-      name: profile.name,
-      photo: profile.picture,
       isVerified: true,
       authProvider: "google",
       googleId: profile.sub,
+      ...(user.photo ? {} : { photo: profile.picture }),
     };
 
     user = await prisma.user.update({
