@@ -74,8 +74,13 @@ export const googleCallbackController = async (req: Request, res: Response) => {
       accessTokenCookieOptions(isProduction),
     );
 
-    const redirectTo = `${FRONTEND_URL}/oauth-callback?success=true`;
-    return res.redirect(redirectTo);
+    // Tokens travel in the URL fragment: it never reaches a server or its
+    // access logs, and the callback page wipes it from the address bar.
+    const fragment = new URLSearchParams({
+      token: authResponse.accessToken,
+      refreshToken: authResponse.refreshToken,
+    }).toString();
+    return res.redirect(`${FRONTEND_URL}/oauth-callback#${fragment}`);
   } catch (error: any) {
     console.error("[OAuth] googleCallbackController error:", {
       message: error.message,
@@ -91,13 +96,15 @@ export const googleCallbackController = async (req: Request, res: Response) => {
 
 export const refreshTokenController = async (req: Request, res: Response) => {
   try {
-    const token = req.cookies?.refresh_token;
-    if (!token) {
+    // The SPA and the API live on different sites, so the browser does not
+    // send the SameSite cookie on XHR — the client sends the token in the body.
+    const token = req.body?.refreshToken || req.cookies?.refresh_token;
+    if (!token || typeof token !== "string") {
       return res.status(401).json({ error: "Refresh token não fornecido" });
     }
 
     const refreshRecord = await verifyRefreshToken(token);
-    if (!refreshRecord || !refreshRecord.user) {
+    if (!refreshRecord || !refreshRecord.user || refreshRecord.user.blocked) {
       return res
         .status(401)
         .json({ error: "Refresh token inválido ou expirado" });
@@ -122,8 +129,8 @@ export const refreshTokenController = async (req: Request, res: Response) => {
 
 export const logoutController = async (req: Request, res: Response) => {
   try {
-    const refreshToken = req.cookies?.refresh_token;
-    if (refreshToken) {
+    const refreshToken = req.body?.refreshToken || req.cookies?.refresh_token;
+    if (refreshToken && typeof refreshToken === "string") {
       await revokeRefreshToken(refreshToken);
     }
 

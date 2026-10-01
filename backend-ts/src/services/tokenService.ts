@@ -153,11 +153,12 @@ export const createRefreshTokenForUser = async (
 
 export const verifyRefreshToken = async (
   token: string,
-): Promise<(RefreshToken & { user: User }) | null> => {
+): Promise<(RefreshToken & { user: UserForSafeUser }) | null> => {
   const tokenFingerprint = createTokenFingerprint(token);
   const refreshToken = await prisma.refreshToken.findUnique({
     where: { tokenFingerprint },
-    include: { user: true },
+    // Runs on every silent session renewal — never drag the photo along.
+    include: { user: { omit: { photo: true, companyLogo: true } } },
   });
 
   if (!refreshToken || refreshToken.expiresAt < new Date()) {
@@ -169,7 +170,7 @@ export const verifyRefreshToken = async (
     return null;
   }
 
-  return refreshToken as RefreshToken & { user: User };
+  return refreshToken;
 };
 
 export const revokeRefreshToken = async (token: string) => {
