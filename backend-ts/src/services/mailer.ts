@@ -31,6 +31,36 @@ const transport =
 
 export const isEmailConfigured = !!transport;
 
+/**
+ * Coarse, non-sensitive state of the e-mail channel, shown in GET /health so
+ * a delivery problem can be diagnosed without access to the server logs:
+ *  - not_configured:    GMAIL_USER / GMAIL_APP_PASSWORD are missing
+ *  - checking:          boot-time connection test still running
+ *  - ok:                Gmail accepted the login
+ *  - auth_failed:       Gmail refused the user / app password
+ *  - connection_failed: could not reach smtp.gmail.com (host blocks SMTP?)
+ */
+export type EmailStatus = "not_configured" | "checking" | "ok" | "auth_failed" | "connection_failed";
+
+let status: EmailStatus = transport ? "checking" : "not_configured";
+export const getEmailStatus = (): EmailStatus => status;
+
+const classify = (err: any): EmailStatus =>
+  err?.code === "EAUTH" || err?.responseCode === 535 ? "auth_failed" : "connection_failed";
+
+if (transport) {
+  transport
+    .verify()
+    .then(() => {
+      status = "ok";
+      console.log("[EMAIL] Gmail pronto para enviar");
+    })
+    .catch((err: any) => {
+      status = classify(err);
+      console.error(`[EMAIL] Gmail indisponível (${status}):`, err.message);
+    });
+}
+
 // Gmail always sends as the authenticated account.
 const from = `${process.env.EMAIL_FROM_NAME?.trim() || "Finix"} <${GMAIL_USER}>`;
 
@@ -48,8 +78,10 @@ export const deliverEmail = async (email: OutgoingEmail): Promise<boolean> => {
   if (!transport) return false;
   try {
     await transport.sendMail({ from, ...email });
+    status = "ok";
     return true;
   } catch (err: any) {
+    status = classify(err);
     console.error("[EMAIL] Falha ao enviar pelo Gmail:", err.message);
     throw new Error(`Falha ao enviar e-mail: ${err.message}`);
   }

@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const sendMail = vi.fn();
-const createTransport = vi.fn(() => ({ sendMail }));
+const verify = vi.fn();
+const createTransport = vi.fn(() => ({ sendMail, verify }));
 
 vi.mock("nodemailer", () => ({ default: { createTransport } }));
 
@@ -19,6 +20,8 @@ const loadMailer = async (env: Record<string, string>) => {
 
 beforeEach(() => {
   sendMail.mockReset().mockResolvedValue({ messageId: "1" });
+  verify.mockReset().mockResolvedValue(true);
+  vi.spyOn(console, "log").mockImplementation(() => {});
   createTransport.mockClear();
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
