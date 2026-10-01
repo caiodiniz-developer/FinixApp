@@ -42,8 +42,6 @@ npm run dev                 # http://localhost:8000
 
 No primeiro boot é criado o usuário administrador com `ADMIN_EMAIL` / `ADMIN_PASSWORD`. Em desenvolvimento, sem `ADMIN_PASSWORD`, a senha é `Admin@123`.
 
-Sem o Gmail configurado (`GMAIL_USER` + `GMAIL_APP_PASSWORD`), o código de verificação do cadastro é impresso no terminal da API.
-
 ### 2. Frontend
 
 ```bash
@@ -77,7 +75,7 @@ Em produção, defina também:
 - `NODE_ENV=production`
 - `FRONTEND_URL` com o endereço do site
 - `ADMIN_PASSWORD` com uma senha forte
-- `GMAIL_USER` e `GMAIL_REFRESH_TOKEN` — sem elas ninguém recebe o código de verificação do cadastro (ver "E-mail")
+- `GMAIL_USER` e `GMAIL_REFRESH_TOKEN`, se quiser os lembretes de vencimento por e-mail (ver "E-mail")
 - `CRON_SECRET` (ver "Jobs agendados")
 
 ## Deploy
@@ -91,7 +89,7 @@ Cada push na `main` dispara o CI ([.github/workflows/ci.yml](.github/workflows/c
 
 ## E-mail
 
-Os e-mails saem de uma conta Gmail (`GMAIL_USER`). O plano gratuito do Render bloqueia as portas SMTP, então em produção o envio usa a **API do Gmail por HTTPS**:
+O único e-mail que a API envia hoje é o lembrete de vencimento. Ele sai de uma conta Gmail (`GMAIL_USER`). O plano gratuito do Render bloqueia as portas SMTP, então em produção o envio usa a **API do Gmail por HTTPS**:
 
 1. No Google Cloud Console (mesmo projeto do login com Google): ative a **Gmail API** e, no cliente OAuth, adicione o redirect `https://SUA-API/google/gmail/callback`.
 2. Na tela de consentimento OAuth, deixe o app **Em produção** (em modo de teste o token expira em 7 dias).
@@ -117,7 +115,7 @@ O workflow [daily-jobs.yml](.github/workflows/daily-jobs.yml) chama esse endpoin
 
 ### Autenticação
 
-- Login por e-mail e senha (bcrypt) com verificação de e-mail por código, ou login com Google.
+- Login por e-mail e senha (bcrypt) ou com Google. O cadastro não tem etapa de confirmação de e-mail: a conta já nasce ativa e a pessoa é levada para o login.
 - 2FA opcional por aplicativo autenticador (TOTP), com códigos de backup.
 - A API emite um token de acesso de 15 minutos e um refresh token de 30 dias. O frontend renova o token de acesso automaticamente quando ele expira.
 - Integrações externas podem usar API keys (`X-Api-Key`), que são **somente leitura**.

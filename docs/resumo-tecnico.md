@@ -67,8 +67,8 @@ Assim fica muito mais fácil controlar vencimentos, gráficos e fluxo de caixa. 
 - bcrypt para senhas.
 - Zod valida todas as entradas.
 - Helmet e CORS com lista exata de origens.
-- Rate limit nas rotas de login, cadastro e verificação.
-- Verificação de e-mail e Google OAuth.
+- Rate limit nas rotas de login e cadastro.
+- Google OAuth.
 - Paywall validado no backend.
 - API keys somente leitura.
 - Webhooks do usuário não podem apontar para endereços internos (proteção contra SSRF).
