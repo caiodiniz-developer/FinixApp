@@ -1,6 +1,6 @@
-import { prisma } from "../lib/prisma";
-
 import Stripe from "stripe";
+import { prisma } from "../lib/prisma";
+import { PLANS } from "../config/plans";
 
 export const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -8,53 +8,120 @@ export const stripe = process.env.STRIPE_SECRET_KEY
     })
   : null;
 
-export async function handleCheckoutCompleted(session: any) {
-  const userId = session.metadata.userId;
-  const plan = session.metadata.plan;
+const oneMonthFromNow = () => {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1);
+  return d;
+};
+
+// Minimal shapes of the Stripe objects the webhooks hand us — only the fields
+// read here, loose enough to cover both older and newer API versions.
+type StripeRef = string | { id: string } | null | undefined;
+export interface SubscriptionLike {
+  id: string;
+  customer?: StripeRef;
+  current_period_end?: number;
+  items?: { data?: { current_period_end?: number }[] };
+}
+export interface CheckoutSessionLike {
+  id: string;
+  metadata?: Record<string, string> | null;
+  payment_intent?: StripeRef;
+  subscription?: StripeRef;
+  customer?: StripeRef;
+}
+export interface InvoiceLike {
+  customer?: StripeRef;
+  subscription?: StripeRef;
+  parent?: { subscription_details?: { subscription?: StripeRef } | null } | null;
+  lines?: { data?: { period?: { end?: number } }[] };
+}
+
+const idOf = (ref: StripeRef): string | null =>
+  !ref ? null : typeof ref === "string" ? ref : ref.id;
+
+/**
+ * End of the period the customer has already paid for. Older Stripe API
+ * versions expose it on the subscription itself, newer ones moved it to each
+ * subscription item — read whichever is present.
+ */
+export const subscriptionPeriodEnd = (subscription: SubscriptionLike): Date | null => {
+  const seconds =
+    subscription.current_period_end ?? subscription.items?.data?.[0]?.current_period_end;
+  return typeof seconds === "number" ? new Date(seconds * 1000) : null;
+};
+
+const fetchPeriodEnd = async (subscriptionId: string | null): Promise<Date | null> => {
+  if (!stripe || !subscriptionId) return null;
+  try {
+    return subscriptionPeriodEnd(
+      (await stripe.subscriptions.retrieve(subscriptionId)) as unknown as SubscriptionLike,
+    );
+  } catch (err: any) {
+    console.error("[STRIPE] Falha ao buscar assinatura:", err.message);
+    return null;
+  }
+};
+
+export async function handleCheckoutCompleted(session: CheckoutSessionLike) {
+  const userId = session.metadata?.userId;
+  const plan = session.metadata?.plan;
+  if (!userId || !plan || !PLANS[plan]) {
+    console.error("[STRIPE] checkout.session.completed sem metadata válida:", session.id);
+    return;
+  }
   await prisma.paymentTransaction.updateMany({
     where: { sessionId: session.id },
     data: {
       paymentStatus: "paid",
       status: "completed",
-      stripePaymentId: session.payment_intent,
+      stripePaymentId: idOf(session.payment_intent) ?? session.id,
     },
   });
-  const planExpiresAt = new Date();
-  planExpiresAt.setMonth(planExpiresAt.getMonth() + 1);
-  await prisma.user.update({
+  const subscriptionId = idOf(session.subscription);
+  const planExpiresAt = (await fetchPeriodEnd(subscriptionId)) ?? oneMonthFromNow();
+  // updateMany: a webhook for a since-deleted user must not throw (Stripe
+  // would keep retrying it forever).
+  await prisma.user.updateMany({
     where: { id: userId },
-    data: { plan, stripeSubscriptionId: session.subscription, planExpiresAt },
+    data: {
+      plan,
+      stripeSubscriptionId: subscriptionId,
+      stripeCustomerId: idOf(session.customer) ?? undefined,
+      planExpiresAt,
+    },
   });
 }
 
-export async function handleInvoicePaymentSucceeded(invoice: any) {
-  const subscription = await stripe!.subscriptions.retrieve(
-    invoice.subscription,
+export async function handleInvoicePaymentSucceeded(invoice: InvoiceLike) {
+  const customerId = idOf(invoice.customer);
+  if (!customerId) return;
+  // `invoice.subscription` was moved under `parent.subscription_details` in
+  // newer API versions — the webhook endpoint's version decides which one arrives.
+  const subscriptionId = idOf(
+    invoice.subscription ?? invoice.parent?.subscription_details?.subscription,
   );
-  const customer = await stripe!.customers.retrieve(
-    subscription.customer as string,
-  );
-  const user = await prisma.user.findFirst({
-    where: { stripeCustomerId: (customer as any).id },
+  const lineEnd = invoice.lines?.data?.[0]?.period?.end;
+  const planExpiresAt =
+    (await fetchPeriodEnd(subscriptionId)) ??
+    (typeof lineEnd === "number" ? new Date(lineEnd * 1000) : oneMonthFromNow());
+
+  await prisma.user.updateMany({
+    where: { stripeCustomerId: customerId },
+    data: { planExpiresAt, ...(subscriptionId ? { stripeSubscriptionId: subscriptionId } : {}) },
   });
-  if (user) {
-    const planExpiresAt = new Date();
-    planExpiresAt.setMonth(planExpiresAt.getMonth() + 1);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { planExpiresAt },
-    });
-  }
 }
 
-export async function handleSubscriptionDeleted(subscription: any) {
-  const customer = await stripe!.customers.retrieve(subscription.customer);
-  const user = await prisma.user.findFirst({
-    where: { stripeCustomerId: (customer as any).id },
+export async function handleSubscriptionDeleted(subscription: SubscriptionLike) {
+  const customerId = idOf(subscription.customer);
+  if (!customerId) return;
+  // Only downgrade if this is still the user's current subscription — an old
+  // one being cleaned up must not take down a newer active plan.
+  await prisma.user.updateMany({
+    where: {
+      stripeCustomerId: customerId,
+      OR: [{ stripeSubscriptionId: subscription.id }, { stripeSubscriptionId: null }],
+    },
+    data: { plan: "FREE", stripeSubscriptionId: null, planExpiresAt: null },
   });
-  if (user)
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { plan: "FREE", stripeSubscriptionId: null, planExpiresAt: null },
-    });
 }

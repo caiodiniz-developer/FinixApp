@@ -24,13 +24,13 @@ router.post(
     }
     switch (event.type) {
       case "checkout.session.completed":
-        await handleCheckoutCompleted(event.data.object);
+        await handleCheckoutCompleted(event.data.object as any);
         break;
       case "invoice.payment_succeeded":
-        await handleInvoicePaymentSucceeded(event.data.object);
+        await handleInvoicePaymentSucceeded(event.data.object as any);
         break;
       case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(event.data.object);
+        await handleSubscriptionDeleted(event.data.object as any);
         break;
       default:
         console.log(`Unhandled event type ${event.type}`);
