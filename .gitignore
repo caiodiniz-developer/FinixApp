@@ -25,3 +25,6 @@ credentials.json
 
 # Compiled backend output — rebuilt fresh on every deploy (npm run build)
 backend-ts/dist/
+
+# Templates de configuração (sem segredos) entram no repositório
+!.env.example
