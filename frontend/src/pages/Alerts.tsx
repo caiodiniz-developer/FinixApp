@@ -5,11 +5,21 @@ import {
   CalendarClock,
   CheckCircle2,
   CreditCard,
+  BellRing,
 } from "lucide-react";
 import { api, apiErrorMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { Budget } from "../types";
 import { currency, dateBR } from "../utils/format";
+
+// Aviso guardado no servidor (limite do cartão, compra por impulso...)
+interface Notice {
+  id: string;
+  source: "notice" | "upcoming";
+  title: string;
+  description?: string | null;
+  severity?: string;
+}
 
 // Tipo local para transações parceladas agrupadas
 interface InstallmentGroup {
@@ -44,6 +54,7 @@ export default function Alerts() {
   const [installmentGroups, setInstallmentGroups] = useState<
     InstallmentGroup[]
   >([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,6 +70,21 @@ export default function Alerts() {
       ]);
 
       setBudgets(budgetsRes.data || []);
+
+      // Avisos guardados: mostra nesta visita e marca como lidos, para não
+      // voltarem a contar no sininho. (403 = plano sem alertas — ignora.)
+      api
+        .get("/api/alerts")
+        .then((r) => {
+          const stored: Notice[] = (r.data?.alerts || []).filter(
+            (a: Notice) => a.source === "notice",
+          );
+          setNotices(stored);
+          if (stored.length > 0) {
+            api.post("/api/alerts/read", { ids: stored.map((n) => n.id) }).catch(() => {});
+          }
+        })
+        .catch(() => {});
 
       // ── Agrupa parcelas por installmentGroupId ────────────────────────────
       const transactions: any[] = txRes.data?.transactions ?? txRes.data ?? [];
@@ -235,6 +261,31 @@ export default function Alerts() {
           </div>
         </div>
       </div>
+
+      {/* ── SEÇÃO: Avisos ───────────────────────────────────────────────────── */}
+      {notices.length > 0 && (
+        <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <BellRing className="w-5 h-5 text-amber-500" />
+            <h2 className="text-lg font-semibold text-text dark:text-text">Avisos</h2>
+          </div>
+          <div className="space-y-3">
+            {notices.map((n) => (
+              <div
+                key={n.id}
+                className={`rounded-2xl border p-4 ${
+                  n.severity === "danger"
+                    ? "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200"
+                    : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200"
+                }`}
+              >
+                <div className="font-semibold text-sm">{n.title}</div>
+                {n.description && <div className="text-sm mt-1 opacity-90">{n.description}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── SEÇÃO: Parcelas de crédito ──────────────────────────────────────── */}
       <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">

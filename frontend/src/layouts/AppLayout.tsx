@@ -100,10 +100,8 @@ export default function AppLayout() {
   }, [user]);
 
   React.useEffect(() => {
-    if (location.pathname === "/app/alerts") {
-      api.post("/api/alerts/read").catch(() => {});
-      setAlertCount(0);
-    }
+    // The Alerts page itself marks notices as read once it has shown them.
+    if (location.pathname === "/app/alerts") setAlertCount(0);
   }, [location.pathname]);
 
   React.useEffect(() => {

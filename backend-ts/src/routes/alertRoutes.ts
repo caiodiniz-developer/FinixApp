@@ -81,7 +81,7 @@ router.get(
         title: `${isInstallment ? "Parcela" : "Cobrança no cartão:"} ${tx.title} ${when} — R$ ${tx.amount.toFixed(2)}`,
         description: isInstallment
           ? installmentsLeft > 0
-            ? `${installmentsLeft} parcela${installmentsLeft > 1 ? "s" : ""} restantes`
+            ? `${installmentsLeft} parcela${installmentsLeft > 1 ? "s restantes" : " restante"}`
             : "Última parcela"
           : tx.description || null,
         dueDate: tx.date,
