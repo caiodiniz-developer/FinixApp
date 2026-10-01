@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
-import { authenticate, requireFeature } from "../middlewares/authenticate";
+import { authenticate, requireFeature } from "../middlewares/auth";
 import { buildForecast } from "../services/forecastService";
 import { buildYearReview } from "../services/yearReviewService";
 
@@ -10,7 +10,7 @@ const router = Router();
 // PREVISÃO DE APERTO FINANCEIRO
 // ============================================================================
 router.get("/api/forecast", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const days = Math.min(90, Math.max(7, Number(req.query.days) || 30));
   const forecast = await buildForecast(user.id, days);
   res.json(forecast);
@@ -20,7 +20,7 @@ router.get("/api/forecast", authenticate, async (req, res) => {
 // RESUMO DO ANO
 // ============================================================================
 router.get("/api/year-review", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const year = req.query.year ? Number(req.query.year) : new Date().getFullYear();
   const review = await buildYearReview(user.id, year);
   res.json(review);
@@ -34,7 +34,7 @@ router.post(
   authenticate,
   requireFeature("hasAI"),
   async (req, res) => {
-    const user = (req as any).user;
+    const user = req.user;
     const transactions = await prisma.transaction.findMany({
       where: { userId: user.id },
       orderBy: { date: "desc" },

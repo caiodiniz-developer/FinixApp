@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { authenticate, requireAdmin } from "../middlewares/authenticate";
+import { authenticate, requireAdmin } from "../middlewares/auth";
 import { runDueRecurringTransactions } from "../services/recurringService";
 
 const router = Router();
@@ -21,7 +21,7 @@ const recurringSchema = z.object({
 });
 
 router.get("/api/recurring", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const rules = await prisma.recurringTransaction.findMany({
     where: { userId: user.id },
     orderBy: { nextRunDate: "asc" },
@@ -30,7 +30,7 @@ router.get("/api/recurring", authenticate, async (req, res) => {
 });
 
 router.post("/api/recurring", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = recurringSchema.parse(req.body);
   const rule = await prisma.recurringTransaction.create({
     data: { ...data, userId: user.id, nextRunDate: data.startDate },
@@ -39,7 +39,7 @@ router.post("/api/recurring", authenticate, async (req, res) => {
 });
 
 router.put("/api/recurring/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = z
     .object({ active: z.boolean().optional(), amount: z.number().positive().optional() })
     .parse(req.body);
@@ -52,7 +52,7 @@ router.put("/api/recurring/:id", authenticate, async (req, res) => {
 });
 
 router.delete("/api/recurring/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const deleted = await prisma.recurringTransaction.deleteMany({
     where: { id: String(req.params.id), userId: user.id },
   });

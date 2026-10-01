@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { PLANS } from "../config/plans";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { goalSchema } from "../schemas";
 import { dispatchWebhook } from "../services/webhookService";
 
@@ -16,7 +16,7 @@ const router = Router();
 // GoalMember — the `OR` below is what makes goals "shared" without touching
 // every existing query that assumed single ownership.
 router.get("/api/goals", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const goals = await prisma.goal.findMany({
     where: { OR: [{ userId: user.id }, { members: { some: { userId: user.id } } }] },
     include: { members: { include: { user: { select: { id: true, name: true, email: true } } } } },
@@ -26,7 +26,7 @@ router.get("/api/goals", authenticate, async (req, res) => {
 });
 
 router.post("/api/goals", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = goalSchema.parse(req.body);
   const plan = PLANS[user.plan] || PLANS.FREE;
   if (plan.goalsLimit !== -1) {
@@ -52,7 +52,7 @@ const canAccessGoal = async (goalId: string, userId: string) => {
 };
 
 router.put("/api/goals/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = goalSchema.parse(req.body);
   const existing = await canAccessGoal(String(req.params.id), user.id);
   if (!existing) return res.status(404).json({ error: "Meta não encontrada" });
@@ -68,7 +68,7 @@ router.put("/api/goals/:id", authenticate, async (req, res) => {
 });
 
 router.delete("/api/goals/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   // Only the owner can delete — members can contribute/view, not tear it down.
   const deleted = await prisma.goal.deleteMany({
     where: { id: String(req.params.id), userId: user.id },
@@ -80,7 +80,7 @@ router.delete("/api/goals/:id", authenticate, async (req, res) => {
 
 // ── Shared goals: invite another Finix user by e-mail, they accept/decline ──
 router.post("/api/goals/:id/invite", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const { email } = z.object({ email: z.string().email() }).parse(req.body);
   const goal = await prisma.goal.findFirst({ where: { id: String(req.params.id), userId: user.id } });
   if (!goal) return res.status(404).json({ error: "Meta não encontrada" });
@@ -103,7 +103,7 @@ router.post("/api/goals/:id/invite", authenticate, async (req, res) => {
 });
 
 router.get("/api/goals/invites", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const invites = await prisma.goalInvite.findMany({
     where: { receiverEmail: user.email.toLowerCase(), status: "pending" },
     include: { goal: true, sender: { select: { id: true, name: true, email: true } } },
@@ -113,7 +113,7 @@ router.get("/api/goals/invites", authenticate, async (req, res) => {
 });
 
 router.post("/api/goals/invites/:id/accept", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const invite = await prisma.goalInvite.findUnique({ where: { id: String(req.params.id) } });
   if (!invite || invite.receiverEmail !== user.email.toLowerCase() || invite.status !== "pending") {
     return res.status(404).json({ error: "Convite não encontrado" });
@@ -133,7 +133,7 @@ router.post("/api/goals/invites/:id/accept", authenticate, async (req, res) => {
 });
 
 router.post("/api/goals/invites/:id/decline", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const invite = await prisma.goalInvite.findUnique({ where: { id: String(req.params.id) } });
   if (!invite || invite.receiverEmail !== user.email.toLowerCase() || invite.status !== "pending") {
     return res.status(404).json({ error: "Convite não encontrado" });

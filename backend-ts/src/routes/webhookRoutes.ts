@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { generateWebhookSecret } from "../services/webhookService";
 
 const router = Router();
@@ -25,13 +25,13 @@ const webhookSchema = z.object({
 });
 
 router.get("/api/webhooks", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const webhooks = await prisma.webhookSubscription.findMany({ where: { userId: user.id } });
   res.json(webhooks.map((w) => ({ ...w, events: JSON.parse(w.events) })));
 });
 
 router.post("/api/webhooks", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = webhookSchema.parse(req.body);
   const secret = generateWebhookSecret();
   const webhook = await prisma.webhookSubscription.create({
@@ -42,7 +42,7 @@ router.post("/api/webhooks", authenticate, async (req, res) => {
 });
 
 router.delete("/api/webhooks/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const deleted = await prisma.webhookSubscription.deleteMany({
     where: { id: String(req.params.id), userId: user.id },
   });

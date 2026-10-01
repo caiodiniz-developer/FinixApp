@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 
 const router = Router();
 
@@ -9,7 +9,7 @@ const router = Router();
 // ROUND-UP ("ARREDONDAMENTO") E MODO AUTÔNOMO/MEI — configurações
 // ============================================================================
 router.put("/api/settings/roundup", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = z
     .object({ enabled: z.boolean(), goalId: z.string().nullable().optional() })
     .parse(req.body);
@@ -21,7 +21,7 @@ router.put("/api/settings/roundup", authenticate, async (req, res) => {
 });
 
 router.put("/api/settings/autonomous", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = z
     .object({
       isAutonomous: z.boolean(),

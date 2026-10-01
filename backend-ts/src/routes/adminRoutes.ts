@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
-import { authenticate, requireAdmin } from "../middlewares/authenticate";
+import { authenticate, requireAdmin } from "../middlewares/auth";
 import { userUpdateSchema } from "../schemas";
 import { userPublic } from "../lib/userPublic";
 
@@ -75,7 +75,7 @@ router.put("/api/users/:id", authenticate, requireAdmin, async (req, res) => {
 });
 
 router.delete("/api/users/:id", authenticate, requireAdmin, async (req, res) => {
-  const admin = (req as any).user;
+  const admin = req.user;
   if (req.params.id === admin.id)
     return res.status(400).json({ error: "Não é possível deletar a si mesmo" });
   await prisma.user.delete({ where: { id: String(req.params.id) } });

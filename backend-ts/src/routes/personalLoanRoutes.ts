@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 
 const router = Router();
 
@@ -19,7 +19,7 @@ const personalLoanSchema = z.object({
 });
 
 router.get("/api/personal-loans", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const loans = await prisma.personalLoan.findMany({
     where: { userId: user.id },
     include: { contact: { select: { id: true, name: true, color: true } } },
@@ -29,14 +29,14 @@ router.get("/api/personal-loans", authenticate, async (req, res) => {
 });
 
 router.post("/api/personal-loans", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = personalLoanSchema.parse(req.body);
   const loan = await prisma.personalLoan.create({ data: { ...data, userId: user.id } });
   res.status(201).json(loan);
 });
 
 router.put("/api/personal-loans/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = personalLoanSchema.partial().parse(req.body);
   const updated = await prisma.personalLoan.updateMany({
     where: { id: String(req.params.id), userId: user.id },
@@ -47,7 +47,7 @@ router.put("/api/personal-loans/:id", authenticate, async (req, res) => {
 });
 
 router.delete("/api/personal-loans/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const deleted = await prisma.personalLoan.deleteMany({ where: { id: String(req.params.id), userId: user.id } });
   if (deleted.count === 0) return res.status(404).json({ error: "Empréstimo não encontrado" });
   res.json({ ok: true });

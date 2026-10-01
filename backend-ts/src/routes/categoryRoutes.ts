@@ -2,7 +2,7 @@ import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
 import { PLANS } from "../config/plans";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { categoriesUpdateSchema, categorySchema, categoryUpdateSchema } from "../schemas";
 
 const router = Router();
@@ -12,7 +12,7 @@ const router = Router();
 // ============================================================================
 router.put("/api/categories", authenticate, async (req, res) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     const plan = PLANS[user.plan] || PLANS.FREE;
     if (!plan.canEditCategories)
       return res.status(403).json({
@@ -47,7 +47,7 @@ router.put("/api/categories", authenticate, async (req, res) => {
 
 router.post("/api/categories", authenticate, async (req, res) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     const plan = PLANS[user.plan] || PLANS.FREE;
     if (!plan.canCreateCategories)
       return res.status(403).json({
@@ -68,7 +68,7 @@ router.post("/api/categories", authenticate, async (req, res) => {
 
 router.put("/api/categories/:id", authenticate, async (req, res) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     const plan = PLANS[user.plan] || PLANS.FREE;
     if (!plan.canEditCategories)
       return res
@@ -97,7 +97,7 @@ router.put("/api/categories/:id", authenticate, async (req, res) => {
 
 router.delete("/api/categories/:id", authenticate, async (req, res) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     const plan = PLANS[user.plan] || PLANS.FREE;
     if (!plan.canEditCategories)
       return res.status(403).json({
@@ -126,7 +126,7 @@ router.delete("/api/categories/:id", authenticate, async (req, res) => {
 
 router.get("/api/categories", authenticate, async (req, res) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     const categories = await prisma.category.findMany({
       where: { userId: user.id },
       orderBy: { name: "asc" },

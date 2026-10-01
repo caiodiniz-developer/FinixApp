@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 
 const router = Router();
 
@@ -8,7 +8,7 @@ const router = Router();
 // DASHBOARD
 // ============================================================================
 router.get("/api/dashboard", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const transactions = await prisma.transaction.findMany({
     where: { userId: user.id },
   });

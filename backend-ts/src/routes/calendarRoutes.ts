@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { toLocalDateKey } from "../lib/dates";
 
 const router = Router();
@@ -10,7 +10,7 @@ const router = Router();
 // ============================================================================
 router.get("/api/calendar", authenticate, async (req, res) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     const monthParam = String(req.query.month || "");
     const [year, month] = monthParam.split("-").map(Number);
     const selected =

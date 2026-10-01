@@ -2,7 +2,7 @@ import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
 import { PLANS } from "../config/plans";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { contactSchema, splitExpenseCreateSchema } from "../schemas";
 
 const router = Router();
@@ -11,7 +11,7 @@ const router = Router();
 // CONTACTS & SPLIT EXPENSES (rachar conta)
 // ============================================================================
 router.get("/api/contacts", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const contacts = await prisma.contact.findMany({
     where: { userId: user.id },
     orderBy: { name: "asc" },
@@ -29,7 +29,7 @@ router.get("/api/contacts", authenticate, async (req, res) => {
 });
 
 router.post("/api/contacts", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = contactSchema.parse(req.body);
   const plan = PLANS[user.plan] || PLANS.FREE;
   const count = await prisma.contact.count({ where: { userId: user.id } });
@@ -45,7 +45,7 @@ router.post("/api/contacts", authenticate, async (req, res) => {
 });
 
 router.put("/api/contacts/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = contactSchema.parse(req.body);
   const updated = await prisma.contact.updateMany({
     where: { id: String(req.params.id), userId: user.id },
@@ -60,7 +60,7 @@ router.put("/api/contacts/:id", authenticate, async (req, res) => {
 });
 
 router.delete("/api/contacts/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const deleted = await prisma.contact.deleteMany({
     where: { id: String(req.params.id), userId: user.id },
   });
@@ -72,7 +72,7 @@ router.delete("/api/contacts/:id", authenticate, async (req, res) => {
 // "Quem deve quem" líquido: zera de uma vez todas as divisões em aberto com
 // este contato, em vez de marcar uma por uma.
 router.post("/api/contacts/:id/settle-all", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const contact = await prisma.contact.findUnique({ where: { id: String(req.params.id) } });
   if (!contact || contact.userId !== user.id) return res.status(404).json({ error: "Contato não encontrado" });
   const result = await prisma.splitExpense.updateMany({
@@ -83,7 +83,7 @@ router.post("/api/contacts/:id/settle-all", authenticate, async (req, res) => {
 });
 
 router.get("/api/contacts/:id/splits", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const contact = await prisma.contact.findUnique({
     where: { id: String(req.params.id) },
   });
@@ -98,7 +98,7 @@ router.get("/api/contacts/:id/splits", authenticate, async (req, res) => {
 });
 
 router.post("/api/transactions/:id/split", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const tx = await prisma.transaction.findUnique({
     where: { id: String(req.params.id) },
   });
@@ -128,7 +128,7 @@ router.post("/api/transactions/:id/split", authenticate, async (req, res) => {
 });
 
 router.put("/api/split-expenses/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const settled = Boolean(req.body?.settled);
   const updated = await prisma.splitExpense.updateMany({
     where: { id: String(req.params.id), userId: user.id },
@@ -143,7 +143,7 @@ router.put("/api/split-expenses/:id", authenticate, async (req, res) => {
 });
 
 router.delete("/api/split-expenses/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const deleted = await prisma.splitExpense.deleteMany({
     where: { id: String(req.params.id), userId: user.id },
   });

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
-import { authenticate, requireFeature } from "../middlewares/authenticate";
+import { authenticate, requireFeature } from "../middlewares/auth";
 import { diffDays } from "../lib/dates";
 
 const router = Router();
@@ -14,7 +14,7 @@ router.get(
   requireFeature("canUseAlerts"),
   async (req, res) => {
     try {
-      const user = (req as any).user;
+      const user = req.user;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const futureLimit = new Date(today);

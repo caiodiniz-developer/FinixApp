@@ -2,7 +2,7 @@ import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
 import { PLANS } from "../config/plans";
-import { authenticate, requireFeature } from "../middlewares/authenticate";
+import { authenticate, requireFeature } from "../middlewares/auth";
 import { creditCardSchema } from "../schemas";
 import { getSafeDueDay, cardStatementWindow, currentStatementMonth } from "../lib/dates";
 
@@ -16,7 +16,7 @@ router.get(
   authenticate,
   requireFeature("canUseCards"),
   async (req, res) => {
-    const user = (req as any).user;
+    const user = req.user;
     const cards = await prisma.creditCard.findMany({
       where: { userId: user.id, archived: false },
       orderBy: { createdAt: "asc" },
@@ -57,7 +57,7 @@ router.post(
   authenticate,
   requireFeature("canUseCards"),
   async (req, res) => {
-    const user = (req as any).user;
+    const user = req.user;
     const data = creditCardSchema.parse(req.body);
     const plan = PLANS[user.plan] || PLANS.FREE;
     const count = await prisma.creditCard.count({
@@ -80,7 +80,7 @@ router.put(
   authenticate,
   requireFeature("canUseCards"),
   async (req, res) => {
-    const user = (req as any).user;
+    const user = req.user;
     const data = creditCardSchema.parse(req.body);
     const updated = await prisma.creditCard.updateMany({
       where: { id: String(req.params.id), userId: user.id },
@@ -100,7 +100,7 @@ router.delete(
   authenticate,
   requireFeature("canUseCards"),
   async (req, res) => {
-    const user = (req as any).user;
+    const user = req.user;
     const deleted = await prisma.creditCard.deleteMany({
       where: { id: String(req.params.id), userId: user.id },
     });
@@ -115,7 +115,7 @@ router.get(
   authenticate,
   requireFeature("canUseCards"),
   async (req, res) => {
-    const user = (req as any).user;
+    const user = req.user;
     const card = await prisma.creditCard.findUnique({
       where: { id: String(req.params.id) },
     });

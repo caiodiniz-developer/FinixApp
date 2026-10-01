@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { budgetSchema } from "../schemas";
 
 const router = Router();
@@ -10,7 +10,7 @@ const router = Router();
 // BUDGETS
 // ============================================================================
 router.get("/api/budgets", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const budgets = await prisma.budget.findMany({ where: { userId: user.id } });
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -31,7 +31,7 @@ router.get("/api/budgets", authenticate, async (req, res) => {
 });
 
 router.post("/api/budgets", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = budgetSchema.parse(req.body);
   try {
     const budget = await prisma.budget.create({
@@ -46,7 +46,7 @@ router.post("/api/budgets", authenticate, async (req, res) => {
 });
 
 router.put("/api/budgets/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = budgetSchema.parse(req.body);
   const budget = await prisma.budget.updateMany({
     where: { id: String(req.params.id), userId: user.id },
@@ -61,7 +61,7 @@ router.put("/api/budgets/:id", authenticate, async (req, res) => {
 });
 
 router.delete("/api/budgets/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const deleted = await prisma.budget.deleteMany({
     where: { id: String(req.params.id), userId: user.id },
   });

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { onboardingSchema } from "../schemas";
 import { userPublic } from "../lib/userPublic";
 import { upload } from "../lib/upload";
@@ -25,7 +25,7 @@ const DEFAULT_CATEGORIES = [
 
 router.post("/api/onboarding", authenticate, async (req, res) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     if (user.hasCompletedOnboarding)
       return res.status(400).json({ error: "Onboarding já completado" });
     const data = onboardingSchema.parse(req.body);
@@ -73,7 +73,7 @@ router.post(
   upload.single("logo"),
   async (req, res) => {
     try {
-      const user = (req as any).user;
+      const user = req.user;
       if (user.plan !== "PRO")
         return res
           .status(403)

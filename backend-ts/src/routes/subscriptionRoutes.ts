@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { computeNextRunDate } from "../services/recurringService";
 import { detectZombieSubscriptions } from "../services/subscriptionDetectorService";
 
@@ -11,13 +11,13 @@ const router = Router();
 // CAÇA-FANTASMA DE ASSINATURAS
 // ============================================================================
 router.get("/api/subscriptions/detected", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const detected = await detectZombieSubscriptions(user.id);
   res.json(detected);
 });
 
 router.post("/api/subscriptions/dismiss", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const { signature } = z.object({ signature: z.string() }).parse(req.body);
   await prisma.subscriptionInsightDismissal.upsert({
     where: { userId_signature: { userId: user.id, signature } },
@@ -28,7 +28,7 @@ router.post("/api/subscriptions/dismiss", authenticate, async (req, res) => {
 });
 
 router.post("/api/subscriptions/convert", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = z
     .object({ title: z.string().min(1), amount: z.number().positive(), category: z.string().min(1) })
     .parse(req.body);

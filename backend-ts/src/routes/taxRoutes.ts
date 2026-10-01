@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { refreshCurrentMonthEstimate, clientBreakdown } from "../services/taxService";
 import { compareCltVsPj } from "../services/cltVsPjService";
 
 const router = Router();
 
 router.get("/api/tax/estimate", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   if (!user.isAutonomous || !user.taxRegime) {
     return res.status(400).json({ error: "Modo Autônomo não está ativado. Configure em /api/settings/autonomous." });
   }
@@ -29,7 +29,7 @@ router.get("/api/tax/estimate", authenticate, async (req, res) => {
 });
 
 router.post("/api/tax/:id/mark-paid", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const updated = await prisma.taxObligation.updateMany({
     where: { id: String(req.params.id), userId: user.id },
     data: { paid: true, paidAt: new Date() },

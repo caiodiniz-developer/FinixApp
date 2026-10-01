@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { PLANS } from "../config/plans";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { userPublic } from "../lib/userPublic";
 import { stripe } from "../services/stripeService";
 import { FRONTEND_URL } from "../config/env";
@@ -15,7 +15,7 @@ router.post("/api/stripe/checkout", authenticate, async (req, res) => {
   if (!stripe) return res.status(500).json({ error: "Stripe não configurado" });
   try {
     const { plan_id } = req.body;
-    const user = (req as any).user;
+    const user = req.user;
     if (!["BASIC", "PRO", "TEST"].includes(plan_id))
       return res.status(400).json({ error: "Plano inválido" });
     const plan = PLANS[plan_id as keyof typeof PLANS];
@@ -94,7 +94,7 @@ router.post("/api/stripe/checkout", authenticate, async (req, res) => {
 
 router.post("/api/stripe/change-plan", authenticate, async (req, res) => {
   if (!stripe) return res.status(500).json({ error: "Stripe não configurado" });
-  const user = (req as any).user;
+  const user = req.user;
   const { plan_id } = req.body;
   if (!["BASIC", "PRO"].includes(plan_id))
     return res
@@ -145,7 +145,7 @@ router.post("/api/stripe/change-plan", authenticate, async (req, res) => {
 
 router.post("/api/stripe/cancel-subscription", authenticate, async (req, res) => {
   if (!stripe) return res.status(500).json({ error: "Stripe não configurado" });
-  const user = (req as any).user;
+  const user = req.user;
   if (!user.stripeSubscriptionId)
     return res
       .status(400)

@@ -3,7 +3,7 @@ import PDFDocument from "pdfkit";
 import ExcelJS from "exceljs";
 import { prisma } from "../lib/prisma";
 import { PLANS } from "../config/plans";
-import { authenticate, requireFeature } from "../middlewares/authenticate";
+import { authenticate, requireFeature } from "../middlewares/auth";
 import { upload } from "../lib/upload";
 import { transactionsToCsv, parseCsvTransactions } from "../services/csvService";
 import { transactionsToOfx, parseOfxTransactions } from "../services/ofxService";
@@ -14,7 +14,7 @@ const router = Router();
 // CSV / OFX — export and import
 // ============================================================================
 router.get("/api/reports/csv", authenticate, requireFeature("canUseReports"), async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const transactions = await prisma.transaction.findMany({
     where: { userId: user.id },
     orderBy: { date: "desc" },
@@ -26,7 +26,7 @@ router.get("/api/reports/csv", authenticate, requireFeature("canUseReports"), as
 });
 
 router.get("/api/reports/ofx", authenticate, requireFeature("canUseReports"), async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const transactions = await prisma.transaction.findMany({
     where: { userId: user.id },
     orderBy: { date: "desc" },
@@ -43,7 +43,7 @@ router.post(
   requireFeature("canUseReports"),
   upload.single("file"),
   async (req, res) => {
-    const user = (req as any).user;
+    const user = req.user;
     if (!req.file) return res.status(400).json({ error: "Nenhum arquivo enviado" });
 
     const isOfx = /\.(ofx|qfx)$/i.test(req.file.originalname);
@@ -98,7 +98,7 @@ router.get(
   authenticate,
   requireFeature("hasPDF"),
   async (req, res) => {
-    const user = (req as any).user;
+    const user = req.user;
     const transactions = await prisma.transaction.findMany({
       where: { userId: user.id },
       orderBy: { date: "desc" },
@@ -243,7 +243,7 @@ router.get(
   authenticate,
   requireFeature("hasExcel"),
   async (req, res) => {
-    const user = (req as any).user;
+    const user = req.user;
     const transactions = await prisma.transaction.findMany({
       where: { userId: user.id },
       orderBy: { date: "desc" },

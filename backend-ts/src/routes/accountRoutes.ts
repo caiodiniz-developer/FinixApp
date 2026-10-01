@@ -2,7 +2,7 @@ import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
 import { PLANS } from "../config/plans";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { accountSchema } from "../schemas";
 
 const router = Router();
@@ -11,7 +11,7 @@ const router = Router();
 // ACCOUNTS
 // ============================================================================
 router.get("/api/accounts", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const accounts = await prisma.account.findMany({
     where: { userId: user.id, archived: false },
     orderBy: { createdAt: "asc" },
@@ -30,7 +30,7 @@ router.get("/api/accounts", authenticate, async (req, res) => {
 });
 
 router.post("/api/accounts", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = accountSchema.parse(req.body);
   const plan = PLANS[user.plan] || PLANS.FREE;
   const count = await prisma.account.count({
@@ -48,7 +48,7 @@ router.post("/api/accounts", authenticate, async (req, res) => {
 });
 
 router.put("/api/accounts/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = accountSchema.parse(req.body);
   const updated = await prisma.account.updateMany({
     where: { id: String(req.params.id), userId: user.id },
@@ -63,7 +63,7 @@ router.put("/api/accounts/:id", authenticate, async (req, res) => {
 });
 
 router.delete("/api/accounts/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const deleted = await prisma.account.deleteMany({
     where: { id: String(req.params.id), userId: user.id },
   });

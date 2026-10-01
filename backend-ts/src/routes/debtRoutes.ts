@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { prioritizeDebts, simulatePayoff } from "../services/debtService";
 
 const router = Router();
@@ -20,20 +20,20 @@ const debtSchema = z.object({
 });
 
 router.get("/api/debts", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const debts = await prisma.debt.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" } });
   res.json(debts);
 });
 
 router.post("/api/debts", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = debtSchema.parse(req.body);
   const debt = await prisma.debt.create({ data: { ...data, userId: user.id } });
   res.status(201).json(debt);
 });
 
 router.put("/api/debts/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = debtSchema.partial().parse(req.body);
   const updated = await prisma.debt.updateMany({
     where: { id: String(req.params.id), userId: user.id },
@@ -44,14 +44,14 @@ router.put("/api/debts/:id", authenticate, async (req, res) => {
 });
 
 router.delete("/api/debts/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const deleted = await prisma.debt.deleteMany({ where: { id: String(req.params.id), userId: user.id } });
   if (deleted.count === 0) return res.status(404).json({ error: "Dívida não encontrada" });
   res.json({ ok: true });
 });
 
 router.get("/api/debts/strategy", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const method = req.query.method === "snowball" ? "snowball" : "avalanche";
   const extraPayment = Math.max(0, Number(req.query.extraPayment) || 0);
   const debts = await prisma.debt.findMany({ where: { userId: user.id, paidOff: false } });

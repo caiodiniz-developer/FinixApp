@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import * as openFinance from "../services/openFinanceService";
 
 const router = Router();
@@ -16,7 +16,7 @@ router.post("/api/open-finance/connect-token", authenticate, async (req, res) =>
       error: "Conexão bancária não configurada. Defina PLUGGY_CLIENT_ID/PLUGGY_CLIENT_SECRET.",
     });
   }
-  const user = (req as any).user;
+  const user = req.user;
   try {
     const accessToken = await openFinance.createConnectToken(user.id);
     res.json({ accessToken });
@@ -33,7 +33,7 @@ router.post("/api/open-finance/connections", authenticate, async (req, res) => {
   if (!openFinance.isConfigured) {
     return res.status(501).json({ error: "Conexão bancária não configurada." });
   }
-  const user = (req as any).user;
+  const user = req.user;
   const { itemId } = z.object({ itemId: z.string() }).parse(req.body);
   try {
     const item = (await openFinance.fetchItem(itemId)) as any;
@@ -54,7 +54,7 @@ router.post("/api/open-finance/connections", authenticate, async (req, res) => {
 });
 
 router.get("/api/open-finance/connections", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const connections = await prisma.externalConnection.findMany({
     where: { userId: user.id },
     include: { accounts: true },
@@ -66,7 +66,7 @@ router.post("/api/open-finance/connections/:id/sync", authenticate, async (req, 
   if (!openFinance.isConfigured) {
     return res.status(501).json({ error: "Conexão bancária não configurada." });
   }
-  const user = (req as any).user;
+  const user = req.user;
   const connection = await prisma.externalConnection.findFirst({
     where: { id: String(req.params.id), userId: user.id },
   });
@@ -99,7 +99,7 @@ router.post("/api/open-finance/connections/:id/sync", authenticate, async (req, 
 });
 
 router.delete("/api/open-finance/connections/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const deleted = await prisma.externalConnection.deleteMany({
     where: { id: String(req.params.id), userId: user.id },
   });

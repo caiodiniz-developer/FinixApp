@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { sendPushToUser, getVapidPublicKey, isPushConfigured } from "../services/pushService";
 
 const router = Router();
@@ -23,7 +23,7 @@ const pushSubscribeSchema = z.object({
 
 router.post("/api/push/subscribe", authenticate, async (req, res) => {
   if (!isPushConfigured) return res.status(501).json({ error: "Push não configurado no servidor" });
-  const user = (req as any).user;
+  const user = req.user;
   const data = pushSubscribeSchema.parse(req.body);
   await prisma.pushSubscription.upsert({
     where: { endpoint: data.endpoint },
@@ -40,7 +40,7 @@ router.post("/api/push/unsubscribe", authenticate, async (req, res) => {
 });
 
 router.post("/api/push/test", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   await sendPushToUser(user.id, { title: "Finix", body: "Notificação de teste — tudo funcionando!" });
   res.json({ ok: true });
 });

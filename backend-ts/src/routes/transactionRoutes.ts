@@ -2,7 +2,7 @@ import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
 import { PLANS } from "../config/plans";
-import { authenticate } from "../middlewares/authenticate";
+import { authenticate } from "../middlewares/auth";
 import { transactionSchema } from "../schemas";
 import { diffDays } from "../lib/dates";
 import { checkCardLimitAlert } from "../services/cardService";
@@ -18,7 +18,7 @@ const router = Router();
 // TRANSACTIONS
 // ============================================================================
 router.get("/api/transactions", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const plan = PLANS[user.plan] || PLANS.FREE;
   if (!plan.canUseTransactions) {
     return res.status(403).json({
@@ -61,7 +61,7 @@ router.get("/api/transactions", authenticate, async (req, res) => {
 });
 
 router.post("/api/transactions", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const data = transactionSchema.parse(req.body);
   const plan = PLANS[user.plan] || PLANS.FREE;
 
@@ -233,7 +233,7 @@ router.post("/api/transactions", authenticate, async (req, res) => {
 });
 
 router.put("/api/transactions/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   // plannedPurchase is a request-only flag (see POST) — it isn't a column,
   // so passing it through makes Prisma reject the whole update.
   const { plannedPurchase, ...data } = transactionSchema.parse(req.body);
@@ -250,7 +250,7 @@ router.put("/api/transactions/:id", authenticate, async (req, res) => {
 });
 
 router.delete("/api/transactions/:id", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const { deleteGroup } = req.query;
   if (deleteGroup === "true") {
     const tx = await prisma.transaction.findUnique({
@@ -276,7 +276,7 @@ router.delete("/api/transactions/:id", authenticate, async (req, res) => {
 
 router.get("/api/installments", authenticate, async (req, res) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     const installments = await prisma.installment.findMany({
       where: { userId: user.id },
       orderBy: { startDate: "desc" },
@@ -314,7 +314,7 @@ router.get("/api/installments", authenticate, async (req, res) => {
 // novo e confirma — então dividem a mesma fila de revisão e o mesmo
 // endpoint de dispensa (POST /:id/reflect).
 router.get("/api/transactions/impulse-review", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const items = await prisma.transaction.findMany({
     where: {
       userId: user.id,
@@ -329,7 +329,7 @@ router.get("/api/transactions/impulse-review", authenticate, async (req, res) =>
 });
 
 router.post("/api/transactions/:id/reflect", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const updated = await prisma.transaction.updateMany({
     where: { id: String(req.params.id), userId: user.id },
     data: { reflectedAt: new Date() },
@@ -342,7 +342,7 @@ router.post("/api/transactions/:id/reflect", authenticate, async (req, res) => {
 // COMPROVANTE DE TRANSAÇÃO
 // ============================================================================
 router.post("/api/transactions/:id/receipt", authenticate, upload.single("file"), async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   if (!req.file) return res.status(400).json({ error: "Nenhum arquivo enviado" });
   const transaction = await prisma.transaction.findFirst({ where: { id: String(req.params.id), userId: user.id } });
   if (!transaction) return res.status(404).json({ error: "Transação não encontrada" });
@@ -357,7 +357,7 @@ router.post("/api/transactions/:id/receipt", authenticate, upload.single("file")
 });
 
 router.get("/api/transactions/:id/receipt", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   const receipt = await prisma.transactionReceipt.findFirst({
     where: { transactionId: String(req.params.id), userId: user.id },
   });
@@ -366,7 +366,7 @@ router.get("/api/transactions/:id/receipt", authenticate, async (req, res) => {
 });
 
 router.delete("/api/transactions/:id/receipt", authenticate, async (req, res) => {
-  const user = (req as any).user;
+  const user = req.user;
   await prisma.transactionReceipt.deleteMany({ where: { transactionId: String(req.params.id), userId: user.id } });
   res.json({ ok: true });
 });
