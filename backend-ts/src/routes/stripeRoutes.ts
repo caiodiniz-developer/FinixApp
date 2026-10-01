@@ -18,6 +18,14 @@ router.post("/api/stripe/checkout", authenticate, async (req, res) => {
     const user = req.user;
     if (!["BASIC", "PRO", "TEST"].includes(plan_id))
       return res.status(400).json({ error: "Plano inválido" });
+    // TEST unlocks every paid feature without charging anything — it exists
+    // for local/dev testing and for admins, never for regular production users.
+    if (
+      plan_id === "TEST" &&
+      process.env.NODE_ENV === "production" &&
+      user.role !== "ADMIN"
+    )
+      return res.status(403).json({ error: "Plano indisponível" });
     const plan = PLANS[plan_id as keyof typeof PLANS];
     if (!plan) return res.status(400).json({ error: "Plano inválido" });
 
