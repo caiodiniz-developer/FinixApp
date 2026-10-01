@@ -65,6 +65,7 @@ npm run dev                 # http://localhost:3000
 | `backend-ts` | `npm run db:studio` | abre o Prisma Studio |
 | `frontend` | `npm run dev` | app em modo desenvolvimento |
 | `frontend` | `npm run lint` | ESLint |
+| `frontend` | `npm test` | testes unitários |
 | `frontend` | `npm run build` | checa tipos e gera o bundle |
 
 ## Variáveis de ambiente
@@ -85,7 +86,7 @@ Em produção, defina também:
 - **Banco:** toda mudança em `prisma/schema.prisma` precisa de `npx prisma db push` contra o banco de produção **antes** de publicar o código que depende dela.
 - **Stripe:** crie um endpoint de webhook para `https://SUA-API/api/stripe/webhook` com os eventos `checkout.session.completed`, `invoice.payment_succeeded` e `customer.subscription.deleted`, e coloque o segredo em `STRIPE_WEBHOOK_SECRET`.
 
-Cada push na `main` dispara o CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)): tipos e testes da API, lint e build do frontend.
+Cada push na `main` dispara o CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)): tipos e testes da API; lint, testes e build do frontend.
 
 ## Jobs agendados
 
@@ -131,4 +132,5 @@ Uma compra em 12x cria 1 registro de parcelamento e 12 transações, uma por mê
 - Os valores ainda são colunas `Float` no banco; a migração para `Decimal` exige uma janela de manutenção e teste contra uma cópia dos dados reais.
 - Fotos, logos e comprovantes ficam no banco como base64 (reduzidos no navegador antes do envio). O ideal é movê-los para um storage de arquivos (S3, R2, Cloudinary).
 - O rate limit é em memória, por instância. Com mais de uma instância da API, precisa de um armazenamento compartilhado (Redis).
-- As páginas `Landing`, `Profile` e `Dashboard` do frontend ainda são arquivos grandes.
+- As páginas `Landing`, `Profile` e `Dashboard` do frontend já tiveram componentes e hooks extraídos, mas ainda têm entre 800 e 1000 linhas cada.
+- Ainda não há testes de integração das rotas da API (só testes unitários das regras).
