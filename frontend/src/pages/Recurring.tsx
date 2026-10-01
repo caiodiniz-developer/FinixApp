@@ -132,7 +132,7 @@ function RecurringModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
     defaultValues: {
       type: "EXPENSE",
       frequency: "monthly",
-      startDate: dateISOForInput(new Date().toISOString()),
+      startDate: dateISOForInput(),
     } as any,
   });
 

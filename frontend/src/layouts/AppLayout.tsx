@@ -14,7 +14,7 @@ import { useAuth, useAutoRefreshUser } from "../contexts/AuthContext";
 import { useUserPhoto } from "../hooks/useUserPhoto";
 import { useDashboardTheme } from "../contexts/ThemeContext";
 import { api, apiErrorMessage } from "../services/api";
-import { currency } from "../utils/format";
+import { currency, todayISO } from "../utils/format";
 import { gsap } from "../lib/gsap";
 
 interface SidebarStats { balance: number; income: number; expense: number; spendPct: number; }
@@ -161,7 +161,7 @@ export default function AppLayout() {
         ...quickForm, amount: parseFloat(quickForm.amount),
         accountId: quickForm.accountId || null,
         paymentMethod: "pix", installments: 1,
-        date: new Date().toISOString().split("T")[0],
+        date: todayISO(),
       });
       setQuickAddOpen(false);
       setQuickForm({ title: "", amount: "", type: "EXPENSE", category: "Outros", accountId: "" });
