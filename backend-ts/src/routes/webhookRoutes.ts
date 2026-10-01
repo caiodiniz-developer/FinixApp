@@ -28,7 +28,8 @@ const webhookSchema = z.object({
 router.get("/api/webhooks", authenticate, async (req, res) => {
   const user = req.user;
   const webhooks = await prisma.webhookSubscription.findMany({ where: { userId: user.id } });
-  res.json(webhooks.map((w) => ({ ...w, events: JSON.parse(w.events) })));
+  // The signing secret is shown once, at creation — never listed again.
+  res.json(webhooks.map(({ secret, ...w }) => ({ ...w, events: JSON.parse(w.events) })));
 });
 
 router.post("/api/webhooks", authenticate, async (req, res) => {
