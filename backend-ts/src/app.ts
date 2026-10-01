@@ -161,6 +161,13 @@ app.use(
       return res
         .status(400)
         .json({ error: "Dados inválidos", details: err.errors });
+    if (err.name === "MulterError")
+      return res.status(err.code === "LIMIT_FILE_SIZE" ? 413 : 400).json({
+        error:
+          err.code === "LIMIT_FILE_SIZE"
+            ? "Arquivo muito grande (máx. 5 MB)"
+            : "Upload inválido",
+      });
     if (err.type === "entity.too.large")
       return res.status(413).json({ error: "Arquivo ou requisição grande demais" });
     console.error("[ERROR]", err);

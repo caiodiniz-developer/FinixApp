@@ -4,7 +4,7 @@ import { prisma } from "../lib/prisma";
 import { authenticate } from "../middlewares/auth";
 import { onboardingSchema } from "../schemas";
 import { userPublic } from "../lib/userPublic";
-import { upload } from "../lib/upload";
+import { imageUpload } from "../lib/upload";
 
 const router = Router();
 
@@ -71,7 +71,7 @@ router.post("/api/onboarding", authenticate, async (req, res) => {
 router.post(
   "/api/upload-logo",
   authenticate,
-  upload.single("logo"),
+  imageUpload.single("logo"),
   async (req, res) => {
     try {
       const user = req.user;

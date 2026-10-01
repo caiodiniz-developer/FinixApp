@@ -8,7 +8,7 @@ import { transactionSchema } from "../schemas";
 import { diffDays, appNow } from "../lib/dates";
 import { checkCardLimitAlert } from "../services/cardService";
 import { buildInstallmentSchedule } from "../services/installmentService";
-import { upload } from "../lib/upload";
+import { imageUpload } from "../lib/upload";
 import { dispatchWebhook } from "../services/webhookService";
 import { sendPushToUser } from "../services/pushService";
 import { isAnomalousExpense } from "../services/anomalyDetectionService";
@@ -344,7 +344,7 @@ router.post("/api/transactions/:id/reflect", authenticate, async (req, res) => {
 // ============================================================================
 // COMPROVANTE DE TRANSAÇÃO
 // ============================================================================
-router.post("/api/transactions/:id/receipt", authenticate, upload.single("file"), async (req, res) => {
+router.post("/api/transactions/:id/receipt", authenticate, imageUpload.single("file"), async (req, res) => {
   const user = req.user;
   if (!req.file) return res.status(400).json({ error: "Nenhum arquivo enviado" });
   const transaction = await prisma.transaction.findFirst({ where: { id: String(req.params.id), userId: user.id } });

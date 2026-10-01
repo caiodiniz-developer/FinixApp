@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { imageStringSchema } from "../lib/upload";
 
 // ============================================================================
 // SCHEMAS
@@ -98,7 +99,7 @@ export const profileUpdateSchema = z.object({
   name: z.string().min(2).max(80).optional(),
   currentPassword: z.string().optional(),
   newPassword: z.string().min(6).max(128).optional(),
-  photo: z.string().optional(),
+  photo: imageStringSchema.optional(),
 });
 
 export const categoriesUpdateSchema = z.object({
@@ -129,7 +130,7 @@ export const userUpdateSchema = z.object({
   hasCompletedOnboarding: z.boolean().optional(),
   usageType: z.enum(["pessoal", "empresarial", "organizar"]).optional(),
   companyName: z.string().optional().nullable(),
-  companyLogo: z.string().optional().nullable(),
+  companyLogo: imageStringSchema.optional().nullable(),
   businessPurpose: z.string().optional().nullable(),
   primaryColor: z.string().optional().nullable(),
   categories: z.array(z.string().min(1).max(50)).optional(),
@@ -138,7 +139,7 @@ export const userUpdateSchema = z.object({
 export const onboardingSchema = z.object({
   usageType: z.enum(["pessoal", "empresarial", "organizar"]),
   companyName: z.string().nullable().optional(),
-  companyLogo: z.string().nullable().optional(),
+  companyLogo: imageStringSchema.nullable().optional(),
   businessPurpose: z.string().nullable().optional(),
   primaryColor: z.string().nullable().optional(),
   categories: z.array(z.string().min(1).max(50)).min(1),

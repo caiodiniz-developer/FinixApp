@@ -5,7 +5,7 @@ import ExcelJS from "exceljs";
 import { prisma } from "../lib/prisma";
 import { PLANS, planFor } from "../config/plans";
 import { authenticate, requireFeature } from "../middlewares/auth";
-import { upload } from "../lib/upload";
+import { importUpload } from "../lib/upload";
 import { transactionsToCsv, parseCsvTransactions } from "../services/csvService";
 import { transactionsToOfx, parseOfxTransactions } from "../services/ofxService";
 
@@ -42,7 +42,7 @@ router.post(
   "/api/transactions/import",
   authenticate,
   requireFeature("canUseReports"),
-  upload.single("file"),
+  importUpload.single("file"),
   async (req, res) => {
     const user = req.user;
     if (!req.file) return res.status(400).json({ error: "Nenhum arquivo enviado" });
