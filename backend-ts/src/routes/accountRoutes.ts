@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toCents, fromCents } from "../lib/money";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
 import { planFor } from "../config/plans";
@@ -16,17 +17,19 @@ router.get("/api/accounts", authenticate, async (req, res) => {
     where: { userId: user.id, archived: false },
     orderBy: { createdAt: "asc" },
   });
-  const transactions = await prisma.transaction.findMany({
+  const sums = await prisma.transaction.groupBy({
+    by: ["accountId", "type"],
     where: { userId: user.id, accountId: { in: accounts.map((a) => a.id) } },
-    select: { accountId: true, amount: true, type: true },
+    _sum: { amount: true },
   });
-  const balanceByAccount: Record<string, number> = {};
-  transactions.forEach((t) => {
-    const delta = t.type === "INCOME" ? t.amount : -t.amount;
-    balanceByAccount[t.accountId as string] =
-      (balanceByAccount[t.accountId as string] || 0) + delta;
-  });
-  res.json(accounts.map((a) => ({ ...a, balance: balanceByAccount[a.id] || 0 })));
+  const centsByAccount: Record<string, number> = {};
+  for (const row of sums) {
+    if (!row.accountId) continue;
+    const cents = toCents(row._sum.amount);
+    centsByAccount[row.accountId] =
+      (centsByAccount[row.accountId] || 0) + (row.type === "INCOME" ? cents : -cents);
+  }
+  res.json(accounts.map((a) => ({ ...a, balance: fromCents(centsByAccount[a.id] || 0) })));
 });
 
 router.post("/api/accounts", authenticate, async (req, res) => {
