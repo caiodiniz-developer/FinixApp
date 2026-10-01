@@ -3,6 +3,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { User, RefreshToken } from "@prisma/client";
 import { prisma } from "../lib/prisma";
+import { effectivePlanId, isInTrial, trialEndsAt } from "../config/plans";
 
 const JWT_SECRET = process.env.JWT_SECRET || "finix-dev-secret";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "15m";
@@ -15,6 +16,9 @@ export interface SafeUser {
   role: string;
   blocked: boolean;
   plan: string;
+  /** Plan whose limits apply right now (expired paid plan → FREE, trial → BASIC). */
+  effectivePlan: string;
+  trialEndsAt: Date | null;
   transactionsUsed: number;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
@@ -62,6 +66,8 @@ export const buildSafeUser = async (user: UserForSafeUser): Promise<SafeUser> =>
     role: user.role,
     blocked: user.blocked,
     plan: user.plan,
+    effectivePlan: effectivePlanId(user),
+    trialEndsAt: user.plan === "FREE" && isInTrial(user) ? trialEndsAt(user) : null,
     transactionsUsed: user.transactionsUsed,
     stripeCustomerId: user.stripeCustomerId,
     stripeSubscriptionId: user.stripeSubscriptionId,

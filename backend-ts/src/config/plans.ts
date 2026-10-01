@@ -173,10 +173,21 @@ export const PLAN_EXPIRY_GRACE_MS = 3 * DAY_MS;
 export interface PlanSubject {
   plan: string;
   planExpiresAt: Date | null;
+  createdAt: Date;
 }
 
+// The "7 dias grátis" promised on the landing page: a new FREE account gets
+// the limits of this plan for PLANS.FREE.trialDays days, no card needed.
+export const TRIAL_PLAN_ID = "BASIC";
+
+export const trialEndsAt = (user: Pick<PlanSubject, "createdAt">): Date =>
+  new Date(user.createdAt.getTime() + (PLANS.FREE.trialDays || 0) * DAY_MS);
+
+export const isInTrial = (user: PlanSubject, now: Date = new Date()): boolean =>
+  now.getTime() < trialEndsAt(user).getTime();
+
 /** True when a paid plan's paid-for period (plus the grace window) is over. */
-export const isPlanExpired = (user: PlanSubject, now: Date = new Date()): boolean =>
+export const isPlanExpired = (user: Pick<PlanSubject, "plan" | "planExpiresAt">, now: Date = new Date()): boolean =>
   user.plan !== "FREE" &&
   !!user.planExpiresAt &&
   user.planExpiresAt.getTime() + PLAN_EXPIRY_GRACE_MS < now.getTime();
@@ -184,12 +195,14 @@ export const isPlanExpired = (user: PlanSubject, now: Date = new Date()): boolea
 /**
  * The plan id whose limits apply to this user right now. `user.plan` is what
  * they bought; this is what they're still entitled to — an expired paid plan
- * falls back to FREE. A null planExpiresAt means "no expiry" (e.g. plans
- * granted by an admin).
+ * falls back to FREE, and a FREE account still inside its trial window gets
+ * the trial plan. A null planExpiresAt means "no expiry" (e.g. plans granted
+ * by an admin).
  */
 export const effectivePlanId = (user: PlanSubject, now: Date = new Date()): string => {
-  if (!PLANS[user.plan]) return "FREE";
-  return isPlanExpired(user, now) ? "FREE" : user.plan;
+  const paid = PLANS[user.plan] && !isPlanExpired(user, now) ? user.plan : "FREE";
+  if (paid === "FREE" && isInTrial(user, now)) return TRIAL_PLAN_ID;
+  return paid;
 };
 
 export const planFor = (user: PlanSubject, now: Date = new Date()) =>

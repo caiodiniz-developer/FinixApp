@@ -1,3 +1,4 @@
+import { effectivePlanId, isInTrial, trialEndsAt } from "../config/plans";
 // ============================================================================
 // HELPERS
 // ============================================================================
@@ -15,6 +16,8 @@ export const userPublic = (u: any) => ({
   blocked: u.blocked,
   hasPhoto: !!u.photo,
   plan: u.plan,
+  effectivePlan: effectivePlanId(u),
+  trialEndsAt: u.plan === "FREE" && isInTrial(u) ? trialEndsAt(u) : null,
   transactionsUsed: u.transactionsUsed,
   stripeCustomerId: u.stripeCustomerId,
   stripeSubscriptionId: u.stripeSubscriptionId,
