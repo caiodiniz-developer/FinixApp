@@ -49,9 +49,7 @@ const corsOptions: cors.CorsOptions = {
   origin(origin, callback) {
     // Permite requisições sem origin (mobile, Insomnia, Postman)
     if (!origin) return callback(null, true);
-    const isAllowed =
-      allowedOrigins.includes(origin) || origin.endsWith(".vercel.app");
-    if (isAllowed) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.warn(`[CORS] Origin bloqueada: ${origin}`);
