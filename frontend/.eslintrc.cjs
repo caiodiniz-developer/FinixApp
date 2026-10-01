@@ -14,5 +14,8 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
     ],
+    // ~100 existing uses, mostly `catch (e: any)`. Kept visible as warnings
+    // so new ones stand out without blocking the build on legacy code.
+    '@typescript-eslint/no-explicit-any': 'warn',
   },
 }
