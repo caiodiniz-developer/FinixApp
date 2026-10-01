@@ -81,7 +81,7 @@ export const buildSafeUser = async (user: UserForSafeUser): Promise<SafeUser> =>
     createdAt: user.createdAt,
     hasPhoto,
     hasCompanyLogo,
-    twoFactorEnabled: (user as any).twoFactorEnabled ?? false,
+    twoFactorEnabled: user.twoFactorEnabled,
   };
 };
 
@@ -98,9 +98,9 @@ export const createTwoFactorPendingToken = (userId: string): string => {
 
 export const verifyTwoFactorPendingToken = (token: string): string | null => {
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
+    const payload = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload;
     if (!payload?.twoFactorPending || !payload?.sub) return null;
-    return payload.sub as string;
+    return payload.sub;
   } catch {
     return null;
   }
@@ -116,7 +116,7 @@ export const createAccessToken = (user: UserForSafeUser): string => {
       sub: user.id,
       email: user.email,
       role: user.role,
-      provider: (user as any).authProvider || "local",
+      provider: user.authProvider || "local",
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions,

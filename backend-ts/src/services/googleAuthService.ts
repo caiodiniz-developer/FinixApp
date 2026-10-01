@@ -1,6 +1,7 @@
 import { OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
+import { Prisma, User } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import {
   createAccessToken,
@@ -84,7 +85,7 @@ export const findOrCreateGoogleUser = async (profile: GoogleProfile) => {
   }
 
   if (user) {
-    const updates: any = {
+    const updates: Prisma.UserUpdateInput = {
       name: profile.name,
       photo: profile.picture,
       isVerified: true,
@@ -117,7 +118,7 @@ export const findOrCreateGoogleUser = async (profile: GoogleProfile) => {
   return user;
 };
 
-export const buildGoogleAuthResponse = async (user: any) => {
+export const buildGoogleAuthResponse = async (user: User) => {
   const accessToken = createAccessToken(user);
   const refreshTokenResult = await createRefreshTokenForUser(user.id);
 

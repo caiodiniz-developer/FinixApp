@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middlewares/auth";
@@ -30,7 +31,7 @@ router.get("/api/auth/photo", authenticate, async (req, res) => {
 router.put("/api/profile", authenticate, async (req, res) => {
   const user = req.user;
   const data = profileUpdateSchema.parse(req.body);
-  const updates: any = {};
+  const updates: Prisma.UserUpdateInput = {};
   if (data.name) updates.name = data.name.trim();
   if (data.photo) updates.photo = data.photo;
   if (data.newPassword) {

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Prisma } from "@prisma/client";
 import { effectivePlanId } from "../config/plans";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middlewares/auth";
@@ -30,7 +31,7 @@ router.post("/api/onboarding", authenticate, async (req, res) => {
     if (user.hasCompletedOnboarding)
       return res.status(400).json({ error: "Onboarding já completado" });
     const data = onboardingSchema.parse(req.body);
-    const updateData: any = {
+    const updateData: Prisma.UserUpdateInput = {
       hasCompletedOnboarding: true,
       usageType: data.usageType,
     };

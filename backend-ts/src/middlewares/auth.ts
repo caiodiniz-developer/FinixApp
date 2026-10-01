@@ -86,7 +86,7 @@ export const authenticate = async (
   }
   const token = auth.substring(7);
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
+    const payload = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload;
     // This runs on nearly every request in the app — never fetch
     // photo/companyLogo here (can be multi-MB base64 data URIs). The one
     // route that needs the real image (GET /api/auth/photo) fetches it
