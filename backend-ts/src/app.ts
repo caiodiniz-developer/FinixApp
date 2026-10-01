@@ -4,6 +4,7 @@ import cors from "cors";
 import "express-async-errors";
 import cookieParser from "cookie-parser";
 import { allowedOrigins } from "./config/env";
+import { HttpError } from "./lib/httpError";
 import authRoutes from "./routes/authRoutes";
 import googleRoutes from "./routes/googleRoutes";
 import twoFactorRoutes from "./routes/twoFactorRoutes";
@@ -52,8 +53,8 @@ const corsOptions: cors.CorsOptions = {
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(`[CORS] Origin bloqueada: ${origin}`);
-      callback(new Error("Not allowed by CORS"));
+      // No CORS headers → the browser blocks the response. Not an error.
+      callback(null, false);
     }
   },
   credentials: true,
@@ -153,12 +154,18 @@ app.use(
     res: express.Response,
     _next: express.NextFunction,
   ) => {
-    console.error("[ERROR]", err);
+    if (err instanceof HttpError)
+      return res.status(err.status).json({ error: err.message, ...err.extra });
     // ZodError nunca vira 500
     if (err.name === "ZodError")
       return res
         .status(400)
         .json({ error: "Dados inválidos", details: err.errors });
-    res.status(500).json({ error: err.message || "Erro interno" });
+    if (err.type === "entity.too.large")
+      return res.status(413).json({ error: "Arquivo ou requisição grande demais" });
+    console.error("[ERROR]", err);
+    // Never echo the raw message of an unexpected error: Prisma's include
+    // table/column names and query fragments.
+    res.status(500).json({ error: "Erro interno" });
   },
 );
