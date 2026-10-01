@@ -42,7 +42,7 @@ npm run dev                 # http://localhost:8000
 
 No primeiro boot é criado o usuário administrador com `ADMIN_EMAIL` / `ADMIN_PASSWORD`. Em desenvolvimento, sem `ADMIN_PASSWORD`, a senha é `Admin@123`.
 
-Sem `GMAIL_USER` e `GMAIL_APP_PASSWORD`, o código de verificação do cadastro é impresso no terminal da API.
+Sem o Gmail configurado (`GMAIL_USER` + `GMAIL_APP_PASSWORD`), o código de verificação do cadastro é impresso no terminal da API.
 
 ### 2. Frontend
 
@@ -77,7 +77,7 @@ Em produção, defina também:
 - `NODE_ENV=production`
 - `FRONTEND_URL` com o endereço do site
 - `ADMIN_PASSWORD` com uma senha forte
-- `GMAIL_USER` e `GMAIL_APP_PASSWORD` — sem elas ninguém recebe o código de verificação do cadastro
+- `GMAIL_USER` e `GMAIL_REFRESH_TOKEN` — sem elas ninguém recebe o código de verificação do cadastro (ver "E-mail")
 - `CRON_SECRET` (ver "Jobs agendados")
 
 ## Deploy
@@ -88,6 +88,19 @@ Em produção, defina também:
 - **Stripe:** crie um endpoint de webhook para `https://SUA-API/api/stripe/webhook` com os eventos `checkout.session.completed`, `invoice.payment_succeeded` e `customer.subscription.deleted`, e coloque o segredo em `STRIPE_WEBHOOK_SECRET`.
 
 Cada push na `main` dispara o CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)): tipos e testes da API; lint, testes e build do frontend.
+
+## E-mail
+
+Os e-mails saem de uma conta Gmail (`GMAIL_USER`). O plano gratuito do Render bloqueia as portas SMTP, então em produção o envio usa a **API do Gmail por HTTPS**:
+
+1. No Google Cloud Console (mesmo projeto do login com Google): ative a **Gmail API** e, no cliente OAuth, adicione o redirect `https://SUA-API/google/gmail/callback`.
+2. Na tela de consentimento OAuth, deixe o app **Em produção** (em modo de teste o token expira em 7 dias).
+3. Abra `https://SUA-API/google/gmail/connect`, entre com a conta de `GMAIL_USER` e autorize.
+4. Copie o token mostrado para a variável `GMAIL_REFRESH_TOKEN` no servidor.
+
+`GET /health` mostra o estado em `email`: `ok`, `not_configured`, `auth_failed` ou `connection_failed`.
+
+Em desenvolvimento local dá para usar só `GMAIL_APP_PASSWORD` (SMTP com senha de app).
 
 ## Jobs agendados
 
