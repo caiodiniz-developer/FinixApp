@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import {
@@ -12,7 +13,7 @@ import { Logo } from "../components/Logo";
 import { useAuth, useAutoRefreshUser } from "../contexts/AuthContext";
 import { useUserPhoto } from "../hooks/useUserPhoto";
 import { useDashboardTheme } from "../contexts/ThemeContext";
-import { api } from "../services/api";
+import { api, apiErrorMessage } from "../services/api";
 import { currency } from "../utils/format";
 import { gsap } from "../lib/gsap";
 
@@ -165,7 +166,9 @@ export default function AppLayout() {
       setQuickAddOpen(false);
       setQuickForm({ title: "", amount: "", type: "EXPENSE", category: "Outros", accountId: "" });
       refreshStats();
-    } catch { }
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    }
     finally { setQuickLoading(false); }
   };
 
