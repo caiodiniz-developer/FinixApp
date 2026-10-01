@@ -14,9 +14,13 @@ export const isAnomalousExpense = async (
 ): Promise<boolean> => {
   if (amount < 50) return false;
 
+  // The most recent 200 are plenty to characterise "normal" for a category,
+  // and keep this bounded — it runs on every expense the user creates.
   const history = await prisma.transaction.findMany({
     where: { userId, type: "EXPENSE", category },
     select: { amount: true },
+    orderBy: { date: "desc" },
+    take: 200,
   });
   if (history.length < 5) return false;
 
