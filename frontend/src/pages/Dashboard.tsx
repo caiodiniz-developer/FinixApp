@@ -1,24 +1,61 @@
 import { useCallback, useEffect, useRef, useState, lazy, Suspense } from "react";
 import { activePlan } from "../types";
 import {
-  TrendingUp, TrendingDown, Wallet, PiggyBank,
-  FileDown, FileSpreadsheet, ArrowUpRight, ArrowDownRight,
-  Info, AlertTriangle, CheckCircle2, Sparkles, Loader2,
-  Plus, Target, X, Activity, Zap, Clock, Flame,
-  ChevronRight, Lightbulb, ShieldCheck, Award,
-  Download, Receipt, Bell, BarChart3, AreaChart as AreaChartIcon,
-  CalendarClock, TriangleAlert,
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  PiggyBank,
+  FileDown,
+  FileSpreadsheet,
+  ArrowUpRight,
+  ArrowDownRight,
+  Info,
+  AlertTriangle,
+  CheckCircle2,
+  Sparkles,
+  Loader2,
+  Plus,
+  Target,
+  X,
+  Activity,
+  Zap,
+  Clock,
+  Flame,
+  ChevronRight,
+  Lightbulb,
+  ShieldCheck,
+  Award,
+  Download,
+  Receipt,
+  Bell,
+  BarChart3,
+  AreaChart as AreaChartIcon,
+  CalendarClock,
+  TriangleAlert,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend,
-  LineChart, Line, ReferenceLine,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  LineChart,
+  Line,
+  ReferenceLine,
 } from "recharts";
 import { api, apiErrorMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { DashboardData, Insight, Budget, Goal, Forecast } from "../types";
-import { currency, dateBR, CATEGORY_COLORS, todayISO } from "../utils/format";
+import { currency, dateBR, CATEGORY_COLORS } from "../utils/format";
 import { UpgradeModal } from "../components/UpgradeModal";
 import { Reveal } from "../components/dashboard/Reveal";
 import { CountUpCurrency } from "../components/dashboard/CountUpCurrency";
@@ -28,254 +65,18 @@ import { Celebration } from "../components/dashboard/Celebration";
 import { Achievements, Achievement } from "../components/dashboard/Achievements";
 import { gsap } from "../lib/gsap";
 import toast from "react-hot-toast";
+import { CalendarDay, AlertItem, TopExpense } from "../components/dashboard/types";
+import { QuickAddModal } from "../components/dashboard/QuickAddModal";
+import { HealthRing, Sparkline, MetricCard } from "../components/dashboard/widgets";
+import { ChartTooltip } from "../components/dashboard/ChartTooltip";
+import { SpendingHeatmap } from "../components/dashboard/SpendingHeatmap";
+import { CategoryBars } from "../components/dashboard/CategoryBars";
 
 // Three.js is a heavy dependency for a purely decorative element — load it
 // in its own chunk instead of the main dashboard bundle.
 const HealthOrb = lazy(() =>
   import("../components/dashboard/HealthOrb").then(m => ({ default: m.HealthOrb })),
 );
-
-interface CalendarDay { date: string; expense: number; revenue: number; net: number; }
-interface AlertItem {
-  id: string; title: string; description?: string | null;
-  amount?: number | null; daysUntilDue?: number | null;
-  severity?: "info" | "warning" | "danger"; dueDate?: string | null;
-}
-interface TopExpense { id: string; title: string; amount: number; category: string; date: string; }
-
-// ─── QUICK-ADD MODAL ──────────────────────────────────────────────────────────
-function QuickAddModal({ open, onClose, onAdded, categories, accounts }: {
-  open: boolean; onClose: () => void; onAdded: () => void; categories: string[]; accounts: { id: string; name: string }[];
-}) {
-  const [form, setForm] = useState({ title: "", amount: "", type: "EXPENSE" as "INCOME" | "EXPENSE", category: categories[0] || "Outros", date: todayISO(), accountId: "" });
-  const [loading, setLoading] = useState(false);
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await api.post("/api/transactions", { ...form, amount: parseFloat(form.amount), accountId: form.accountId || null, paymentMethod: "pix", installments: 1 });
-      toast.success("Transação adicionada!");
-      onAdded(); onClose();
-      setForm(f => ({ ...f, title: "", amount: "" }));
-    } catch (e: any) { toast.error(apiErrorMessage(e) || "Erro"); }
-    finally { setLoading(false); }
-  };
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(14px)" }}
-      onClick={onClose}>
-      <motion.div initial={{ scale: 0.95, opacity: 0, y: 12 }} animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0 }} transition={{ type: "spring", damping: 26, stiffness: 340 }}
-        className="w-full max-w-md rounded-2xl overflow-hidden"
-        style={{ background: "var(--color-surface)", border: "1px solid var(--color-hairline-strong)", boxShadow: "0 40px 80px rgba(0,0,0,0.7)" }}
-        onClick={e => e.stopPropagation()}>
-        {/* header strip */}
-        <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-bold text-base" style={{ color: "var(--color-text)" }}>Nova transação</h2>
-              <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Adicione uma receita ou despesa</p>
-            </div>
-            <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors hover:bg-[var(--color-hairline)]" style={{ color: "var(--color-text-low)" }}>
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-        <form onSubmit={submit} className="p-6 space-y-4">
-          {/* type toggle */}
-          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl" style={{ background: "var(--color-surface-strong)" }}>
-            {(["EXPENSE", "INCOME"] as const).map(t => (
-              <button key={t} type="button" onClick={() => setForm(f => ({ ...f, type: t }))}
-                className={`py-3 rounded-lg text-xs font-bold transition-all ${form.type === t ? t === "EXPENSE" ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20" : "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "opacity-40"}`}
-                style={{ color: form.type === t ? undefined : "var(--color-text-muted)" }}>
-                {t === "EXPENSE" ? "↓ Despesa" : "↑ Receita"}
-              </button>
-            ))}
-          </div>
-          <input className="input w-full" placeholder="Descrição da transação..." value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
-          <div className="grid grid-cols-2 gap-3">
-            <input type="number" step="0.01" min="0.01" className="input num" placeholder="Valor R$" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} required />
-            <input type="date" className="input" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-          </div>
-          <select className="input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
-            {(categories.length ? categories : ["Outros"]).map(c => <option key={c}>{c}</option>)}
-          </select>
-          {accounts.length > 0 && (
-            <select className="input" value={form.accountId} onChange={e => setForm(f => ({ ...f, accountId: e.target.value }))}>
-              <option value="">Sem conta</option>
-              {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-            </select>
-          )}
-          <button type="submit" disabled={loading}
-            className="w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
-            style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 4px 20px rgba(16,185,129,0.3)" }}>
-            {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Salvar transação"}
-          </button>
-        </form>
-      </motion.div>
-    </div>
-  );
-}
-
-// ─── HEALTH RING ──────────────────────────────────────────────────────────────
-function HealthRing({ score }: { score: number }) {
-  const r = 38, circ = 2 * Math.PI * r, dash = (score / 100) * circ;
-  const color = score >= 70 ? "#22c55e" : score >= 40 ? "#f59e0b" : "#ef4444";
-  const label = score >= 70 ? "Excelente" : score >= 40 ? "Regular" : "Atenção";
-  return (
-    <div className="flex flex-col items-center gap-1.5 shrink-0">
-      <div className="relative w-20 h-20">
-        <svg width="80" height="80" viewBox="0 0 80 80" className="-rotate-90">
-          <circle cx="40" cy="40" r={r} fill="none" stroke="var(--color-hairline)" strokeWidth="6" />
-          <motion.circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="6" strokeLinecap="round"
-            initial={{ strokeDasharray: `0 ${circ}` }} animate={{ strokeDasharray: `${dash} ${circ}` }}
-            transition={{ duration: 1.3, ease: "easeOut" }}
-            style={{ filter: `drop-shadow(0 0 6px ${color}60)` }} />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <motion.span className="text-lg font-black leading-none num" style={{ color }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>{score}</motion.span>
-          <span className="text-[8px] font-bold uppercase tracking-wider" style={{ color: "var(--color-text-low)" }}>/100</span>
-        </div>
-      </div>
-      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color }}>{label}</span>
-    </div>
-  );
-}
-
-// ─── SPARKLINE ────────────────────────────────────────────────────────────────
-function Sparkline({ values, color }: { values: number[]; color: string }) {
-  if (values.length < 2) return null;
-  const max = Math.max(...values, 1), min = Math.min(...values), range = max - min || 1;
-  const W = 60, H = 22;
-  const pts = values.map((v, i) => `${(i / (values.length - 1)) * W},${H - ((v - min) / range) * (H - 4) - 2}`).join(" ");
-  return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
-    </svg>
-  );
-}
-
-// ─── CHART TOOLTIP ────────────────────────────────────────────────────────────
-const ChartTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-xl p-3"
-      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border-strong)", boxShadow: "var(--color-shadow)", backdropFilter: "blur(12px)" }}>
-      <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--color-text-low)" }}>{label}</p>
-      {payload.map((p: any) => (
-        <div key={p.name} className="flex items-center gap-2 text-xs">
-          <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span style={{ color: "var(--color-text-muted)" }}>{p.name}</span>
-          <span className="font-bold ml-auto pl-4 num" style={{ color: p.color }}>{currency(p.value)}</span>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// ─── SPENDING HEATMAP ─────────────────────────────────────────────────────────
-function SpendingHeatmap({ days }: { days: CalendarDay[] }) {
-  const [hovered, setHovered] = useState<CalendarDay | null>(null);
-  if (days.length === 0) return <div className="h-20 flex items-center justify-center text-xs" style={{ color: "var(--color-text-low)" }}>Sem dados</div>;
-  const maxE = Math.max(...days.map(d => d.expense), 1);
-  const first = new Date(days[0].date + "T12:00:00");
-  const cells: (CalendarDay | null)[] = [...Array(first.getDay()).fill(null), ...days];
-  while (cells.length % 7 !== 0) cells.push(null);
-  const col = (e: number) => {
-    if (e === 0) return "var(--color-hairline)";
-    const i = Math.pow(e / maxE, 0.5);
-    return `rgba(239,${Math.round(68 * (1 - i * 0.7))},${Math.round(68 * (1 - i * 0.7))},${0.1 + i * 0.65})`;
-  };
-  return (
-    <div>
-      <div className="grid grid-cols-7 gap-1 mb-0.5">
-        {["D","S","T","Q","Q","S","S"].map((d, i) => (
-          <div key={i} className="text-center text-[8px] font-bold uppercase" style={{ color: "var(--color-text-low)" }}>{d}</div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-1">
-        {cells.map((day, i) => (
-          <div key={i} className="aspect-square rounded-md transition-all hover:scale-110 hover:ring-1 hover:ring-[var(--color-hairline-strong)] cursor-default"
-            style={{ background: day ? col(day.expense) : "transparent" }}
-            onMouseEnter={() => day && setHovered(day)} onMouseLeave={() => setHovered(null)}>
-            {day && (
-              <div className="w-full h-full flex items-center justify-center text-[8px] font-medium" style={{ color: "var(--color-text-low)" }}>
-                {new Date(day.date + "T12:00:00").getDate()}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-      <AnimatePresence>
-        {hovered && (
-          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="mt-2 flex items-center justify-between rounded-xl px-3 py-2 text-xs"
-            style={{ background: "var(--color-hairline)", border: "1px solid var(--color-hairline-strong)" }}>
-            <span style={{ color: "var(--color-text-muted)" }}>{new Date(hovered.date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
-            <span className="text-rose-400 font-semibold num">{hovered.expense > 0 ? `- ${currency(hovered.expense)}` : "—"}</span>
-            {hovered.revenue > 0 && <span className="text-emerald-400 font-semibold num">+ {currency(hovered.revenue)}</span>}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ─── CATEGORY BARS ────────────────────────────────────────────────────────────
-function CategoryBars({ categories }: { categories: { category: string; amount: number }[] }) {
-  const COLORS = ["#2563eb","#0891b2","#059669","#d97706","#dc2626","#8b5cf6","#0ea5e9","#be185d"];
-  if (categories.length === 0) return <div className="h-20 flex items-center justify-center text-xs" style={{ color: "var(--color-text-low)" }}>Sem dados</div>;
-  const total = categories.reduce((s, c) => s + c.amount, 0);
-  return (
-    <div className="space-y-3">
-      {categories.slice(0, 6).map((cat, i) => {
-        const pct = total > 0 ? (cat.amount / total) * 100 : 0;
-        const color = CATEGORY_COLORS[cat.category] || COLORS[i % COLORS.length];
-        return (
-          <div key={cat.category}>
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: color, boxShadow: `0 0 6px ${color}80` }} />
-                <span className="text-xs font-medium truncate max-w-[100px]" style={{ color: "var(--color-text)" }}>{cat.category}</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[10px]" style={{ color: "var(--color-text-low)" }}>{pct.toFixed(0)}%</span>
-                <span className="text-xs font-semibold num" style={{ color: "var(--color-text)" }}>{currency(cat.amount)}</span>
-              </div>
-            </div>
-            <div className="h-1 rounded-full overflow-hidden" style={{ background: "var(--color-hairline)" }}>
-              <motion.div className="h-full rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}60` }}
-                initial={{ width: 0 }} animate={{ width: `${pct}%` }}
-                transition={{ duration: 0.9, ease: "easeOut", delay: i * 0.06 }} />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── METRIC CARD ──────────────────────────────────────────────────────────────
-function MetricCard({ label, value, sub, color, barPct }: { label: string; value: string; sub: string; color: string; barPct?: number }) {
-  return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2 }}
-      className="rounded-2xl p-4 flex flex-col gap-2"
-      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", boxShadow: "var(--color-shadow)" }}>
-      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--color-text-low)" }}>{label}</p>
-      <p className="text-xl font-black num leading-none" style={{ color }}>{value}</p>
-      {barPct !== undefined && (
-        <div className="h-1 rounded-full overflow-hidden" style={{ background: "var(--color-hairline)" }}>
-          <motion.div className="h-full rounded-full" style={{ background: color }}
-            initial={{ width: 0 }} animate={{ width: `${Math.min(barPct, 100)}%` }}
-            transition={{ duration: 0.9 }} />
-        </div>
-      )}
-      <p className="text-[10px]" style={{ color: "var(--color-text-low)" }}>{sub}</p>
-    </motion.div>
-  );
-}
 
 // ─── MAIN DASHBOARD ───────────────────────────────────────────────────────────
 export default function Dashboard() {
