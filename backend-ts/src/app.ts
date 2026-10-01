@@ -39,6 +39,7 @@ import personalLoanRoutes from "./routes/personalLoanRoutes";
 import householdRoutes from "./routes/householdRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import stripeRoutes from "./routes/stripeRoutes";
+import cronRoutes from "./routes/cronRoutes";
 
 export const app = express();
 
@@ -141,6 +142,7 @@ app.use(personalLoanRoutes);
 app.use(householdRoutes);
 app.use(adminRoutes);
 app.use(stripeRoutes);
+app.use(cronRoutes);
 
 // ============================================================================
 // ERROR HANDLER GLOBAL

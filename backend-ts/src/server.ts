@@ -1,13 +1,9 @@
 import "./config/env";
-import bcrypt from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
 import { app } from "./app";
 import { allowedOrigins, FRONTEND_URL } from "./config/env";
 import { prisma } from "./lib/prisma";
 import { ensureAdminUser } from "./services/adminBootstrap";
-import { runDueRecurringTransactions } from "./services/recurringService";
-import { sendDueAlertNotifications } from "./services/alertNotificationService";
-import { sendDueImpulseReflections } from "./services/impulseReflectionService";
+import { startBackgroundJobs } from "./services/jobs";
 
 // ============================================================================
 // SERVER START — SEM SEED AUTOMÁTICO EM PRODUÇÃO
@@ -45,30 +41,6 @@ const connectDatabase = async (): Promise<void> => {
     }
   }
 };
-// Single-process in-memory scheduler: fires the recurring-transaction and
-// due-alert jobs once at boot (catches up on anything missed while the
-// server was down) and then once every 24h. Fine for the current one-replica
-// deploy; would need to move to a real cron/queue (or a leader-election
-// guard) if the backend ever scales to more than one instance, so it doesn't
-// run the same job N times.
-const DAY_MS = 24 * 60 * 60 * 1000;
-const startBackgroundJobs = () => {
-  const runJobs = async () => {
-    try {
-      const recurring = await runDueRecurringTransactions();
-      const alerts = await sendDueAlertNotifications();
-      const impulse = await sendDueImpulseReflections();
-      console.log(
-        `[JOBS] Recorrências criadas: ${recurring.created} · Alertas notificados: ${alerts.notified} · Reflexões de compra: ${impulse.notified}`,
-      );
-    } catch (err: any) {
-      console.error("[JOBS] Falha ao rodar jobs agendados:", err.message);
-    }
-  };
-  runJobs();
-  setInterval(runJobs, DAY_MS);
-};
-
 const startServer = async (): Promise<void> => {
   try {
     await connectDatabase();
