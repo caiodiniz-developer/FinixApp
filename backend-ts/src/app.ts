@@ -5,7 +5,7 @@ import "express-async-errors";
 import cookieParser from "cookie-parser";
 import { allowedOrigins } from "./config/env";
 import { HttpError } from "./lib/httpError";
-import { getEmailStatus } from "./services/mailer";
+import { getEmailStatus, emailRoute } from "./services/mailer";
 import authRoutes from "./routes/authRoutes";
 import googleRoutes from "./routes/googleRoutes";
 import twoFactorRoutes from "./routes/twoFactorRoutes";
@@ -102,6 +102,7 @@ app.get("/health", (_req, res) => {
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || "development",
     email: getEmailStatus(),
+    emailRoute,
   });
 });
 
