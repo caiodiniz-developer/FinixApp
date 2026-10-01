@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toTransactionDto } from "../lib/transactionDto";
 import { assertOwnedRefs } from "../services/ownershipService";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
@@ -58,7 +59,7 @@ router.get("/api/transactions", authenticate, async (req, res) => {
     where,
     orderBy: { date: "desc" },
   });
-  res.json(transactions);
+  res.json(transactions.map(toTransactionDto));
 });
 
 router.post("/api/transactions", authenticate, async (req, res) => {
@@ -118,7 +119,7 @@ router.post("/api/transactions", authenticate, async (req, res) => {
         accountId: data.accountId,
         cardId: data.cardId,
       });
-      return res.json(response.transactions);
+      return res.json(response.transactions.map(toTransactionDto));
     }
 
     // Pausa de 24h pra compra por impulso: only worth asking about on
@@ -225,7 +226,7 @@ router.post("/api/transactions", authenticate, async (req, res) => {
       type: transaction.type,
       category: transaction.category,
     });
-    res.json(transaction);
+    res.json(toTransactionDto(transaction));
   } catch (err: any) {
     console.error("Transaction creation error:", err);
     if (err.message?.includes("Limite mensal"))
@@ -249,7 +250,7 @@ router.put("/api/transactions/:id", authenticate, async (req, res) => {
   const updated = await prisma.transaction.findUnique({
     where: { id: String(req.params.id) },
   });
-  res.json(updated);
+  res.json(updated && toTransactionDto(updated));
 });
 
 router.delete("/api/transactions/:id", authenticate, async (req, res) => {

@@ -92,7 +92,7 @@ router.get("/api/calendar", authenticate, async (req, res) => {
         currency: tx.currency ?? "BRL",
         recurring: tx.recurring ?? false,
         recurringFrequency: tx.recurringFrequency ?? null,
-        installmentGroupId: (tx as any).installmentId ?? null,
+        installmentGroupId: tx.installmentId ?? null,
         installmentNumber: tx.installmentNumber ?? null,
         totalInstallments: tx.totalInstallments ?? null,
       });
