@@ -12,6 +12,8 @@ export default defineConfig({
       JWT_SECRET: "test-secret",
       STRIPE_SECRET_KEY: "",
       RESEND_API_KEY: "",
+      GMAIL_USER: "",
+      GMAIL_APP_PASSWORD: "",
       VAPID_PUBLIC_KEY: "",
       VAPID_PRIVATE_KEY: "",
     },
