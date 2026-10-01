@@ -28,7 +28,7 @@ if (
 export const JWT_SECRET = process.env.JWT_SECRET || "finix-dev-secret";
 export const FRONTEND_URL = process.env.FRONTEND_URL || "https://finixapp.vercel.app";
 
-export const allowedOrigins = [
+const DEFAULT_ORIGINS = [
   "https://finixapp.vercel.app",
   "https://finixapp.com.br",
   "https://www.finixapp.com.br",
@@ -37,3 +37,22 @@ export const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
 ];
+
+const originOf = (url: string): string | null => {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+};
+
+// Exact-match allowlist: the defaults, FRONTEND_URL, and anything listed in
+// CORS_ORIGINS (comma-separated). No wildcards — "*.vercel.app" would let any
+// site hosted on Vercel call this API with the user's credentials.
+export const allowedOrigins: string[] = Array.from(
+  new Set(
+    [...DEFAULT_ORIGINS, FRONTEND_URL, ...(process.env.CORS_ORIGINS || "").split(",")]
+      .map((o) => originOf(o.trim()))
+      .filter((o): o is string => !!o),
+  ),
+);
