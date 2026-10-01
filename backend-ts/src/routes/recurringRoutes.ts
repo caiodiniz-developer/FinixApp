@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { assertOwnedRefs } from "../services/ownershipService";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { authenticate, requireAdmin } from "../middlewares/auth";
@@ -32,6 +33,7 @@ router.get("/api/recurring", authenticate, async (req, res) => {
 router.post("/api/recurring", authenticate, async (req, res) => {
   const user = req.user;
   const data = recurringSchema.parse(req.body);
+  await assertOwnedRefs(user.id, { accountId: data.accountId, cardId: data.cardId });
   const rule = await prisma.recurringTransaction.create({
     data: { ...data, userId: user.id, nextRunDate: data.startDate },
   });

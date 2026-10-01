@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { assertOwnedRefs } from "../services/ownershipService";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middlewares/auth";
@@ -13,6 +14,7 @@ router.put("/api/settings/roundup", authenticate, async (req, res) => {
   const data = z
     .object({ enabled: z.boolean(), goalId: z.string().nullable().optional() })
     .parse(req.body);
+  if (data.enabled) await assertOwnedRefs(user.id, { goalId: data.goalId });
   await prisma.user.update({
     where: { id: user.id },
     data: { roundUpEnabled: data.enabled, roundUpGoalId: data.enabled ? data.goalId : null },

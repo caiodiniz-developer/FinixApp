@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { assertOwnedRefs } from "../services/ownershipService";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
 import { planFor } from "../config/plans";
@@ -64,6 +65,7 @@ router.post("/api/transactions", authenticate, async (req, res) => {
   const user = req.user;
   const data = transactionSchema.parse(req.body);
   const plan = planFor(user);
+  await assertOwnedRefs(user.id, { accountId: data.accountId, cardId: data.cardId });
 
   if (!plan.canUseTransactions) {
     return res.status(403).json({
@@ -237,6 +239,7 @@ router.put("/api/transactions/:id", authenticate, async (req, res) => {
   // plannedPurchase is a request-only flag (see POST) — it isn't a column,
   // so passing it through makes Prisma reject the whole update.
   const { plannedPurchase, ...data } = transactionSchema.parse(req.body);
+  await assertOwnedRefs(user.id, { accountId: data.accountId, cardId: data.cardId });
   const transaction = await prisma.transaction.updateMany({
     where: { id: String(req.params.id), userId: user.id },
     data,

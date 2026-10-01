@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { assertOwnedRefs } from "../services/ownershipService";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middlewares/auth";
@@ -31,6 +32,7 @@ router.get("/api/personal-loans", authenticate, async (req, res) => {
 router.post("/api/personal-loans", authenticate, async (req, res) => {
   const user = req.user;
   const data = personalLoanSchema.parse(req.body);
+  await assertOwnedRefs(user.id, { contactId: data.contactId });
   const loan = await prisma.personalLoan.create({ data: { ...data, userId: user.id } });
   res.status(201).json(loan);
 });
@@ -38,6 +40,7 @@ router.post("/api/personal-loans", authenticate, async (req, res) => {
 router.put("/api/personal-loans/:id", authenticate, async (req, res) => {
   const user = req.user;
   const data = personalLoanSchema.partial().parse(req.body);
+  await assertOwnedRefs(user.id, { contactId: data.contactId });
   const updated = await prisma.personalLoan.updateMany({
     where: { id: String(req.params.id), userId: user.id },
     data: { ...data, settled: data.remaining === 0 ? true : undefined },
