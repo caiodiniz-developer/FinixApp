@@ -2,7 +2,7 @@ import { Router } from "express";
 import PDFDocument from "pdfkit";
 import ExcelJS from "exceljs";
 import { prisma } from "../lib/prisma";
-import { PLANS } from "../config/plans";
+import { PLANS, planFor } from "../config/plans";
 import { authenticate, requireFeature } from "../middlewares/auth";
 import { upload } from "../lib/upload";
 import { transactionsToCsv, parseCsvTransactions } from "../services/csvService";
@@ -59,7 +59,7 @@ router.post(
       return res.status(400).json({ error: "Nenhuma transação reconhecida no arquivo" });
     }
 
-    const plan = PLANS[user.plan] || PLANS.FREE;
+    const plan = planFor(user);
     if (plan.transactionsLimit !== -1 && user.transactionsUsed + rows.length > plan.transactionsLimit) {
       return res.status(403).json({
         error: `Importar ${rows.length} transações excede o limite mensal do plano ${plan.name}.`,

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { PLANS } from "../config/plans";
+import { planFor } from "../config/plans";
 import { authenticate } from "../middlewares/auth";
 import { goalSchema } from "../schemas";
 import { dispatchWebhook } from "../services/webhookService";
@@ -28,7 +28,7 @@ router.get("/api/goals", authenticate, async (req, res) => {
 router.post("/api/goals", authenticate, async (req, res) => {
   const user = req.user;
   const data = goalSchema.parse(req.body);
-  const plan = PLANS[user.plan] || PLANS.FREE;
+  const plan = planFor(user);
   if (plan.goalsLimit !== -1) {
     const count = await prisma.goal.count({ where: { userId: user.id } });
     if (count >= plan.goalsLimit)

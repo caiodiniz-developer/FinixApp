@@ -160,3 +160,37 @@ export const PLANS: Record<
     stripePriceId: "price_1TRjBTJjlHCvcKLJICo0Js1Y",
   },
 };
+
+// ============================================================================
+// EFFECTIVE PLAN — what the user can actually use right now
+// ============================================================================
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Renewal webhooks can arrive late (Stripe retries failed deliveries for
+// days) — don't lock a paying customer out the minute the period turns over.
+export const PLAN_EXPIRY_GRACE_MS = 3 * DAY_MS;
+
+export interface PlanSubject {
+  plan: string;
+  planExpiresAt: Date | null;
+}
+
+/** True when a paid plan's paid-for period (plus the grace window) is over. */
+export const isPlanExpired = (user: PlanSubject, now: Date = new Date()): boolean =>
+  user.plan !== "FREE" &&
+  !!user.planExpiresAt &&
+  user.planExpiresAt.getTime() + PLAN_EXPIRY_GRACE_MS < now.getTime();
+
+/**
+ * The plan id whose limits apply to this user right now. `user.plan` is what
+ * they bought; this is what they're still entitled to — an expired paid plan
+ * falls back to FREE. A null planExpiresAt means "no expiry" (e.g. plans
+ * granted by an admin).
+ */
+export const effectivePlanId = (user: PlanSubject, now: Date = new Date()): string => {
+  if (!PLANS[user.plan]) return "FREE";
+  return isPlanExpired(user, now) ? "FREE" : user.plan;
+};
+
+export const planFor = (user: PlanSubject, now: Date = new Date()) =>
+  PLANS[effectivePlanId(user, now)];

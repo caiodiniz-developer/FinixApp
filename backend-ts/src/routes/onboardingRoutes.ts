@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { effectivePlanId } from "../config/plans";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middlewares/auth";
 import { onboardingSchema } from "../schemas";
@@ -74,7 +75,7 @@ router.post(
   async (req, res) => {
     try {
       const user = req.user;
-      if (user.plan !== "PRO")
+      if (effectivePlanId(user) !== "PRO")
         return res
           .status(403)
           .json({ error: "Upload de logo disponível apenas para plano PRO" });

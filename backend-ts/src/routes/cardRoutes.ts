@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
-import { PLANS } from "../config/plans";
+import { planFor } from "../config/plans";
 import { authenticate, requireFeature } from "../middlewares/auth";
 import { creditCardSchema } from "../schemas";
 import { getSafeDueDay, cardStatementWindow, currentStatementMonth } from "../lib/dates";
@@ -59,7 +59,7 @@ router.post(
   async (req, res) => {
     const user = req.user;
     const data = creditCardSchema.parse(req.body);
-    const plan = PLANS[user.plan] || PLANS.FREE;
+    const plan = planFor(user);
     const count = await prisma.creditCard.count({
       where: { userId: user.id, archived: false },
     });

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
-import { PLANS } from "../config/plans";
+import { planFor } from "../config/plans";
 import { authenticate } from "../middlewares/auth";
 import { categoriesUpdateSchema, categorySchema, categoryUpdateSchema } from "../schemas";
 
@@ -13,7 +13,7 @@ const router = Router();
 router.put("/api/categories", authenticate, async (req, res) => {
   try {
     const user = req.user;
-    const plan = PLANS[user.plan] || PLANS.FREE;
+    const plan = planFor(user);
     if (!plan.canEditCategories)
       return res.status(403).json({
         error: "Atualização de categorias disponível apenas no plano Pro",
@@ -48,7 +48,7 @@ router.put("/api/categories", authenticate, async (req, res) => {
 router.post("/api/categories", authenticate, async (req, res) => {
   try {
     const user = req.user;
-    const plan = PLANS[user.plan] || PLANS.FREE;
+    const plan = planFor(user);
     if (!plan.canCreateCategories)
       return res.status(403).json({
         error: "Criação de categorias disponível apenas no plano Pro",
@@ -69,7 +69,7 @@ router.post("/api/categories", authenticate, async (req, res) => {
 router.put("/api/categories/:id", authenticate, async (req, res) => {
   try {
     const user = req.user;
-    const plan = PLANS[user.plan] || PLANS.FREE;
+    const plan = planFor(user);
     if (!plan.canEditCategories)
       return res
         .status(403)
@@ -98,7 +98,7 @@ router.put("/api/categories/:id", authenticate, async (req, res) => {
 router.delete("/api/categories/:id", authenticate, async (req, res) => {
   try {
     const user = req.user;
-    const plan = PLANS[user.plan] || PLANS.FREE;
+    const plan = planFor(user);
     if (!plan.canEditCategories)
       return res.status(403).json({
         error: "Exclusão de categorias disponível apenas no plano Pro",

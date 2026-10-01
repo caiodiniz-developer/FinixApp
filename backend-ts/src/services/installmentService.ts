@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
-import { PLANS } from "../config/plans";
+import { planFor } from "../config/plans";
 import { getSafeDueDay, diffDays, toLocalDateKey } from "../lib/dates";
 
 export const buildInstallmentSchedule = async (user: any, data: any) => {
-  const plan = PLANS[user.plan] || PLANS.FREE;
+  const plan = planFor(user);
   if (!plan.hasInstallments) {
     throw new Error(
       "Parcelamento disponível apenas no plano pago. Faça upgrade para ativar.",

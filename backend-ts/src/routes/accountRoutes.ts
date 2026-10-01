@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
-import { PLANS } from "../config/plans";
+import { planFor } from "../config/plans";
 import { authenticate } from "../middlewares/auth";
 import { accountSchema } from "../schemas";
 
@@ -32,7 +32,7 @@ router.get("/api/accounts", authenticate, async (req, res) => {
 router.post("/api/accounts", authenticate, async (req, res) => {
   const user = req.user;
   const data = accountSchema.parse(req.body);
-  const plan = PLANS[user.plan] || PLANS.FREE;
+  const plan = planFor(user);
   const count = await prisma.account.count({
     where: { userId: user.id, archived: false },
   });

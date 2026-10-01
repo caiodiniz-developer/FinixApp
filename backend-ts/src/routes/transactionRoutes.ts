@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
-import { PLANS } from "../config/plans";
+import { planFor } from "../config/plans";
 import { authenticate } from "../middlewares/auth";
 import { transactionSchema } from "../schemas";
 import { diffDays } from "../lib/dates";
@@ -19,7 +19,7 @@ const router = Router();
 // ============================================================================
 router.get("/api/transactions", authenticate, async (req, res) => {
   const user = req.user;
-  const plan = PLANS[user.plan] || PLANS.FREE;
+  const plan = planFor(user);
   if (!plan.canUseTransactions) {
     return res.status(403).json({
       error:
@@ -63,7 +63,7 @@ router.get("/api/transactions", authenticate, async (req, res) => {
 router.post("/api/transactions", authenticate, async (req, res) => {
   const user = req.user;
   const data = transactionSchema.parse(req.body);
-  const plan = PLANS[user.plan] || PLANS.FREE;
+  const plan = planFor(user);
 
   if (!plan.canUseTransactions) {
     return res.status(403).json({

@@ -4,7 +4,8 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import type { User } from "@prisma/client";
 import { prisma } from "../lib/prisma";
-import { PLANS } from "../config/plans";
+import { planFor, isPlanExpired } from "../config/plans";
+import { reconcileExpiredPlan } from "../services/stripeService";
 import { currentMonthKey, resetMonthlyIfNeeded } from "../services/usageService";
 import { JWT_SECRET } from "../config/env";
 
@@ -96,6 +97,12 @@ export const authenticate = async (
       user.transactionsUsed = 0;
       user.transactionsMonth = currentMonthKey();
     }
+    // Plan looks expired by date — confirm with Stripe before downgrading
+    // (repairs planExpiresAt if a renewal webhook was missed).
+    if (isPlanExpired(user) && user.stripeSubscriptionId) {
+      const validUntil = await reconcileExpiredPlan(user);
+      if (validUntil) user.planExpiresAt = validUntil;
+    }
     req.user = user;
     req.authMethod = "jwt";
     next();
@@ -135,7 +142,7 @@ export const requireFeature =
   (feature: PlanFeature) =>
   (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
-    const plan = PLANS[user.plan] || PLANS.FREE;
+    const plan = planFor(user);
     if (!plan[feature]) {
       return res.status(403).json({
         error: "Recurso não disponível no seu plano",

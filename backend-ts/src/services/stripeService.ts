@@ -19,6 +19,7 @@ const oneMonthFromNow = () => {
 type StripeRef = string | { id: string } | null | undefined;
 export interface SubscriptionLike {
   id: string;
+  status?: string;
   customer?: StripeRef;
   current_period_end?: number;
   items?: { data?: { current_period_end?: number }[] };
@@ -125,3 +126,31 @@ export async function handleSubscriptionDeleted(subscription: SubscriptionLike) 
     data: { plan: "FREE", stripeSubscriptionId: null, planExpiresAt: null },
   });
 }
+
+/**
+ * Safety net for the plan-expiry check: before treating a paid plan as
+ * expired, ask Stripe whether the subscription is really over. If a renewal
+ * webhook was lost, this repairs planExpiresAt instead of locking out a
+ * customer who is still paying. Returns the date access is valid until, or
+ * null when the subscription really ended.
+ */
+export const reconcileExpiredPlan = async (user: {
+  id: string;
+  stripeSubscriptionId: string | null;
+}): Promise<Date | null> => {
+  if (!stripe || !user.stripeSubscriptionId) return null;
+  try {
+    const subscription = (await stripe.subscriptions.retrieve(
+      user.stripeSubscriptionId,
+    )) as unknown as SubscriptionLike;
+    const periodEnd = subscriptionPeriodEnd(subscription);
+    const stillPaying = ["active", "trialing", "past_due"].includes(subscription.status || "");
+    if (!stillPaying || !periodEnd || periodEnd.getTime() < Date.now()) return null;
+    await prisma.user.updateMany({ where: { id: user.id }, data: { planExpiresAt: periodEnd } });
+    return periodEnd;
+  } catch (err: any) {
+    // Stripe unreachable: fail open for this request rather than punish the user.
+    console.error("[STRIPE] Falha ao reconciliar plano expirado:", err.message);
+    return new Date();
+  }
+};
