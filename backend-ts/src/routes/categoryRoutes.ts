@@ -26,10 +26,14 @@ router.put("/api/categories", authenticate, async (req, res) => {
       return res
         .status(400)
         .json({ error: "Adicione pelo menos uma categoria" });
-    await prisma.category.deleteMany({ where: { userId: user.id } });
-    await prisma.category.createMany({
-      data: uniqueCategories.map((name) => ({ userId: user.id, name })),
-    });
+    // Replace the whole list atomically — a failure between the two steps
+    // used to leave the user with no categories at all.
+    await prisma.$transaction([
+      prisma.category.deleteMany({ where: { userId: user.id } }),
+      prisma.category.createMany({
+        data: uniqueCategories.map((name) => ({ userId: user.id, name })),
+      }),
+    ]);
     const categories = await prisma.category.findMany({
       where: { userId: user.id },
       orderBy: { name: "asc" },
