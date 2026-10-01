@@ -8,6 +8,10 @@ export interface User {
   /** Whether the account has an avatar — fetch the actual data URI from GET /api/auth/photo. */
   hasPhoto?: boolean;
   plan?: "FREE" | "BASIC" | "PRO";
+  /** Plan whose limits apply right now: an expired paid plan counts as FREE, a FREE account in its 7-day trial as BASIC. */
+  effectivePlan?: "FREE" | "BASIC" | "PRO" | "TEST";
+  /** Set while a FREE account is still inside its trial window. */
+  trialEndsAt?: string | null;
   transactionsUsed?: number;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
@@ -114,12 +118,30 @@ export interface SplitExpense {
   transaction?: Transaction;
 }
 
+/** A transaction as returned inside GET /api/calendar — a trimmed-down row. */
+export interface CalendarTransaction {
+  id: string;
+  title: string;
+  type: "INCOME" | "EXPENSE";
+  amount: number;
+  date: string;
+  category?: string;
+  paymentMethod?: string;
+  description?: string;
+  currency?: string;
+  recurring?: boolean;
+  recurringFrequency?: string;
+  installmentGroupId?: string;
+  installmentNumber?: number;
+  totalInstallments?: number;
+}
+
 export interface CalendarDay {
   date: string;
   revenue?: number;
   expense?: number;
   net?: number;
-  transactions?: Transaction[];
+  transactions?: CalendarTransaction[];
 }
 
 export interface CalendarData {

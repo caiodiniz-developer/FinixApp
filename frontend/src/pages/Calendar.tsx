@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { api, apiErrorMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
-import { CalendarData } from "../types";
+import { CalendarData, CalendarTransaction } from "../types";
 import { currency, dateBR } from "../utils/format";
 
 const getMonthKey = (value: Date) =>
@@ -32,22 +32,7 @@ const WEEKDAY_LABELS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 const isPastOrToday = (raw: string): boolean => toDateStr(raw) <= getTodayStr();
 
-interface DayTransaction {
-  id: string;
-  title: string;
-  type: "INCOME" | "EXPENSE";
-  amount: number;
-  date: string;
-  category?: string;
-  paymentMethod?: string;
-  description?: string;
-  currency?: string;
-  recurring?: boolean;
-  recurringFrequency?: string;
-  installmentGroupId?: string;
-  installmentNumber?: number;
-  totalInstallments?: number;
-}
+type DayTransaction = CalendarTransaction;
 
 // FIX: normaliza qualquer formato de data para YYYY-MM-DD local, sem converter timezone
 const txDateToLocal = (raw: string): string => {
