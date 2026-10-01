@@ -204,7 +204,7 @@ export const sendVerificationEmail = async (rawEmail: string, code: string): Pro
     throw new Error(`Email invalido: "${email}"`);
   }
 
-  const provider = await deliverEmail({
+  const sent = await deliverEmail({
     to: email,
     subject: "Seu código de verificação — Finix",
     html: getVerificationTemplate(code),
@@ -213,13 +213,13 @@ export const sendVerificationEmail = async (rawEmail: string, code: string): Pro
 Válido por 10 minutos. Não compartilhe.`,
   });
 
-  if (provider === "none") {
-    // No provider configured (local development): the code is only useful
+  if (!sent) {
+    // Gmail not configured (local development): the code is only useful
     // if the developer can read it somewhere.
-    console.warn("[EMAIL] Sem provedor de e-mail — código de verificação de", email, ":", code);
+    console.warn("[EMAIL] Gmail não configurado — código de verificação de", email, ":", code);
     return;
   }
-  console.log(`[EMAIL] Código de verificação enviado via ${provider}`);
+  console.log("[EMAIL] Código de verificação enviado pelo Gmail");
 };
 
 export const sendAlertEmail = async (

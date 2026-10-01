@@ -41,7 +41,7 @@ export const signup = async (email: string, password: string, name: string) => {
     },
   });
 
-  // The Resend API round-trip is the single slowest part of signup (often
+  // Sending the e-mail is the single slowest part of signup (often
   // 1-3s) and the frontend never actually reads emailSent/emailError from
   // this response — it just shows the same "verifique seu e-mail" message
   // either way, with a "reenviar código" button as the fallback. So there's
