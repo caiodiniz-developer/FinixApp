@@ -1,13 +1,4 @@
-import { Resend } from "resend";
-
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM?.trim() || "Finix <onboarding@resend.dev>";
-
-if (!RESEND_API_KEY) {
-  console.warn("[EMAIL] WARNING: RESEND_API_KEY is not set. Verification emails will NOT be sent.");
-}
-
-const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+import { deliverEmail } from "./mailer";
 
 const isValidEmail = (email: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim().toLowerCase());
@@ -213,31 +204,22 @@ export const sendVerificationEmail = async (rawEmail: string, code: string): Pro
     throw new Error(`Email invalido: "${email}"`);
   }
 
-  if (!resend) {
-    console.warn("[EMAIL] No Resend client — skipping email to:", email);
-    console.warn("[EMAIL] Code for debugging:", code);
-    return;
-  }
-
-  console.log("[EMAIL] Attempting send via Resend:", { to: email, from: EMAIL_FROM });
-
-  // Resend SDK v2+ returns { data, error } — does NOT throw on API errors
-  const { data, error } = await resend.emails.send({
-    from: EMAIL_FROM,
-    to: [email],
+  const provider = await deliverEmail({
+    to: email,
     subject: "Seu código de verificação — Finix",
     html: getVerificationTemplate(code),
-    text: `Código de verificação Finix: ${code}\n\nVálido por 10 minutos. Não compartilhe.`,
+    text: `Código de verificação Finix: ${code}
+
+Válido por 10 minutos. Não compartilhe.`,
   });
 
-  if (error) {
-    console.error("[EMAIL] Resend API returned error:", JSON.stringify(error));
-    throw new Error(
-      `Falha ao enviar e-mail via Resend: ${(error as any).message || JSON.stringify(error)}`
-    );
+  if (provider === "none") {
+    // No provider configured (local development): the code is only useful
+    // if the developer can read it somewhere.
+    console.warn("[EMAIL] Sem provedor de e-mail — código de verificação de", email, ":", code);
+    return;
   }
-
-  console.log("[EMAIL] Email sent successfully. Resend ID:", data?.id);
+  console.log(`[EMAIL] Código de verificação enviado via ${provider}`);
 };
 
 export const sendAlertEmail = async (
@@ -246,11 +228,6 @@ export const sendAlertEmail = async (
 ): Promise<void> => {
   const email = String(rawEmail || "").trim().toLowerCase();
   if (!isValidEmail(email)) return;
-
-  if (!resend) {
-    console.warn("[EMAIL] No Resend client — skipping alert email to:", email);
-    return;
-  }
 
   const amountText =
     typeof alert.amount === "number"
@@ -280,15 +257,13 @@ export const sendAlertEmail = async (
   </table>
 </body></html>`;
 
-  const { error } = await resend.emails.send({
-    from: EMAIL_FROM,
-    to: [email],
+  // Reminders are best-effort: a delivery problem must not break the daily job.
+  await deliverEmail({
+    to: email,
     subject: `Finix — ${alert.title}`,
     html,
-    text: `${alert.title}\n${alert.description || ""}\n${amountText || ""} ${dueText}`,
-  });
-
-  if (error) {
-    console.error("[EMAIL] Falha ao enviar alerta:", JSON.stringify(error));
-  }
+    text: `${alert.title}
+${alert.description || ""}
+${amountText || ""} ${dueText}`,
+  }).catch((err: any) => console.error("[EMAIL] Falha ao enviar alerta:", err.message));
 };
