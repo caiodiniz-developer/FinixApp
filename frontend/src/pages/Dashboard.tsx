@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, lazy, Suspense } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { activePlan } from "../types";
 import {
   TrendingUp,
@@ -52,9 +52,9 @@ import {
   Line,
   ReferenceLine,
 } from "recharts";
-import { api, apiErrorMessage } from "../services/api";
+import { api } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
-import { DashboardData, Insight, Budget, Goal, Forecast } from "../types";
+import { Insight } from "../types";
 import { currency, dateBR, CATEGORY_COLORS } from "../utils/format";
 import { UpgradeModal } from "../components/UpgradeModal";
 import { Reveal } from "../components/dashboard/Reveal";
@@ -65,7 +65,8 @@ import { Celebration } from "../components/dashboard/Celebration";
 import { Achievements, Achievement } from "../components/dashboard/Achievements";
 import { gsap } from "../lib/gsap";
 import toast from "react-hot-toast";
-import { CalendarDay, AlertItem, TopExpense } from "../components/dashboard/types";
+import { useDashboardData } from "../hooks/useDashboardData";
+import { computeDashboardMetrics } from "../utils/dashboardMetrics";
 import { QuickAddModal } from "../components/dashboard/QuickAddModal";
 import { HealthRing, Sparkline, MetricCard } from "../components/dashboard/widgets";
 import { ChartTooltip } from "../components/dashboard/ChartTooltip";
@@ -81,21 +82,10 @@ const HealthOrb = lazy(() =>
 // ─── MAIN DASHBOARD ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { user } = useAuth();
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [aiInsights, setAiInsights] = useState<Insight[] | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
-  const [alerts, setAlerts] = useState<{ count: number; alerts: AlertItem[] }>({ count: 0, alerts: [] });
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([]);
-  const [calDays, setCalDays] = useState<CalendarDay[]>([]);
-  const [forecast, setForecast] = useState<Forecast | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [topExpenses, setTopExpenses] = useState<TopExpense[]>([]);
   const [csvLoading, setCsvLoading] = useState(false);
   const [chartView, setChartView] = useState<"area" | "bar">("area");
   const heroRef = useRef<HTMLDivElement>(null);
@@ -108,53 +98,10 @@ export default function Dashboard() {
   const canUseAi = plan !== "FREE";
   const canAddTx = plan !== "FREE";
 
-  const fetchAll = useCallback(async () => {
-    if (!user) return;
-    setError(null); setLoading(true);
-    try { const r = await api.get("/api/dashboard"); setData(r.data); }
-    catch (e: any) { const m = apiErrorMessage(e) || "Erro"; setError(m); toast.error(m); }
-    finally { setLoading(false); }
-  }, [user]);
-
-  useEffect(() => { if (!user) { setData(null); setLoading(false); return; } fetchAll(); }, [user, fetchAll]);
-
-  useEffect(() => {
-    if (!user) return;
-    const mp = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
-    Promise.allSettled([
-      api.get("/api/alerts"), api.get("/api/budgets"), api.get("/api/goals"),
-      api.get("/api/categories"), api.get(`/api/calendar?month=${mp}`), api.get("/api/accounts"),
-      api.get("/api/forecast?days=30"),
-    ]).then(([al, bu, go, ca, cl, ac, fc]) => {
-      if (al.status === "fulfilled") setAlerts(al.value.data);
-      if (bu.status === "fulfilled") setBudgets(bu.value.data.slice(0, 4));
-      if (go.status === "fulfilled") setGoals(go.value.data.slice(0, 3));
-      if (ca.status === "fulfilled") setCategories(ca.value.data.map((c: any) => c.name));
-      if (cl.status === "fulfilled") setCalDays(cl.value.data.dailySummary || []);
-      if (ac.status === "fulfilled") setAccounts(ac.value.data);
-      if (fc.status === "fulfilled") setForecast(fc.value.data);
-    });
-  }, [user]);
-
-  // "Maiores gastos" needs the raw transaction list (plan-gated backend-side,
-  // same as the Transactions page) — fetched separately so the main
-  // dashboard payload stays lean.
-  useEffect(() => {
-    if (!user || isFree) { setTopExpenses([]); return; }
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const start = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
-    const end = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate())}`;
-    api.get(`/api/transactions?type=EXPENSE&startDate=${start}&endDate=${end}`)
-      .then(r => {
-        const list: TopExpense[] = (r.data || [])
-          .slice()
-          .sort((a: any, b: any) => b.amount - a.amount)
-          .slice(0, 5);
-        setTopExpenses(list);
-      })
-      .catch(() => setTopExpenses([]));
-  }, [user, isFree]);
+  const {
+    data, loading, error, reload: fetchAll,
+    alerts, budgets, goals, categories, accounts, calDays, forecast, topExpenses,
+  } = useDashboardData(isFree);
 
   // Hero entrance choreography — plays once the dashboard payload lands and
   // the greeting/health ring/chips are actually on screen. Layered on top of
@@ -238,32 +185,11 @@ export default function Dashboard() {
 
   // ── Computed ─────────────────────────────────────────────────────────────
   const now = new Date();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const dayOfMonth = now.getDate();
-  const daysRemaining = daysInMonth - dayOfMonth + 1;
-  const curMonth = data.monthly[data.monthly.length - 1] || { income: 0, expense: 0 };
-  const prevMonth = data.monthly[data.monthly.length - 2] || { income: 0, expense: 0 };
-  const dailyRate = dayOfMonth > 0 ? curMonth.expense / dayOfMonth : 0;
-  const dailyLimit = curMonth.income > 0 ? (curMonth.income - curMonth.expense) / daysRemaining : 0;
-  const projectedEnd = curMonth.income - (curMonth.expense + dailyRate * daysRemaining);
-  const avgMonthly = data.monthly.reduce((s, m) => s + m.expense, 0) / (data.monthly.length || 1);
-  const runway = avgMonthly > 0 ? data.balance / avgMonthly : 0;
-  const velocityPct = curMonth.income > 0 ? Math.min((dailyRate / (curMonth.income / daysInMonth)) * 100, 100) : 0;
-  const savingsRate = data.income > 0 ? (data.saved / data.income) * 100 : 0;
-  const expenseRatio = data.income > 0 ? (data.expense / data.income) * 100 : 100;
-  const budgetHealth = budgets.length > 0 ? (budgets.filter(b => b.percentage < 80).length / budgets.length) * 100 : 100;
-  const healthScore = Math.round(Math.min(100, Math.max(0, (Math.max(0, 100 - expenseRatio) * 0.5) + Math.min(savingsRate * 2, 30) + budgetHealth * 0.2)));
-  const expenseDiff = prevMonth.expense > 0 ? ((curMonth.expense - prevMonth.expense) / prevMonth.expense) * 100 : 0;
-  const incomeDiff = prevMonth.income > 0 ? ((curMonth.income - prevMonth.income) / prevMonth.income) * 100 : 0;
-  const todayKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
-  const todaySpent = calDays.find(d => d.date === todayKey)?.expense || 0;
-  const dailyLimitSafe = Math.max(dailyLimit, 0);
-  const todayPct = dailyLimitSafe > 0 ? Math.min((todaySpent / dailyLimitSafe) * 100, 100) : 0;
-  let streak = 0;
-  for (const d of [...calDays].sort((a, b) => b.date.localeCompare(a.date))) {
-    if (d.expense === 0 && d.revenue === 0) continue;
-    if (d.net >= 0) streak++; else break;
-  }
+  const {
+    daysRemaining, curMonth, dailyRate, dailyLimit, projectedEnd, runway, velocityPct,
+    savingsRate, expenseRatio, budgetHealth, healthScore, expenseDiff, incomeDiff,
+    todaySpent, dailyLimitSafe, todayPct, streak,
+  } = computeDashboardMetrics(data, budgets, calDays, now);
 
   const stats = [
     { label: "Saldo total", value: data.balance, diff: null, inv: false, spark: data.monthly.map(m => m.income - m.expense), color: "#38bdf8", icon: Wallet },
