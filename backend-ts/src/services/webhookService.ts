@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { prisma } from "../lib/prisma";
+import { assertPublicUrl } from "../lib/ssrf";
 
 export type WebhookEvent =
   | "transaction.created"
@@ -45,6 +46,9 @@ export const dispatchWebhook = async (
         })
         .map(async (sub) => {
           try {
+            // Re-checked on every delivery, not just at creation: DNS for
+            // the hostname may have been repointed at an internal address.
+            await assertPublicUrl(sub.url);
             const signature = sign(sub.secret, body);
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 8000);
@@ -56,6 +60,7 @@ export const dispatchWebhook = async (
                 "X-Finix-Event": event,
               },
               body,
+              redirect: "manual",
               signal: controller.signal,
             });
             clearTimeout(timeout);

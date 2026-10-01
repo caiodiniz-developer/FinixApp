@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { assertPublicUrl } from "../lib/ssrf";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middlewares/auth";
@@ -33,6 +34,7 @@ router.get("/api/webhooks", authenticate, async (req, res) => {
 router.post("/api/webhooks", authenticate, async (req, res) => {
   const user = req.user;
   const data = webhookSchema.parse(req.body);
+  await assertPublicUrl(data.url);
   const secret = generateWebhookSecret();
   const webhook = await prisma.webhookSubscription.create({
     data: { userId: user.id, url: data.url, events: JSON.stringify(data.events), secret },
