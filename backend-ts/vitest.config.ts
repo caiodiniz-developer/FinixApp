@@ -13,6 +13,7 @@ export default defineConfig({
       STRIPE_SECRET_KEY: "",
       GMAIL_USER: "",
       GMAIL_APP_PASSWORD: "",
+      GMAIL_REFRESH_TOKEN: "",
       VAPID_PUBLIC_KEY: "",
       VAPID_PRIVATE_KEY: "",
     },
