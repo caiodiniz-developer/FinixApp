@@ -3,9 +3,9 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { User, RefreshToken } from "@prisma/client";
 import { prisma } from "../lib/prisma";
+import { JWT_SECRET } from "../config/env";
 import { effectivePlanId, isInTrial, trialEndsAt } from "../config/plans";
 
-const JWT_SECRET = process.env.JWT_SECRET || "finix-dev-secret";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "15m";
 const REFRESH_TOKEN_EXPIRES_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
@@ -111,7 +111,6 @@ export const verifyTwoFactorPendingToken = (token: string): string | null => {
 export type UserForSafeUser = Omit<User, "photo" | "companyLogo">;
 
 export const createAccessToken = (user: UserForSafeUser): string => {
-  const secret = (JWT_SECRET || "finix-dev-secret") as any;
   return jwt.sign(
     {
       sub: user.id,
@@ -119,7 +118,7 @@ export const createAccessToken = (user: UserForSafeUser): string => {
       role: user.role,
       provider: (user as any).authProvider || "local",
     },
-    secret,
+    JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions,
   );
 };
