@@ -28,11 +28,11 @@ router.post("/api/api-keys", authenticate, async (req, res) => {
   const keyHash = await bcrypt.hash(rawKey, 10);
   const keyFingerprint = crypto.createHash("sha256").update(rawKey).digest("hex");
 
-  await prisma.apiKey.create({
+  const created = await prisma.apiKey.create({
     data: { userId: user.id, label, keyPrefix, keyHash, keyFingerprint },
   });
   // Raw key shown exactly once — same pattern as the webhook secret above.
-  res.status(201).json({ key: rawKey, label, keyPrefix });
+  res.status(201).json({ id: created.id, key: rawKey, label, keyPrefix });
 });
 
 router.delete("/api/api-keys/:id", authenticate, async (req, res) => {
