@@ -126,15 +126,6 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
   next();
 };
 
-export const requireVerified = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user?.isVerified) {
-    return res.status(403).json({
-      error: "E-mail não verificado. Verifique seu e-mail antes de continuar.",
-    });
-  }
-  next();
-};
-
 export type PlanFeature =
   | "hasAI"
   | "hasAdvancedAI"

@@ -5,8 +5,6 @@ import {
   signupController,
   loginController,
   getMeController,
-  verifyEmailController,
-  resendCodeController,
 } from "../controllers/authController";
 import {
   refreshTokenController,
@@ -23,8 +21,6 @@ router.post("/signup", authRateLimit, signupController);
 router.post("/register", authRateLimit, signupController);
 router.post("/login", authRateLimit, perEmailRateLimit, loginController);
 router.post("/2fa/login", authRateLimit, completeTwoFactorLoginController);
-router.post("/verify", authRateLimit, perEmailRateLimit, verifyEmailController);
-router.post("/resend-code", authRateLimit, perEmailRateLimit, resendCodeController);
 router.post("/refresh-token", refreshTokenController);
 router.post("/logout", logoutController);
 router.get("/me", authenticate, getMeController);
