@@ -38,7 +38,6 @@ import netWorthRoutes from "./routes/netWorthRoutes";
 import personalLoanRoutes from "./routes/personalLoanRoutes";
 import householdRoutes from "./routes/householdRoutes";
 import adminRoutes from "./routes/adminRoutes";
-import internalRoutes from "./routes/internalRoutes";
 import stripeRoutes from "./routes/stripeRoutes";
 
 export const app = express();
@@ -141,7 +140,6 @@ app.use(netWorthRoutes);
 app.use(personalLoanRoutes);
 app.use(householdRoutes);
 app.use(adminRoutes);
-app.use(internalRoutes);
 app.use(stripeRoutes);
 
 // ============================================================================
