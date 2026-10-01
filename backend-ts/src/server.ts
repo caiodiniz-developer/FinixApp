@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { app } from "./app";
 import { allowedOrigins, FRONTEND_URL } from "./config/env";
 import { prisma } from "./lib/prisma";
-import { currentMonthKey } from "./services/usageService";
+import { ensureAdminUser } from "./services/adminBootstrap";
 import { runDueRecurringTransactions } from "./services/recurringService";
 import { sendDueAlertNotifications } from "./services/alertNotificationService";
 import { sendDueImpulseReflections } from "./services/impulseReflectionService";
@@ -45,59 +45,6 @@ const connectDatabase = async (): Promise<void> => {
     }
   }
 };
-const createOrUpdateAdmin = async (): Promise<void> => {
-  const adminEmail = (process.env.ADMIN_EMAIL || "finixappp@gmail.com")
-    .trim()
-    .toLowerCase();
-
-  const adminPassword = process.env.ADMIN_PASSWORD || "Admin@123";
-  if (!process.env.ADMIN_PASSWORD) {
-    console.warn(
-      "[ADMIN] ⚠️  ADMIN_PASSWORD não definido — usando a senha padrão 'Admin@123'. " +
-        "Defina ADMIN_PASSWORD no ambiente com uma senha forte, especialmente em produção " +
-        "(esta rotina roda a cada reinício e reescreve a senha do admin para o valor configurado aqui).",
-    );
-  }
-
-  const passwordHash = await bcrypt.hash(adminPassword, 10);
-
-  const admin = await prisma.user.upsert({
-    where: {
-      email: adminEmail,
-    },
-
-    create: {
-      id: uuidv4(),
-      name: "Administrador Finix",
-      email: adminEmail,
-      passwordHash,
-      role: "ADMIN",
-      plan: "PRO",
-      blocked: false,
-      isVerified: true,
-      verificationCode: null,
-      verificationExpires: null,
-      transactionsUsed: 0,
-      transactionsMonth: currentMonthKey(),
-      hasCompletedOnboarding: true,
-      authProvider: "local",
-    },
-
-    update: {
-      name: "Administrador Finix",
-      passwordHash,
-      role: "ADMIN",
-      plan: "PRO",
-      blocked: false,
-      isVerified: true,
-      verificationCode: null,
-      verificationExpires: null,
-    },
-  });
-
-  console.log(`[ADMIN] ✅ Administrador configurado: ${admin.email}`);
-};
-
 // Single-process in-memory scheduler: fires the recurring-transaction and
 // due-alert jobs once at boot (catches up on anything missed while the
 // server was down) and then once every 24h. Fine for the current one-replica
@@ -127,7 +74,7 @@ const startServer = async (): Promise<void> => {
     await connectDatabase();
 
     // Cria ou atualiza a conta de administrador no banco atual
-    await createOrUpdateAdmin();
+    await ensureAdminUser();
 
     httpServer = app.listen(PORT, "0.0.0.0", () => {
       console.log(`
