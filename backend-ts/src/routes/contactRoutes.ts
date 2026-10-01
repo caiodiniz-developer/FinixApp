@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { roundMoney } from "../lib/money";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
 import { planFor } from "../config/plans";
@@ -16,13 +17,13 @@ router.get("/api/contacts", authenticate, async (req, res) => {
     where: { userId: user.id },
     orderBy: { name: "asc" },
   });
-  const splits = await prisma.splitExpense.findMany({
+  const owed = await prisma.splitExpense.groupBy({
+    by: ["contactId"],
     where: { userId: user.id, settled: false },
+    _sum: { amount: true },
   });
   const owedByContact: Record<string, number> = {};
-  splits.forEach((s) => {
-    owedByContact[s.contactId] = (owedByContact[s.contactId] || 0) + s.amount;
-  });
+  for (const row of owed) owedByContact[row.contactId] = roundMoney(row._sum.amount);
   res.json(
     contacts.map((c) => ({ ...c, totalOwed: owedByContact[c.id] || 0 })),
   );

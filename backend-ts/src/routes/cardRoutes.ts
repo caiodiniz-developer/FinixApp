@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { roundMoney, sumMoney } from "../lib/money";
+import { toTransactionDto } from "../lib/transactionDto";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../lib/prisma";
 import { planFor } from "../config/plans";
@@ -26,15 +28,17 @@ router.get(
       cards.map(async (c) => {
         const { year, month0 } = currentStatementMonth(c.closingDay, now);
         const { start, end } = cardStatementWindow(c.closingDay, year, month0);
-        const txs = await prisma.transaction.findMany({
+        const agg = await prisma.transaction.aggregate({
           where: {
             userId: user.id,
             cardId: c.id,
             paymentMethod: "credito",
             date: { gte: start, lte: end },
           },
+          _sum: { amount: true },
+          _count: true,
         });
-        const total = txs.reduce((s, t) => s + t.amount, 0);
+        const total = roundMoney(agg._sum.amount);
         const dueDate = new Date(year, month0, getSafeDueDay(year, month0, c.dueDay));
         return {
           ...c,
@@ -43,7 +47,7 @@ router.get(
             total,
             closingDate: end,
             dueDate,
-            transactionsCount: txs.length,
+            transactionsCount: agg._count,
           },
         };
       }),
@@ -136,14 +140,14 @@ router.get(
       },
       orderBy: { date: "asc" },
     });
-    const total = transactions.reduce((s, t) => s + t.amount, 0);
+    const total = sumMoney(transactions.map((t) => t.amount));
     const dueDate = new Date(year, month0, getSafeDueDay(year, month0, card.dueDay));
     res.json({
       referenceMonth: `${year}-${String(month0 + 1).padStart(2, "0")}`,
       closingDate: end,
       dueDate,
       total,
-      transactions,
+      transactions: transactions.map(toTransactionDto),
     });
   },
 );
