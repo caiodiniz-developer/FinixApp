@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -7,6 +8,12 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, apiErrorMessage } from "../services/api";
+import {
+  clearSession,
+  getAccessToken,
+  getRefreshToken,
+  saveSession,
+} from "../services/session";
 import { User } from "../types";
 
 interface AuthCtx {
@@ -21,7 +28,11 @@ interface AuthCtx {
     codeOrBackup: { token?: string; backupCode?: string },
     remember?: boolean,
   ) => Promise<void>;
-  loginWithToken: (token: string, remember?: boolean) => Promise<void>;
+  loginWithToken: (
+    token: string,
+    remember?: boolean,
+    refreshToken?: string | null,
+  ) => Promise<void>;
   register: (
     name: string,
     email: string,
@@ -39,10 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
-    const token =
-      localStorage.getItem("finix_token") ||
-      sessionStorage.getItem("finix_token");
-    if (!token) {
+    // An expired access token is fine here: the API client renews it with
+    // the refresh token before this request fails.
+    if (!getAccessToken() && !getRefreshToken()) {
       setUser(null);
       return;
     }
@@ -50,16 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .get("/api/auth/me")
       .then((r) => setUser(r.data))
       .catch(() => {
-        localStorage.removeItem("finix_token");
-        sessionStorage.removeItem("finix_token");
+        clearSession();
         setUser(null);
       });
   }, []);
 
   useEffect(() => {
     const handleUnauthorized = () => {
-      localStorage.removeItem("finix_token");
-      sessionStorage.removeItem("finix_token");
+      clearSession();
       setUser(null);
       navigate("/login", { replace: true });
     };
@@ -69,27 +77,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("finix-auth-unauthorized", handleUnauthorized);
   }, [navigate]);
 
-  const storeToken = (token: string, remember: boolean) => {
-    const storage = remember ? localStorage : sessionStorage;
-    storage.setItem("finix_token", token);
-  };
-
   const login = async (email: string, password: string, remember = true) => {
     try {
-      console.log("[AuthContext] Starting login request for:", email);
       const { data } = await api.post("/api/auth/login", { email, password });
       if (data.requiresTwoFactor) {
         return { requiresTwoFactor: true as const, pendingToken: data.pendingToken };
       }
-      console.log("[AuthContext] Login response received:", {
-        userId: data.user?.id,
-        verified: data.user?.isVerified,
-      });
-      storeToken(data.token, remember);
+      saveSession(data, remember);
       setUser(data.user);
-      console.log("[AuthContext] Login completed successfully");
     } catch (e) {
-      console.error("[AuthContext] Login error:", e);
       throw new Error(apiErrorMessage(e));
     }
   };
@@ -101,32 +97,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ) => {
     try {
       const { data } = await api.post("/api/auth/2fa/login", { pendingToken, ...codeOrBackup });
-      storeToken(data.token, remember);
+      saveSession(data, remember);
       setUser(data.user);
     } catch (e) {
       throw new Error(apiErrorMessage(e));
     }
   };
 
-  const loginWithToken = async (token: string, remember = true) => {
-    try {
-      console.log(
-        "[AuthContext] Authenticating with token from OAuth callback",
-      );
-      storeToken(token, remember);
-      const { data } = await api.get("/api/auth/me");
-      setUser(data);
-      console.log(
-        "[AuthContext] OAuth login completed successfully for:",
-        data?.email,
-      );
-    } catch (e) {
-      console.error("[AuthContext] OAuth login error:", e);
-      localStorage.removeItem("finix_token");
-      sessionStorage.removeItem("finix_token");
-      throw new Error(apiErrorMessage(e));
-    }
-  };
+  const loginWithToken = useCallback(
+    async (token: string, remember = true, refreshToken: string | null = null) => {
+      try {
+        saveSession({ token, refreshToken }, remember);
+        const { data } = await api.get("/api/auth/me");
+        setUser(data);
+      } catch (e) {
+        clearSession();
+        throw new Error(apiErrorMessage(e));
+      }
+    },
+    [],
+  );
 
   const register = async (
     name: string,
@@ -146,17 +136,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem("finix_token");
-    sessionStorage.removeItem("finix_token");
+    // Revoke the refresh token server-side; the local session ends either way.
+    const refreshToken = getRefreshToken();
+    if (refreshToken) {
+      api.post("/api/auth/logout", { refreshToken }).catch(() => {});
+    }
+    clearSession();
     setUser(null);
     navigate("/login", { replace: true });
   };
 
-  const refreshUser = async () => {
-    const token =
-      localStorage.getItem("finix_token") ||
-      sessionStorage.getItem("finix_token");
-    if (!token) return;
+  const refreshUser = useCallback(async () => {
+    if (!getAccessToken()) return;
     try {
       const r = await api.get("/api/auth/me");
       setUser((current) => {
@@ -169,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.error("Failed to refresh user:", e);
     }
-  };
+  }, []);
 
   return (
     <Ctx.Provider
