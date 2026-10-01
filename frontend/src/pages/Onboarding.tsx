@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { downscaleImage } from "../utils/image";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -25,7 +26,7 @@ import {
 } from "recharts";
 import { Logo } from "../components/Logo";
 import { useAuth } from "../contexts/AuthContext";
-import { api } from "../services/api";
+import { api, apiErrorMessage } from "../services/api";
 import toast from "react-hot-toast";
 
 const DEFAULT_CATEGORIES = [
@@ -128,14 +129,14 @@ export default function Onboarding() {
     const file = e.target.files?.[0];
     if (file) {
       const formData = new FormData();
-      formData.append("logo", file);
+      formData.append("logo", await downscaleImage(file, 512), file.name);
       try {
         const { data } = await api.post("/api/upload-logo", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         setLogoPreview(data.logoUrl);
       } catch (e) {
-        toast.error("Erro ao fazer upload do logo");
+        toast.error(apiErrorMessage(e) || "Erro ao fazer upload do logo");
       }
     }
   };

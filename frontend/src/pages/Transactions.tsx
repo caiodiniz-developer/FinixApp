@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { downscaleImage } from "../utils/image";
 import {
   Plus,
   Search,
@@ -597,7 +598,8 @@ function TxModal({
     setReceiptUploading(true);
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      // 1600px keeps a receipt perfectly readable at a fraction of the size.
+      formData.append("file", await downscaleImage(file, 1600), file.name);
       await api.post(`/api/transactions/${editing.id}/receipt`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });

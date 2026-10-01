@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { blobToDataUrl, downscaleImage } from "../utils/image";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -368,35 +369,31 @@ export default function Profile() {
     }
   };
 
-  // Lê o arquivo e converte para base64, depois envia direto
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Reduz a imagem no navegador (avatar não precisa de mais que 512px) e envia
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Arquivo muito grande (máx 5MB)");
-      return;
-    }
     if (!file.type.startsWith("image/")) {
       toast.error("Selecione uma imagem válida");
       return;
     }
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Arquivo muito grande (máx 15MB)");
+      return;
+    }
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const base64 = e.target?.result as string;
-      setPreview(base64);
-      setUploading(true);
-      try {
-        await api.put("/api/profile", { photo: base64 });
-        toast.success("Foto atualizada!");
-        await refreshUser();
-      } catch (err: any) {
-        toast.error(apiErrorMessage(err));
-      } finally {
-        setUploading(false);
-      }
-    };
-    reader.readAsDataURL(file);
+    setUploading(true);
+    try {
+      const photo = await blobToDataUrl(await downscaleImage(file, 512));
+      setPreview(photo);
+      await api.put("/api/profile", { photo });
+      toast.success("Foto atualizada!");
+      await refreshUser();
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const onSaveName = async (data: { name: string }) => {
