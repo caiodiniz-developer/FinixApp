@@ -42,7 +42,7 @@ npm run dev                 # http://localhost:8000
 
 No primeiro boot é criado o usuário administrador com `ADMIN_EMAIL` / `ADMIN_PASSWORD`. Em desenvolvimento, sem `ADMIN_PASSWORD`, a senha é `Admin@123`.
 
-Sem `RESEND_API_KEY`, o código de verificação de e-mail do cadastro é impresso no terminal da API.
+Sem provedor de e-mail configurado (`GMAIL_USER` + `GMAIL_APP_PASSWORD` ou `RESEND_API_KEY`), o código de verificação do cadastro é impresso no terminal da API.
 
 ### 2. Frontend
 
@@ -70,7 +70,7 @@ npm run dev                 # http://localhost:3000
 
 ## Variáveis de ambiente
 
-Todas estão documentadas em [backend-ts/.env.example](backend-ts/.env.example) e [frontend/.env.example](frontend/.env.example). Apenas `DATABASE_URL` e `JWT_SECRET` são obrigatórias; Stripe, Resend, login Google, push, Open Finance e IA ficam desligados quando não configurados.
+Todas estão documentadas em [backend-ts/.env.example](backend-ts/.env.example) e [frontend/.env.example](frontend/.env.example). Apenas `DATABASE_URL` e `JWT_SECRET` são obrigatórias; Stripe, e-mail (Gmail/Resend), login Google, push, Open Finance e IA ficam desligados quando não configurados.
 
 Em produção, defina também:
 
