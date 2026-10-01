@@ -18,12 +18,16 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
 const GMAIL_USER = (process.env.GMAIL_USER || "").trim().toLowerCase();
 const isProduction = process.env.NODE_ENV === "production";
 
-// Same host as the login callback, different path — both must be listed as
-// "Authorized redirect URIs" on the OAuth client in Google Cloud Console.
-const LOGIN_REDIRECT = process.env.GOOGLE_REDIRECT_URI || "http://localhost:8000/google/callback";
-export const GMAIL_REDIRECT_URI = LOGIN_REDIRECT.replace(/\/google\/callback\/?$/, "/google/gmail/callback");
+// Google must send the browser back to THIS API, so the callback URL is built
+// from the address the request itself arrived at (GMAIL_REDIRECT_URI
+// overrides it). The exact URL has to be listed under "Authorized redirect
+// URIs" on the OAuth client in Google Cloud Console.
+const redirectUri = (req: Request) =>
+  process.env.GMAIL_REDIRECT_URI?.trim() ||
+  `${req.protocol}://${req.get("host")}/google/gmail/callback`;
 
-const client = () => new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GMAIL_REDIRECT_URI);
+const client = (req: Request) =>
+  new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, redirectUri(req));
 
 const STATE_COOKIE = "gmail_connect_state";
 
@@ -39,7 +43,7 @@ const page = (title: string, body: string) => `<!DOCTYPE html>
 ${body}
 </div></body></html>`;
 
-export const gmailConnectController = (_req: Request, res: Response) => {
+export const gmailConnectController = (req: Request, res: Response) => {
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GMAIL_USER) {
     return res
       .status(501)
@@ -54,7 +58,7 @@ export const gmailConnectController = (_req: Request, res: Response) => {
     path: "/google/gmail",
   });
   res.redirect(
-    client().generateAuthUrl({
+    client(req).generateAuthUrl({
       // offline + consent = Google returns a refresh token every time.
       access_type: "offline",
       prompt: "consent",
@@ -80,7 +84,7 @@ export const gmailCallbackController = async (req: Request, res: Response) => {
   }
 
   try {
-    const oauth = client();
+    const oauth = client(req);
     const { tokens } = await oauth.getToken(code);
     const ticket = tokens.id_token
       ? await oauth.verifyIdToken({ idToken: tokens.id_token, audience: GOOGLE_CLIENT_ID })
