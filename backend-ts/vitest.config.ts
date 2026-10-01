@@ -11,7 +11,6 @@ export default defineConfig({
       DATABASE_URL: "postgresql://test:test@localhost:5432/test",
       JWT_SECRET: "test-secret",
       STRIPE_SECRET_KEY: "",
-      RESEND_API_KEY: "",
       GMAIL_USER: "",
       GMAIL_APP_PASSWORD: "",
       VAPID_PUBLIC_KEY: "",

@@ -1,13 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const sendMail = vi.fn();
-const resendSend = vi.fn();
 const createTransport = vi.fn(() => ({ sendMail }));
 
 vi.mock("nodemailer", () => ({ default: { createTransport } }));
-vi.mock("resend", () => ({
-  Resend: vi.fn(() => ({ emails: { send: resendSend } })),
-}));
 
 const email = { to: "ana@example.com", subject: "Código", html: "<b>123456</b>", text: "123456" };
 
@@ -15,7 +11,7 @@ const email = { to: "ana@example.com", subject: "Código", html: "<b>123456</b>"
 // sets the environment first and then imports a fresh copy.
 const loadMailer = async (env: Record<string, string>) => {
   vi.resetModules();
-  for (const key of ["GMAIL_USER", "GMAIL_APP_PASSWORD", "RESEND_API_KEY", "EMAIL_FROM"]) {
+  for (const key of ["GMAIL_USER", "GMAIL_APP_PASSWORD", "EMAIL_FROM_NAME"]) {
     vi.stubEnv(key, env[key] ?? "");
   }
   return import("../src/services/mailer");
@@ -23,9 +19,7 @@ const loadMailer = async (env: Record<string, string>) => {
 
 beforeEach(() => {
   sendMail.mockReset().mockResolvedValue({ messageId: "1" });
-  resendSend.mockReset().mockResolvedValue({ data: { id: "1" }, error: null });
   createTransport.mockClear();
-  vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -36,58 +30,47 @@ afterEach(() => {
 });
 
 describe("deliverEmail", () => {
-  it("sends through Gmail when it is configured", async () => {
-    const { deliverEmail } = await loadMailer({
+  it("sends through Gmail as the authenticated account", async () => {
+    const { deliverEmail, isEmailConfigured } = await loadMailer({
       GMAIL_USER: "finix@gmail.com",
       GMAIL_APP_PASSWORD: "abcd efgh ijkl mnop",
     });
 
-    expect(await deliverEmail(email)).toBe("gmail");
+    expect(isEmailConfigured).toBe(true);
+    expect(await deliverEmail(email)).toBe(true);
     expect(sendMail).toHaveBeenCalledWith({ from: "Finix <finix@gmail.com>", ...email });
     // the spaces Google shows in the app password are stripped
     expect(createTransport).toHaveBeenCalledWith(
-      expect.objectContaining({ auth: { user: "finix@gmail.com", pass: "abcdefghijklmnop" } }),
+      expect.objectContaining({
+        host: "smtp.gmail.com",
+        auth: { user: "finix@gmail.com", pass: "abcdefghijklmnop" },
+      }),
     );
-    expect(resendSend).not.toHaveBeenCalled();
   });
 
-  it("falls back to Resend when Gmail fails", async () => {
-    sendMail.mockRejectedValue(new Error("Connection timeout"));
+  it("uses the configured sender name", async () => {
     const { deliverEmail } = await loadMailer({
       GMAIL_USER: "finix@gmail.com",
       GMAIL_APP_PASSWORD: "abcdefghijklmnop",
-      RESEND_API_KEY: "re_test",
-      EMAIL_FROM: "Finix <noreply@finixapp.com.br>",
+      EMAIL_FROM_NAME: "Finix App",
     });
-
-    expect(await deliverEmail(email)).toBe("resend");
-    expect(resendSend).toHaveBeenCalledWith(
-      expect.objectContaining({ from: "Finix <noreply@finixapp.com.br>", to: ["ana@example.com"] }),
-    );
+    await deliverEmail(email);
+    expect(sendMail.mock.calls[0][0].from).toBe("Finix App <finix@gmail.com>");
   });
 
-  it("uses Resend alone when Gmail is not configured", async () => {
-    const { deliverEmail, mailProviders } = await loadMailer({ RESEND_API_KEY: "re_test" });
-    expect(mailProviders).toEqual(["resend"]);
-    expect(await deliverEmail(email)).toBe("resend");
-    expect(createTransport).not.toHaveBeenCalled();
-  });
-
-  it("throws when every configured provider fails", async () => {
+  it("throws when Gmail rejects the send", async () => {
     sendMail.mockRejectedValue(new Error("Invalid login"));
-    resendSend.mockResolvedValue({ data: null, error: { message: "domain not verified" } });
     const { deliverEmail } = await loadMailer({
       GMAIL_USER: "finix@gmail.com",
       GMAIL_APP_PASSWORD: "abcdefghijklmnop",
-      RESEND_API_KEY: "re_test",
     });
-
-    await expect(deliverEmail(email)).rejects.toThrow(/gmail: Invalid login; resend: domain not verified/);
+    await expect(deliverEmail(email)).rejects.toThrow(/Invalid login/);
   });
 
-  it("reports 'none' instead of failing when nothing is configured", async () => {
-    const { deliverEmail, mailProviders } = await loadMailer({});
-    expect(mailProviders).toEqual([]);
-    expect(await deliverEmail(email)).toBe("none");
+  it("returns false, without sending, when Gmail is not configured", async () => {
+    const { deliverEmail, isEmailConfigured } = await loadMailer({});
+    expect(isEmailConfigured).toBe(false);
+    expect(await deliverEmail(email)).toBe(false);
+    expect(createTransport).not.toHaveBeenCalled();
   });
 });
