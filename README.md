@@ -57,6 +57,7 @@ npm run dev                 # http://localhost:3000
 | --- | --- | --- |
 | `backend-ts` | `npm run dev` | API com recarga automática |
 | `backend-ts` | `npm test` | testes unitários |
+| `backend-ts` | `npm run test:integration` | testes das rotas contra um PostgreSQL local descartável (`TEST_DATABASE_URL`) |
 | `backend-ts` | `npm run typecheck` | checagem de tipos |
 | `backend-ts` | `npm run build` / `npm start` | compila para `dist/` e roda |
 | `backend-ts` | `npm run db:push` | aplica o `schema.prisma` no banco |
@@ -145,4 +146,3 @@ Uma compra em 12x cria 1 registro de parcelamento e 12 transações, uma por mê
 - Fotos, logos e comprovantes ficam no banco como base64 (reduzidos no navegador antes do envio). O ideal é movê-los para um storage de arquivos (S3, R2, Cloudinary).
 - O rate limit é em memória, por instância. Com mais de uma instância da API, precisa de um armazenamento compartilhado (Redis).
 - As páginas `Landing`, `Profile` e `Dashboard` do frontend já tiveram componentes e hooks extraídos, mas ainda têm entre 800 e 1000 linhas cada.
-- Ainda não há testes de integração das rotas da API (só testes unitários das regras).

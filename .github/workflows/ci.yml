@@ -13,6 +13,21 @@ jobs:
   backend:
     name: Backend (tipos + testes)
     runs-on: ubuntu-latest
+    # Banco descartável para os testes de integração das rotas.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: finix_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     defaults:
       run:
         working-directory: backend-ts
@@ -27,6 +42,9 @@ jobs:
       - run: npx prisma generate
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:integration
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/finix_test
 
   frontend:
     name: Frontend (lint + testes + build)
