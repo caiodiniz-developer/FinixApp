@@ -8,8 +8,6 @@ import {
   Trash2,
   X,
   Loader2,
-  ArrowUpRight,
-  ArrowDownRight,
   RefreshCw,
   CheckCircle2,
   Clock,
@@ -23,6 +21,9 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { SwipeRow, useTouchDevice } from "../components/SwipeRow";
+import { groupByDay } from "../utils/transactionGroups";
+import { categoryIcon, categoryColor } from "../utils/categoryIcons";
 import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Budget, Transaction, Contact } from "../types";
@@ -230,6 +231,9 @@ export default function Transactions() {
 
   // Agrupa exibição de parceladas — cada grupo aparece como 1 linha
   const displayItems = groupInstallments(items);
+  const days = groupByDay(displayItems);
+  // On a phone the row slides to show edit/delete instead of carrying buttons.
+  const touch = useTouchDevice();
 
   return (
     <div className="space-y-6" data-testid="transactions-page">
@@ -338,8 +342,20 @@ export default function Transactions() {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-border ">
-            {displayItems.map((t) => {
+          <div>
+            {days.map((day) => (
+            <section key={day.key} data-testid={`tx-day-${day.key}`}>
+              <header className="flex items-baseline justify-between gap-3 px-4 py-2 text-xs font-medium"
+                style={{ background: "var(--color-hairline)", color: "var(--color-text-low)" }}>
+                <span className="first-letter:uppercase" style={{ color: "var(--color-text-muted)" }}>{day.label}</span>
+                <span className="num">
+                  {day.total > 0 ? "+" : day.total < 0 ? "-" : ""}{currency(Math.abs(day.total))}
+                </span>
+              </header>
+              <div className="divide-y divide-border">
+            {day.items.map((t) => {
+              const CategoryIcon = categoryIcon(t.category);
+              const tint = categoryColor(t.category);
               const isInstallment =
                 t.installmentGroupId && (t.totalInstallments ?? 0) > 1;
               const currentNum = t.installmentNumber ?? 1; // parcela mais atual (ex: 1 de 4)
@@ -351,21 +367,22 @@ export default function Transactions() {
               const allPaid = currentNum === totalNum;
 
               return (
-                <motion.div
+                <SwipeRow
                   key={t.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  enabled={touch}
+                  onEdit={() => openEdit(t)}
+                  onDelete={() => onDelete(t)}
+                  testid={`tx-row-${t.id}`}
+                >
+                <div
                   className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-[var(--color-card-hover)] transition-colors"
-                  data-testid={`tx-row-${t.id}`}
                 >
                   <div
-                    className={`w-9 h-9 shrink-0 rounded-control flex items-center justify-center ${t.type === "INCOME" ? "bg-income/10 text-income" : "bg-[var(--color-hairline-strong)] text-muted"}`}
+                    className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center"
+                    style={{ background: `${tint}1f`, color: tint }}
+                    title={t.category}
                   >
-                    {t.type === "INCOME" ? (
-                      <ArrowUpRight className="w-5 h-5" />
-                    ) : (
-                      <ArrowDownRight className="w-5 h-5" />
-                    )}
+                    <CategoryIcon className="w-[1.125rem] h-[1.125rem]" />
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -399,7 +416,7 @@ export default function Transactions() {
                     {/* One quiet line of context instead of a row of chips */}
                     <div className="text-xs text-muted truncate mt-0.5">
                       {t.category} · {t.paymentMethod || "pix"}
-                      {t.currency !== "BRL" ? ` · ${t.currency}` : ""} · {dateBR(t.date)}
+                      {t.currency !== "BRL" ? ` · ${t.currency}` : ""}
                     </div>
 
                     {/* Barra de progresso das parcelas */}
@@ -434,7 +451,7 @@ export default function Transactions() {
                     )}
                   </div>
 
-                  <div className="flex items-center shrink-0 -mr-1 sm:mr-0 sm:gap-1">
+                  <div className={`items-center shrink-0 -mr-1 sm:mr-0 sm:gap-1 ${touch ? "hidden" : "flex"}`}>
                     {contacts.length > 0 && t.type === "EXPENSE" && !isInstallment && (
                       <button
                         className="btn-icon hidden sm:inline-flex"
@@ -462,9 +479,13 @@ export default function Transactions() {
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                </motion.div>
+                </div>
+                </SwipeRow>
               );
             })}
+              </div>
+            </section>
+            ))}
           </div>
         )}
       </div>
