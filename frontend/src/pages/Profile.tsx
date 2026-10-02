@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { ActivePill } from "../components/motion";
 import { useAuth } from "../contexts/AuthContext";
 import { useUserPhoto } from "../hooks/useUserPhoto";
 import { IntegrationsTab } from "../components/profile/IntegrationsTab";
@@ -382,13 +383,13 @@ export default function Profile() {
             role="tab"
             aria-selected={tab === item}
             onClick={() => setTab(item)}
-            className="shrink-0 px-3.5 py-2.5 text-sm font-medium transition-colors -mb-px"
-            style={{
-              color: tab === item ? "var(--color-primary)" : "var(--color-text-muted)",
-              borderBottom: `2px solid ${tab === item ? "var(--color-primary)" : "transparent"}`,
-            }}
+            className="relative shrink-0 px-3.5 py-2.5 text-sm font-medium transition-colors -mb-px"
+            style={{ color: tab === item ? "var(--color-primary)" : "var(--color-text-muted)" }}
           >
             {item}
+            {tab === item && (
+              <ActivePill group="profile-tab" className="!top-auto h-0.5 rounded-full" style={{ background: "var(--color-primary)" }} />
+            )}
           </button>
         ))}
       </div>
