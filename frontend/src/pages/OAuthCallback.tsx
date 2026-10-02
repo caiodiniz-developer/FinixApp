@@ -47,7 +47,7 @@ export default function OAuthCallback() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12 text-center">
-      <div className="max-w-xl w-full rounded-card border border-border bg-surface p-10 shadow-lg">
+      <div className="max-w-xl w-full rounded-card border border-border bg-surface p-10">
         <h1 className="text-2xl font-semibold text-text">Autenticando...</h1>
         <p className="mt-4 text-sm text-muted">{status}</p>
       </div>

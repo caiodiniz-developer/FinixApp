@@ -196,10 +196,10 @@ export default function Onboarding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               onSubmit={handleSubmit(onSubmit)}
-              className="bg-surface rounded-card shadow-xl p-8"
+              className="bg-surface rounded-card p-8"
             >
               <div className="space-y-10">
-                <div className="rounded-card border border-border bg-background p-6 shadow-sm">
+                <div className="rounded-card border border-border bg-background p-6">
                   <h2 className="text-xl font-semibold text-text mb-4">
                     Como você vai usar o Finix?
                   </h2>
@@ -466,7 +466,7 @@ export default function Onboarding() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="rounded-card border border-border bg-background p-6 shadow-sm"
+              className="rounded-card border border-border bg-background p-6"
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -591,7 +591,7 @@ export default function Onboarding() {
             </motion.div>
           </div>
           <div className="mt-10">
-            <div className="rounded-card border border-border bg-background p-6 shadow-sm">
+            <div className="rounded-card border border-border bg-background p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="text-sm font-semibold text-text">

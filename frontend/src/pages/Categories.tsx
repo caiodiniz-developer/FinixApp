@@ -167,7 +167,7 @@ export default function Categories() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <section className="card border border-border dark:border-border bg-surface dark:bg-surface p-6 shadow-sm">
+        <section className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-muted">
@@ -248,7 +248,7 @@ export default function Categories() {
           </div>
         </section>
 
-        <section className="card border border-border dark:border-border bg-surface dark:bg-surface p-6 shadow-sm">
+        <section className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
           <div className="mb-6 flex items-center justify-between gap-3">
             <div>
               <p className="text-sm text-muted">
@@ -364,7 +364,7 @@ export default function Categories() {
         </section>
       </div>
 
-      <section className="card border border-border dark:border-border bg-surface dark:bg-surface p-6 shadow-sm">
+      <section className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-text dark:text-text">
@@ -399,7 +399,7 @@ export default function Categories() {
                 key={category.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-card border border-border bg-surface p-4 shadow-sm dark:border-border dark:bg-surface-strong/50"
+                className="rounded-card border border-border bg-surface p-4 dark:border-border dark:bg-surface-strong/50"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">

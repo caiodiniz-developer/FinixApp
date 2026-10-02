@@ -157,7 +157,7 @@ export default function Cards() {
                 data-testid={`card-tile-${c.id}`}
               >
                 <div
-                  className="rounded-card p-5 text-white relative overflow-hidden shadow-lg cursor-pointer"
+                  className="rounded-card p-5 text-white relative overflow-hidden cursor-pointer"
                   style={{ background: `linear-gradient(135deg, ${c.color || "#2563eb"}, ${c.color || "#2563eb"}cc 60%, #111827)` }}
                   onClick={() => toggleExpand(c)}
                 >

@@ -334,7 +334,7 @@ export default function Calendar() {
             Visualize receitas, despesas e saldo diário com navegação mensal.
           </p>
         </div>
-        <div className="inline-flex self-start sm:self-auto items-center gap-2 rounded-card border border-border dark:border-border bg-surface dark:bg-surface px-3 py-2 shadow-sm">
+        <div className="inline-flex self-start sm:self-auto items-center gap-2 rounded-card border border-border dark:border-border bg-surface dark:bg-surface px-3 py-2">
           <button
             onClick={handlePrevMonth}
             className="btn-ghost rounded-full p-1.5 sm:p-2"
@@ -388,7 +388,7 @@ export default function Calendar() {
             ].map((item) => (
               <div
                 key={item.label}
-                className="card border border-border dark:border-border bg-surface dark:bg-surface p-3 sm:p-4 md:p-6 shadow-sm"
+                className="card border border-border dark:border-border bg-surface dark:bg-surface p-3 sm:p-4 md:p-6"
               >
                 <div className="text-2xs sm:text-xs sm: text-muted truncate">
                   <span className="sm:hidden">{item.label}</span>
@@ -413,7 +413,7 @@ export default function Calendar() {
           {/* Main grid: calendar + day detail */}
           <div className="grid gap-4 xl:grid-cols-[1.8fr_1fr]">
             {/* Calendar grid */}
-            <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-3 sm:p-4 shadow-sm">
+            <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-3 sm:p-4">
               {loading && (
                 <div className="mb-3 flex items-center gap-2 text-xs text-muted">
                   <Loader2 className="h-3 w-3 animate-spin" /> Atualizando...
@@ -462,7 +462,7 @@ export default function Calendar() {
                           !past
                             ? "border-border-strong bg-surface dark:bg-surface-strong/20 opacity-35 cursor-not-allowed"
                             : isActive
-                              ? "border-primary/50 bg-primary/10 dark:bg-primary/10 shadow-sm cursor-pointer"
+                              ? "border-primary/50 bg-primary/10 dark:bg-primary/10 cursor-pointer"
                               : "border-border dark:border-border bg-surface dark:bg-surface hover:border-primary/30 hover:bg-surface dark:hover:bg-surface-strong/60 cursor-pointer",
                         ].join(" ")}
                       >
@@ -545,7 +545,7 @@ export default function Calendar() {
             </div>
 
             {/* Day detail panel */}
-            <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-3 sm:p-4 md:p-6 shadow-sm">
+            <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-3 sm:p-4 md:p-6">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-2xs sm:text-xs text-muted">
