@@ -30,6 +30,8 @@ export function useDashboardData(isFree: boolean) {
   const [calDays, setCalDays] = useState<CalendarDay[]>([]);
   const [forecast, setForecast] = useState<Forecast | null>(null);
   const [topExpenses, setTopExpenses] = useState<TopExpense[]>([]);
+  // True once the secondary widgets answered — "no goals yet" is only known then.
+  const [extrasReady, setExtrasReady] = useState(false);
 
   const reload = useCallback(async () => {
     if (!user) return;
@@ -82,6 +84,7 @@ export function useDashboardData(isFree: boolean) {
       if (cl.status === "fulfilled") setCalDays(cl.value.data.dailySummary || []);
       if (ac.status === "fulfilled") setAccounts(ac.value.data);
       if (fc.status === "fulfilled") setForecast(fc.value.data);
+      setExtrasReady(true);
     });
   }, [user]);
 
@@ -122,5 +125,6 @@ export function useDashboardData(isFree: boolean) {
     calDays,
     forecast,
     topExpenses,
+    extrasReady,
   };
 }
