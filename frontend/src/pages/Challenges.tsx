@@ -6,6 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Challenge } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import { currency, dateBR } from "../utils/format";
@@ -34,14 +35,13 @@ export default function Challenges() {
   }, []);
 
   const onDelete = async (c: Challenge) => {
-    if (!window.confirm(`Excluir desafio "${c.title}"?`)) return;
-    try {
-      await api.delete(`/api/challenges/${c.id}`);
-      toast.success("Excluído");
-      fetchData();
-    } catch (e) {
-      toast.error(apiErrorMessage(e));
-    }
+    if (!(await confirmDialog({ title: `Excluir o desafio "${c.title}"?`, danger: true }))) return;
+    deleteWithUndo({
+      message: `Desafio "${c.title}" excluído`,
+      hide: () => setItems((list) => list?.filter((i) => i.id !== c.id) ?? null),
+      commit: () => api.delete(`/api/challenges/${c.id}`),
+      refresh: fetchData,
+    });
   };
 
   const submitProgress = async () => {

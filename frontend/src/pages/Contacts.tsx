@@ -18,6 +18,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog } from "../components/confirm";
 import { Contact, SplitExpense, PersonalLoan } from "../types";
 import { currency, dateBR } from "../utils/format";
 import { UpgradeModal } from "../components/UpgradeModal";
@@ -76,14 +77,13 @@ export default function Contacts() {
   };
 
   const deleteLoan = async (loan: PersonalLoan) => {
-    if (!window.confirm("Remover este empréstimo?")) return;
+    if (!(await confirmDialog({ title: "Remover este empréstimo?", danger: true, confirmLabel: "Remover" }))) return;
     await api.delete(`/api/personal-loans/${loan.id}`).catch(() => {});
     fetchLoans();
   };
 
   const onDelete = async (c: Contact) => {
-    if (!window.confirm(`Excluir o contato "${c.name}"? Os itens divididos com ele também somem.`))
-      return;
+    if (!(await confirmDialog({ title: `Excluir o contato "${c.name}"?`, message: "Os itens divididos com ele também somem.", danger: true }))) return;
     try {
       await api.delete(`/api/contacts/${c.id}`);
       toast.success("Excluído");
@@ -95,7 +95,7 @@ export default function Contacts() {
   };
 
   const settleAll = async (c: Contact) => {
-    if (!window.confirm(`Marcar tudo que ${c.name} te deve como pago?`)) return;
+    if (!(await confirmDialog({ title: `Marcar tudo que ${c.name} te deve como pago?`, confirmLabel: "Marcar como pago" }))) return;
     try {
       await api.post(`/api/contacts/${c.id}/settle-all`);
       toast.success("Liquidado!");

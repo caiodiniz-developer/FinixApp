@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog } from "../components/confirm";
 import { User, Transaction, Goal, Category } from "../types";
 import { currency, dateBR } from "../utils/format";
 
@@ -75,7 +76,7 @@ export default function Admin() {
   };
 
   const onDelete = async (u: User) => {
-    if (!window.confirm(`Excluir usuário ${u.email}?`)) return;
+    if (!(await confirmDialog({ title: `Excluir o usuário ${u.email}?`, message: "Todos os dados dessa conta são apagados. Não dá para desfazer.", danger: true }))) return;
     try {
       await api.delete(`/api/users/${u.id}`);
       toast.success("Excluído");

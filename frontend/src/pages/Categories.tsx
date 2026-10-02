@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Edit2, Trash2, RefreshCcw, Loader2, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog } from "../components/confirm";
 import { useAuth } from "../contexts/AuthContext";
 import { Category } from "../types";
 
@@ -127,7 +128,7 @@ export default function Categories() {
   };
 
   const removeCategory = async (category: Category) => {
-    if (!window.confirm(`Excluir categoria "${category.name}"?`)) return;
+    if (!(await confirmDialog({ title: `Excluir a categoria "${category.name}"?`, danger: true }))) return;
     try {
       await api.delete(`/api/categories/${category.id}`);
       setCategories((current) =>

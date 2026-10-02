@@ -6,6 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { RecurringTransaction } from "../types";
 import { currency, dateBR, dateISOForInput } from "../utils/format";
 
@@ -47,14 +48,13 @@ export default function Recurring() {
   };
 
   const onDelete = async (r: RecurringTransaction) => {
-    if (!window.confirm(`Excluir recorrência "${r.title}"?`)) return;
-    try {
-      await api.delete(`/api/recurring/${r.id}`);
-      toast.success("Excluída");
-      fetchData();
-    } catch (e) {
-      toast.error(apiErrorMessage(e));
-    }
+    if (!(await confirmDialog({ title: `Excluir a recorrência "${r.title}"?`, message: "As transações que ela já criou continuam no histórico.", danger: true }))) return;
+    deleteWithUndo({
+      message: `Recorrência "${r.title}" excluída`,
+      hide: () => setItems((list) => list?.filter((i) => i.id !== r.id) ?? null),
+      commit: () => api.delete(`/api/recurring/${r.id}`),
+      refresh: fetchData,
+    });
   };
 
   return (

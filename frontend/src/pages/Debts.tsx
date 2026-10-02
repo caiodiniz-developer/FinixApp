@@ -6,6 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Debt, DebtPayoffStep } from "../types";
 import { currency } from "../utils/format";
 
@@ -43,14 +44,13 @@ export default function Debts() {
   }, [items, method, extraPayment]);
 
   const onDelete = async (d: Debt) => {
-    if (!window.confirm(`Remover "${d.creditor}"?`)) return;
-    try {
-      await api.delete(`/api/debts/${d.id}`);
-      toast.success("Removida");
-      fetchData();
-    } catch (e) {
-      toast.error(apiErrorMessage(e));
-    }
+    if (!(await confirmDialog({ title: `Remover a dívida "${d.creditor}"?`, confirmLabel: "Remover", danger: true }))) return;
+    deleteWithUndo({
+      message: `Dívida "${d.creditor}" removida`,
+      hide: () => setItems((list) => list?.filter((i) => i.id !== d.id) ?? null),
+      commit: () => api.delete(`/api/debts/${d.id}`),
+      refresh: fetchData,
+    });
   };
 
   const orderedItems = strategy

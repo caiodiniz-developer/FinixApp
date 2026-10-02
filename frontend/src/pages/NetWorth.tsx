@@ -7,6 +7,7 @@ import * as yup from "yup";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { NetWorth as NetWorthData, Investment, InvestmentType, FireSimulation } from "../types";
 import { currency } from "../utils/format";
 
@@ -49,14 +50,13 @@ export default function NetWorthPage() {
   useEffect(() => { fetchAll(); }, []);
 
   const onDelete = async (inv: Investment) => {
-    if (!window.confirm(`Remover "${inv.name}"?`)) return;
-    try {
-      await api.delete(`/api/investments/${inv.id}`);
-      toast.success("Removido");
-      fetchAll();
-    } catch (e) {
-      toast.error(apiErrorMessage(e));
-    }
+    if (!(await confirmDialog({ title: `Remover "${inv.name}"?`, confirmLabel: "Remover", danger: true }))) return;
+    deleteWithUndo({
+      message: `"${inv.name}" removido`,
+      hide: () => setInvestments((list) => list?.filter((i) => i.id !== inv.id) ?? null),
+      commit: () => api.delete(`/api/investments/${inv.id}`),
+      refresh: fetchAll,
+    });
   };
 
   const pieData = netWorth?.investmentsByType.map((t) => ({

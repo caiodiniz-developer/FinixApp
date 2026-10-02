@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog } from "../components/confirm";
 import toast from "react-hot-toast";
 
 // ─── Plan definitions ────────────────────────────────────────────────────────
@@ -153,7 +154,13 @@ export default function Plans() {
 
   const handleCancel = async () => {
     if (!user || user.plan === "FREE") return;
-    if (!window.confirm("Cancelar assinatura? Você mantém o plano até o fim do período já pago e depois volta ao Grátis.")) return;
+    if (!(await confirmDialog({
+      title: "Cancelar assinatura?",
+      message: "Você mantém o plano até o fim do período já pago e depois volta ao Grátis.",
+      confirmLabel: "Cancelar assinatura",
+      cancelLabel: "Manter plano",
+      danger: true,
+    }))) return;
     setLoading("cancel");
     try {
       const r = await api.post("/api/stripe/cancel-subscription", {});
