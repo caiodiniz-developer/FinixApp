@@ -6,6 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Challenge } from "../types";
 import { useAuth } from "../contexts/AuthContext";
@@ -159,7 +160,7 @@ export default function Challenges() {
 }
 
 function ChallengeModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({ resolver: yupResolver(schema) as any });
+  const { register, control, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({ resolver: yupResolver(schema) as any });
 
   const onSubmit = async (data: Form) => {
     try {
@@ -188,7 +189,7 @@ function ChallengeModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
           </div>
           <div>
             <label className="text-sm font-medium">Meta (R$)</label>
-            <input type="number" step="0.01" {...register("targetAmount")} aria-invalid={!!errors.targetAmount} className="input mt-1" />
+            <MoneyField control={control} name="targetAmount" aria-invalid={!!errors.targetAmount} className="input mt-1" />
             {errors.targetAmount && <p className="text-xs text-expense mt-1">{errors.targetAmount.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">

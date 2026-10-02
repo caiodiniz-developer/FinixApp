@@ -18,6 +18,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Goal, GoalInvite } from "../types";
 import { currency, dateBR, dateISOForInput } from "../utils/format";
@@ -356,7 +357,7 @@ function GoalModal({
   onSaved: () => void;
 }) {
   const {
-    register,
+    register, control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
@@ -436,10 +437,7 @@ function GoalModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Meta (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                {...register("targetAmount")} aria-invalid={!!errors.targetAmount}
+              <MoneyField control={control} name="targetAmount" aria-invalid={!!errors.targetAmount}
                 className="input mt-1"
                 data-testid="goal-target"
               />
@@ -451,10 +449,7 @@ function GoalModal({
             </div>
             <div>
               <label className="text-sm font-medium">Já guardado (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                {...register("currentAmount")} aria-invalid={!!errors.currentAmount}
+              <MoneyField control={control} name="currentAmount" aria-invalid={!!errors.currentAmount}
                 className="input mt-1"
                 data-testid="goal-current"
               />

@@ -15,6 +15,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Budget } from "../types";
 import { currency, CATEGORIES, CATEGORY_COLORS } from "../utils/format";
@@ -216,7 +217,7 @@ function BudgetModal({
   onSaved: () => void;
 }) {
   const {
-    register,
+    register, control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
@@ -281,10 +282,7 @@ function BudgetModal({
           </div>
           <div>
             <label className="text-sm font-medium">Limite mensal (R$)</label>
-            <input
-              type="number"
-              step="0.01"
-              {...register("limit")} aria-invalid={!!errors.limit}
+            <MoneyField control={control} name="limit" aria-invalid={!!errors.limit}
               className="input mt-1"
               data-testid="budget-limit"
             />

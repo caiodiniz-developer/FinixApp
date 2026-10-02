@@ -17,6 +17,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { CreditCard, Transaction } from "../types";
 import { currency, dateBR } from "../utils/format";
@@ -302,7 +303,7 @@ function CardModal({
   onLimitReached: () => void;
 }) {
   const {
-    register,
+    register, control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
@@ -389,7 +390,7 @@ function CardModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Limite (opcional)</label>
-              <input type="number" step="0.01" min="0" {...register("limit")} aria-invalid={!!errors.limit} className="input mt-1" data-testid="card-limit" />
+              <MoneyField control={control} name="limit" aria-invalid={!!errors.limit} className="input mt-1" data-testid="card-limit" />
             </div>
             <div>
               <label className="text-sm font-medium">Cor</label>

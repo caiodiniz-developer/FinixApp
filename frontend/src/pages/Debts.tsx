@@ -6,6 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Debt, DebtPayoffStep } from "../types";
 import { currency } from "../utils/format";
@@ -154,7 +155,7 @@ export default function Debts() {
 }
 
 function DebtModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({
+  const { register, control, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({
     resolver: yupResolver(schema) as any,
     defaultValues: { interestRate: 0, minPayment: 0 } as any,
   });
@@ -187,12 +188,12 @@ function DebtModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Valor total (R$)</label>
-              <input type="number" step="0.01" {...register("totalAmount")} aria-invalid={!!errors.totalAmount} className="input mt-1" />
+              <MoneyField control={control} name="totalAmount" aria-invalid={!!errors.totalAmount} className="input mt-1" />
               {errors.totalAmount && <p className="text-xs text-expense mt-1">{errors.totalAmount.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Falta pagar (R$)</label>
-              <input type="number" step="0.01" {...register("remainingAmount")} aria-invalid={!!errors.remainingAmount} className="input mt-1" />
+              <MoneyField control={control} name="remainingAmount" aria-invalid={!!errors.remainingAmount} className="input mt-1" />
               {errors.remainingAmount && <p className="text-xs text-expense mt-1">{errors.remainingAmount.message}</p>}
             </div>
           </div>
@@ -203,7 +204,7 @@ function DebtModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
             </div>
             <div>
               <label className="text-sm font-medium">Parcela mínima (R$)</label>
-              <input type="number" step="0.01" {...register("minPayment")} aria-invalid={!!errors.minPayment} className="input mt-1" />
+              <MoneyField control={control} name="minPayment" aria-invalid={!!errors.minPayment} className="input mt-1" />
             </div>
           </div>
           <div>

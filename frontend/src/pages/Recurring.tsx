@@ -6,6 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { RecurringTransaction } from "../types";
 import { currency, dateBR, dateISOForInput } from "../utils/format";
@@ -130,7 +131,7 @@ export default function Recurring() {
 }
 
 function RecurringModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({
+  const { register, control, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({
     resolver: yupResolver(schema) as any,
     defaultValues: {
       type: "EXPENSE",
@@ -168,7 +169,7 @@ function RecurringModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Valor (R$)</label>
-              <input type="number" step="0.01" {...register("amount")} aria-invalid={!!errors.amount} className="input mt-1" />
+              <MoneyField control={control} name="amount" aria-invalid={!!errors.amount} className="input mt-1" />
               {errors.amount && <p className="text-xs text-expense mt-1">{errors.amount.message}</p>}
             </div>
             <div>

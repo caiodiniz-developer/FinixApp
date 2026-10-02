@@ -7,6 +7,7 @@ import * as yup from "yup";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { NetWorth as NetWorthData, Investment, InvestmentType, FireSimulation } from "../types";
 import { currency } from "../utils/format";
@@ -200,7 +201,7 @@ export default function NetWorthPage() {
 }
 
 function InvestmentModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({
+  const { register, control, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({
     resolver: yupResolver(schema) as any,
     defaultValues: { type: "TESOURO_DIRETO" } as any,
   });
@@ -239,12 +240,12 @@ function InvestmentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Valor investido (R$)</label>
-              <input type="number" step="0.01" {...register("investedAmount")} aria-invalid={!!errors.investedAmount} className="input mt-1" />
+              <MoneyField control={control} name="investedAmount" aria-invalid={!!errors.investedAmount} className="input mt-1" />
               {errors.investedAmount && <p className="text-xs text-expense mt-1">{errors.investedAmount.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Valor atual (R$)</label>
-              <input type="number" step="0.01" {...register("currentValue")} aria-invalid={!!errors.currentValue} className="input mt-1" />
+              <MoneyField control={control} name="currentValue" aria-invalid={!!errors.currentValue} className="input mt-1" />
               {errors.currentValue && <p className="text-xs text-expense mt-1">{errors.currentValue.message}</p>}
             </div>
           </div>

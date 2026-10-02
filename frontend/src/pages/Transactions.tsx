@@ -23,6 +23,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Budget, Transaction, Contact } from "../types";
 import { currency, dateBR, dateISOForInput } from "../utils/format";
@@ -530,7 +531,7 @@ function TxModal({
     : transactionCategories[0] || DEFAULT_CATEGORIES[0];
 
   const {
-    register,
+    register, control,
     handleSubmit,
     watch,
     formState: { errors, isSubmitting },
@@ -728,10 +729,7 @@ function TxModal({
               <label className="text-sm font-medium text-text dark:text-muted">
                 Valor (R$)
               </label>
-              <input
-                type="number"
-                step="0.01"
-                {...register("amount")} aria-invalid={!!errors.amount}
+              <MoneyField control={control} name="amount" aria-invalid={!!errors.amount}
                 className="input mt-1"
                 data-testid="tx-amount"
               />
