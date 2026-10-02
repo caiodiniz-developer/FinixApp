@@ -900,3 +900,35 @@ html[data-app-theme="dark"] .toast-glass {
     linear-gradient(135deg, #f6e3a1, #c9a24a);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
 }
+
+/* ── Dark theme depth ─────────────────────────────────────────────────────
+   Three soft colour fields behind everything and a faint light from above on
+   each card, so the dark theme reads as layers instead of one flat black. */
+.dashboard-theme.dark {
+  --backdrop-a: rgba(91, 147, 255, 0.17);
+  --backdrop-b: rgba(56, 189, 248, 0.09);
+  --backdrop-c: rgba(129, 92, 246, 0.1);
+}
+
+.dashboard-theme.dark .app-backdrop {
+  background-image:
+    radial-gradient(60rem 40rem at 12% -10%, var(--backdrop-a), transparent 60%),
+    radial-gradient(50rem 36rem at 100% 0%, var(--backdrop-b), transparent 55%),
+    radial-gradient(55rem 40rem at 70% 110%, var(--backdrop-c), transparent 60%);
+}
+
+.dashboard-theme.dark .card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 45%),
+    rgba(18, 21, 27, 0.86);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.dashboard-theme.dark .glass {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 50%),
+    var(--glass-bg);
+  box-shadow:
+    0 0 0 1px var(--glass-outline),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
