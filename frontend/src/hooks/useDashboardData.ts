@@ -56,6 +56,12 @@ export function useDashboardData(isFree: boolean) {
     reload();
   }, [user, reload]);
 
+  // The quick-add in the layout announces new transactions with this event.
+  useEffect(() => {
+    window.addEventListener("finix-transaction-created", reload);
+    return () => window.removeEventListener("finix-transaction-created", reload);
+  }, [reload]);
+
   useEffect(() => {
     if (!user) return;
     const now = new Date();

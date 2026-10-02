@@ -324,18 +324,18 @@ export default function Dashboard() {
             {stats.map(s => {
               const good = s.diff !== null && s.diff !== 0 && (s.inv ? s.diff < 0 : s.diff > 0);
               return (
-                <div key={s.label} className="glass rounded-card p-4">
+                <div key={s.label} className="glass rounded-card p-3.5 sm:p-4 min-w-0">
                   <div className="flex items-center justify-between">
                     <span className="eyebrow">{s.label}</span>
                     <s.icon className="w-4 h-4" style={{ color: s.color }} />
                   </div>
-                  <div className="text-2xl font-semibold num tracking-tight mt-2" style={{ color: "var(--color-text)" }} data-testid={`stat-${s.label}`}>
+                  <div className="text-lg sm:text-2xl font-semibold num tracking-tight mt-2 truncate" style={{ color: "var(--color-text)" }} data-testid={`stat-${s.label}`}>
                     {currency(s.value)}
                   </div>
                   <div className="flex items-end justify-between mt-2 min-h-[1.75rem]">
                     {s.diff !== null ? (
                       <span className="text-xs font-medium num" style={{ color: s.diff === 0 ? "var(--color-text-low)" : good ? INCOME : EXPENSE }}>
-                        {s.diff > 0 ? "+" : ""}{s.diff.toFixed(1)}% <span style={{ color: "var(--color-text-low)" }}>vs. mês passado</span>
+                        {s.diff > 0 ? "+" : ""}{s.diff.toFixed(1)}% <span className="hidden sm:inline" style={{ color: "var(--color-text-low)" }}>vs. mês passado</span>
                       </span>
                     ) : <span />}
                     <Sparkline values={s.spark} color={s.color} />
