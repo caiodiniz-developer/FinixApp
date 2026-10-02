@@ -357,7 +357,7 @@ export default function Transactions() {
                   key={t.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="flex items-center gap-4 p-4 hover:bg-background dark:hover:bg-surface-strong/50 transition"
+                  className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-[var(--color-card-hover)] transition-colors"
                   data-testid={`tx-row-${t.id}`}
                 >
                   <div
@@ -371,7 +371,7 @@ export default function Transactions() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold truncate flex items-center gap-2 flex-wrap">
+                    <div className="font-medium text-sm sm:text-base flex items-center gap-x-2 gap-y-1 flex-wrap">
                       {t.title}
                       {t.recurring && (
                         <span className="chip bg-primary/10 text-primary !py-0.5 text-2xs">
@@ -398,19 +398,10 @@ export default function Transactions() {
                         ))}
                     </div>
 
-                    <div className="text-xs text-muted flex items-center gap-2 flex-wrap mt-0.5">
-                      <span className="chip bg-surface dark:bg-surface-strong !py-0.5 text-muted dark:text-muted">
-                        {t.category}
-                      </span>
-                      <span className="chip bg-surface dark:bg-surface-strong !py-0.5 text-muted dark:text-muted">
-                        {t.paymentMethod || "pix"}
-                      </span>
-                      {t.currency !== "BRL" && (
-                        <span className="chip bg-surface dark:bg-surface-strong !py-0.5 text-muted dark:text-muted">
-                          {t.currency}
-                        </span>
-                      )}
-                      {dateBR(t.date)}
+                    {/* One quiet line of context instead of a row of chips */}
+                    <div className="text-xs text-muted truncate mt-0.5">
+                      {t.category} · {t.paymentMethod || "pix"}
+                      {t.currency !== "BRL" ? ` · ${t.currency}` : ""} · {dateBR(t.date)}
                     </div>
 
                     {/* Barra de progresso das parcelas */}
@@ -432,9 +423,9 @@ export default function Transactions() {
                   </div>
 
                   <div
-                    className={`min-w-[104px] text-right font-semibold num ${t.type === "INCOME" ? "text-income" : "text-text"} flex flex-col items-end`}
+                    className={`shrink-0 text-right font-semibold num ${t.type === "INCOME" ? "text-income" : "text-text"} flex flex-col items-end`}
                   >
-                    <span className="text-base sm:text-lg">
+                    <span className="text-sm sm:text-base">
                       {t.type === "INCOME" ? "+" : "-"}
                       {currency(t.amount)}
                     </span>
@@ -445,10 +436,10 @@ export default function Transactions() {
                     )}
                   </div>
 
-                  <div className="flex gap-1 items-center">
+                  <div className="flex items-center shrink-0 -mr-1 sm:mr-0 sm:gap-1">
                     {contacts.length > 0 && t.type === "EXPENSE" && !isInstallment && (
                       <button
-                        className="btn-ghost !p-2"
+                        className="btn-icon hidden sm:inline-flex"
                         onClick={() => setSplitting(t)}
                         data-testid={`split-${t.id}`}
                         title="Dividir com contatos"
@@ -457,7 +448,7 @@ export default function Transactions() {
                       </button>
                     )}
                     <button
-                      className="btn-ghost !p-2"
+                      className="btn-icon"
                       onClick={() => openEdit(t)}
                       data-testid={`edit-${t.id}`}
                       title="Editar"
@@ -465,7 +456,7 @@ export default function Transactions() {
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
-                      className="btn-ghost !p-2 hover:!text-expense"
+                      className="btn-icon hover:!text-expense"
                       onClick={() => onDelete(t)}
                       data-testid={`delete-${t.id}`}
                       title="Excluir"
