@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Calendar,
   ArrowDownRight,
+  Wifi,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -18,6 +19,7 @@ import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
 import { EmptyArt, SkeletonCard } from "../components/placeholders";
+import { CountUp } from "../components/motion";
 import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { CreditCard, Transaction } from "../types";
@@ -44,6 +46,27 @@ const monthLabel = (ref: string) => {
   const [y, m] = ref.split("-").map(Number);
   return new Date(y, m - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 };
+
+/** The flag in the corner of the card: drawn for the common ones, written out otherwise. */
+function CardBrand({ brand }: { brand?: string | null }) {
+  const name = (brand || "").trim();
+  const key = name.toLowerCase();
+  if (key.includes("master")) {
+    return (
+      <span className="shrink-0 flex" title={name} aria-label={name}>
+        <span className="w-7 h-7 rounded-full" style={{ background: "#eb001b" }} />
+        <span className="w-7 h-7 rounded-full -ml-3" style={{ background: "#f79e1b", opacity: 0.9 }} />
+      </span>
+    );
+  }
+  if (!name) return null;
+  const visa = key.includes("visa");
+  return (
+    <span className={`shrink-0 font-display font-bold uppercase ${visa ? "italic text-xl tracking-tight" : "text-sm tracking-widest"}`}>
+      {name}
+    </span>
+  );
+}
 
 export default function Cards() {
   const [items, setItems] = useState<CreditCard[] | null>(null);
@@ -159,18 +182,14 @@ export default function Cards() {
                 data-testid={`card-tile-${c.id}`}
               >
                 <div
-                  className="rounded-card p-5 text-white relative overflow-hidden cursor-pointer"
-                  style={{ background: `linear-gradient(135deg, ${c.color || "#2563eb"}, ${c.color || "#2563eb"}cc 60%, #111827)` }}
+                  className="credit-card"
+                  style={{ "--card-color": c.color || "#2563eb" } as React.CSSProperties}
                   onClick={() => toggleExpand(c)}
                 >
-                  <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/10" />
-                  <div className="absolute -right-2 -bottom-10 w-20 h-20 rounded-full bg-white/10" />
                   <div className="relative flex items-start justify-between">
-                    <div>
-                      <p className="text-xs opacity-70">
-                        {c.brand || "Cartão de crédito"}
-                      </p>
-                      <h3 className="text-lg font-semibold mt-0.5">{c.name}</h3>
+                    <div className="flex items-center gap-3">
+                      <span className="credit-card-chip" aria-hidden="true" />
+                      <Wifi className="w-5 h-5 rotate-90 opacity-70" aria-hidden="true" />
                     </div>
                     <div className="flex gap-1">
                       <button
@@ -196,18 +215,30 @@ export default function Cards() {
                       </button>
                     </div>
                   </div>
-                  <div className="relative mt-6">
-                    <p className="text-2xs opacity-70">Fatura atual</p>
-                    <p className="text-2xl font-display font-semibold">
-                      {currency(c.currentStatement.total)}
+                  <div className="relative mt-5">
+                    <p className="text-2xs uppercase tracking-wider opacity-70">Fatura atual</p>
+                    <p className="text-2xl font-display font-semibold num">
+                      <CountUp value={c.currentStatement.total} />
                     </p>
+                    {c.limit ? (
+                      <div className="mt-2 flex items-center gap-2 text-2xs opacity-80">
+                        <div className="flex-1 h-1 rounded-full bg-white/20 overflow-hidden">
+                          <div className="progress-fill h-full rounded-full bg-white"
+                            style={{ width: `${Math.min(100, (c.currentStatement.total / c.limit) * 100)}%` }} />
+                        </div>
+                        <span className="num">limite {currency(c.limit)}</span>
+                      </div>
+                    ) : null}
                   </div>
-                  <div className="relative flex items-center justify-between mt-4 text-xs opacity-80">
-                    <span>Fecha dia {c.closingDay}</span>
-                    <span>
-                      Vence {dateBR(c.currentStatement.dueDate)}
-                      {daysToDue >= 0 && daysToDue <= 10 ? ` · em ${daysToDue}d` : ""}
-                    </span>
+                  <div className="relative flex items-end justify-between gap-3 mt-4">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold tracking-wide truncate">{c.name}</h3>
+                      <p className="text-2xs opacity-75 mt-0.5">
+                        Fecha dia {c.closingDay} · vence {dateBR(c.currentStatement.dueDate)}
+                        {daysToDue >= 0 && daysToDue <= 10 ? ` · em ${daysToDue}d` : ""}
+                      </p>
+                    </div>
+                    <CardBrand brand={c.brand} />
                   </div>
                 </div>
 
