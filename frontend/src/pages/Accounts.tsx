@@ -112,7 +112,7 @@ export default function Accounts() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.05 }}
-                className="card relative overflow-hidden"
+                className="card lift relative overflow-hidden"
                 data-testid={`account-card-${a.id}`}
               >
                 <div className="flex items-start justify-between">
