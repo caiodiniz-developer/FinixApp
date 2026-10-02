@@ -85,14 +85,17 @@ export function ConfirmHost() {
 
 // ─── Delete with "undo" ──────────────────────────────────────────────────────
 // The item leaves the screen at once, but the request is only sent after a few
-// seconds — time enough to press "Desfazer". Leaving or closing the page sends
-// what is pending straight away, so nothing is ever left half deleted.
+// seconds — time enough to press "Desfazer". Switching tab or leaving the page
+// sends what is pending straight away. If the browser is closed before the
+// request gets out, the item simply is still there next time: nothing is lost.
 
 const UNDO_MS = 5000;
 const pendingCommits = new Map<string, () => void>();
 
 if (typeof window !== "undefined") {
-  window.addEventListener("pagehide", () => pendingCommits.forEach((run) => run()));
+  const flush = () => pendingCommits.forEach((run) => run());
+  window.addEventListener("pagehide", flush);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
 }
 
 interface UndoableDelete {
