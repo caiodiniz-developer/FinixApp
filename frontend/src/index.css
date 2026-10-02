@@ -790,3 +790,53 @@ html[data-app-theme="dark"] .toast-glass {
     padding-top: 14vh;
   }
 }
+
+/* ── Placeholders ─────────────────────────────────────────────────────────
+   Skeletons shimmer instead of blinking; empty screens get a small drawing. */
+.skeleton {
+  animation: shimmer 1.6s linear infinite;
+  background: linear-gradient(
+    100deg,
+    var(--color-hairline-strong) 30%,
+    var(--color-hairline) 50%,
+    var(--color-hairline-strong) 70%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes float-y {
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes twinkle {
+  50% { opacity: 0.25; }
+}
+
+.empty-art {
+  position: relative;
+  width: 160px;
+  height: 120px;
+  margin-bottom: 0.5rem;
+}
+
+.empty-art-tile {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin: -1.625rem 0 0 -1.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  color: rgb(var(--c-primary));
+  box-shadow:
+    0 0 0 1px var(--glass-outline),
+    var(--shadow-lift);
+  animation: float-y 4s ease-in-out infinite;
+}
+
+.empty-art-dot {
+  animation: twinkle 2.4s ease-in-out infinite;
+}
