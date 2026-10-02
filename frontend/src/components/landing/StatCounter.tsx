@@ -34,7 +34,7 @@ export function StatCounter({
   const n = useCountUp(value, 1.8, inView);
   return (
     <div ref={ref} className="text-center">
-      <div className="text-4xl sm:text-5xl font-display font-extrabold bg-gradient-to-br from-brand-blue via-brand-purple to-brand-green bg-clip-text text-transparent tabular-nums">
+      <div className="text-4xl sm:text-5xl font-display font-extrabold bg-gradient-to-br from-brand-blue via-brand-blue-strong to-brand-green bg-clip-text text-transparent tabular-nums">
         {prefix}
         {n.toLocaleString("pt-BR")}
         {suffix}

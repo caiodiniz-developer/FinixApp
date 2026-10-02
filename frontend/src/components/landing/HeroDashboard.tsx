@@ -10,7 +10,7 @@ export function HeroDashboard() {
       transition={{ duration: 0.8, delay: 0.2, type: "spring", stiffness: 70 }}
       className="relative perspective"
     >
-      <div className="absolute -inset-4 sm:-inset-8 bg-gradient-to-br from-brand-blue/30 via-brand-purple/30 to-brand-green/30 blur-3xl rounded-full opacity-60" />
+      <div className="absolute -inset-4 sm:-inset-8 bg-gradient-to-br from-brand-blue/30 via-brand-blue-strong/30 to-brand-green/30 blur-3xl rounded-full opacity-60" />
       <motion.div
         initial={{ opacity: 0, x: 30, y: 20 }}
         animate={{ opacity: 1, x: 0, y: 0 }}
@@ -23,7 +23,7 @@ export function HeroDashboard() {
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         >
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-purple to-pink-500 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-blue-strong to-pink-500 flex items-center justify-center text-white">
               <Brain className="w-4 h-4" />
             </div>
             <div className="text-xs font-semibold">Finix IA</div>
@@ -101,7 +101,7 @@ export function HeroDashboard() {
             {
               label: "Metas",
               value: "R$ 16,0k",
-              color: "from-brand-blue to-brand-purple",
+              color: "from-brand-blue to-brand-blue-strong",
             },
           ].map((c, i) => (
             <motion.div
@@ -132,7 +132,7 @@ export function HeroDashboard() {
                 duration: 0.6,
                 ease: "easeOut",
               }}
-              className="flex-1 rounded-t-md bg-gradient-to-t from-brand-blue to-brand-purple"
+              className="flex-1 rounded-t-md bg-gradient-to-t from-brand-blue to-brand-blue-strong"
             />
           ))}
         </div>

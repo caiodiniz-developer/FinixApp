@@ -90,7 +90,7 @@ export function SplitModal({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-display text-xl font-bold flex items-center gap-2">
-              <Split className="w-4 h-4 text-brand-purple" /> Dividir despesa
+              <Split className="w-4 h-4 text-brand-blue-strong" /> Dividir despesa
             </h2>
             <p className="text-xs text-muted mt-0.5">
               {transaction.title} · {currency(transaction.amount)}

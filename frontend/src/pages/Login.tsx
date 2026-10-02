@@ -88,7 +88,7 @@ export default function Login() {
 
       {/* ── Left panel — dark, estilo landing hero ─────────────────── */}
       <div className="hidden lg:flex flex-col justify-between relative overflow-hidden bg-auth-side p-12">
-        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full bg-brand-purple/20 blur-3xl pointer-events-none" />
+        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full bg-brand-blue-strong/20 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full bg-brand-green/15 blur-3xl pointer-events-none" />
 
         {/* Logo */}

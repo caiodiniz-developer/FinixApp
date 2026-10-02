@@ -94,7 +94,7 @@ export default function Budgets() {
               ? "from-red-500 to-rose-500"
               : warning
                 ? "from-amber-400 to-orange-500"
-                : "from-brand-blue to-brand-purple";
+                : "from-brand-blue to-brand-blue-strong";
             const catColor = CATEGORY_COLORS[b.category] || "#64748B";
             return (
               <motion.div

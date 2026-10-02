@@ -83,7 +83,7 @@ export default function Landing() {
     <div className="min-h-screen bg-surface overflow-x-hidden">
       {/* Progress bar */}
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-blue via-brand-purple to-brand-green origin-left z-50"
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-blue via-brand-blue-strong to-brand-green origin-left z-50"
         style={{ scaleX: scrollYProgress }}
       />
 
@@ -204,7 +204,7 @@ export default function Landing() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="chip bg-gradient-to-r from-brand-blue/10 to-brand-purple/10 text-brand-blue mb-5 border border-brand-blue/20 backdrop-blur w-fit"
+              className="chip bg-gradient-to-r from-brand-blue/10 to-brand-blue-strong/10 text-brand-blue mb-5 border border-brand-blue/20 backdrop-blur w-fit"
             >
               <Sparkles className="w-3.5 h-3.5" /> Powered por Finix IA
             </motion.div>
@@ -216,14 +216,14 @@ export default function Landing() {
             >
               Controle suas finanças como um{" "}
               <span className="relative inline-block">
-                <span className="bg-gradient-to-r from-brand-blue via-brand-purple to-brand-green bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-brand-blue via-brand-blue-strong to-brand-green bg-clip-text text-transparent">
                   PROFISSIONAL
                 </span>
                 <motion.span
                   initial={{ width: 0 }}
                   animate={{ width: "100%" }}
                   transition={{ delay: 0.8, duration: 0.6 }}
-                  className="absolute -bottom-1 left-0 h-1 bg-gradient-to-r from-brand-blue via-brand-purple to-brand-green rounded-full"
+                  className="absolute -bottom-1 left-0 h-1 bg-gradient-to-r from-brand-blue via-brand-blue-strong to-brand-green rounded-full"
                 />
               </span>
             </motion.h1>
@@ -340,7 +340,7 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center max-w-2xl mx-auto mb-12"
           >
-            <div className="chip bg-brand-purple/10 text-brand-purple mb-3 mx-auto border border-brand-purple/20 w-fit">
+            <div className="chip bg-brand-blue-strong/10 text-brand-blue-strong mb-3 mx-auto border border-brand-blue-strong/20 w-fit">
               Funcionalidades
             </div>
             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-display font-extrabold tracking-tight">
@@ -400,7 +400,7 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="card hover:shadow-glow transition-all group p-6"
+                className="card hover:shadow-soft transition-all group p-6"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 rounded-2xl bg-surface group-hover:bg-brand-blue/10 transition flex items-center justify-center">
@@ -769,7 +769,7 @@ export default function Landing() {
       </section>
 
       {/* CTA final + Formulário de contato */}
-      <section className="py-16 sm:py-24 bg-gradient-to-br from-brand-blue via-brand-purple to-brand-green relative overflow-hidden">
+      <section className="py-16 sm:py-24 bg-gradient-to-br from-brand-blue via-brand-blue-strong to-brand-green relative overflow-hidden">
         <motion.div
           className="absolute inset-0 opacity-20"
           animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}

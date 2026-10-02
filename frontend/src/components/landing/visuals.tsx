@@ -20,7 +20,7 @@ export function DashboardVisual() {
           {
             label: "Saldo",
             v: "R$ 19,2k",
-            c: "from-brand-blue to-brand-purple",
+            c: "from-brand-blue to-brand-blue-strong",
           },
           {
             label: "Receitas",
@@ -103,7 +103,7 @@ export function AIInsightsVisual() {
   };
   return (
     <div
-      className="relative rounded-2xl p-5 border border-brand-purple/20"
+      className="relative rounded-2xl p-5 border border-brand-blue-strong/20"
       style={{
         background:
           "linear-gradient(135deg, rgba(37,99,235,0.08) 0%, rgba(124,58,237,0.12) 50%, rgba(34,197,94,0.08) 100%)",
@@ -111,7 +111,7 @@ export function AIInsightsVisual() {
       }}
     >
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-blue to-brand-purple flex items-center justify-center text-white">
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-blue to-brand-blue-strong flex items-center justify-center text-white">
           <Sparkles className="w-4 h-4" />
         </div>
         <div>
@@ -147,14 +147,14 @@ export function GoalsVisual() {
       pct: 41,
       cur: "R$ 6.200",
       tgt: "R$ 15.000",
-      c: "from-brand-blue to-brand-purple",
+      c: "from-brand-blue to-brand-blue-strong",
     },
     {
       t: "Viagem Europa",
       pct: 17,
       cur: "R$ 4.300",
       tgt: "R$ 25.000",
-      c: "from-brand-purple to-pink-500",
+      c: "from-brand-blue-strong to-pink-500",
     },
     {
       t: "Notebook novo",

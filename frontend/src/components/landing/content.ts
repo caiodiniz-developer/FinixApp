@@ -21,7 +21,7 @@ export const features = [
     icon: Brain,
     title: "Finix IA",
     desc: "Recomendações personalizadas com inteligência artificial para economizar mais.",
-    gradient: "from-brand-purple to-pink-500",
+    gradient: "from-brand-blue-strong to-pink-500",
   },
   {
     icon: Target,

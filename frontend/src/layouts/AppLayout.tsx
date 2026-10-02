@@ -247,7 +247,7 @@ export default function AppLayout() {
           ) : (
             <span className="font-display font-extrabold text-[1.15rem] tracking-tight whitespace-nowrap">
               <span style={{ color: "var(--color-text)" }}>FINI</span>
-              <span className="bg-gradient-to-r from-brand-blue to-brand-purple bg-clip-text text-transparent">X</span>
+              <span className="bg-gradient-to-r from-brand-blue to-brand-blue-strong bg-clip-text text-transparent">X</span>
             </span>
           ))}
         </div>

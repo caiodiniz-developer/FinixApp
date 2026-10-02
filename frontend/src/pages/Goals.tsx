@@ -165,7 +165,7 @@ export default function Goals() {
                 className="card relative overflow-hidden"
                 data-testid={`goal-card-${g.id}`}
               >
-                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-brand-blue/20 to-brand-purple/20 blur-2xl" />
+                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-brand-blue/20 to-brand-blue-strong/20 blur-2xl" />
                 <div className="relative flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ export default function Goals() {
                       initial={{ width: 0 }}
                       animate={{ width: `${pct}%` }}
                       transition={{ duration: 1, ease: "easeOut" }}
-                      className={`h-full rounded-full ${done ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-gradient-to-r from-brand-blue to-brand-purple"}`}
+                      className={`h-full rounded-full ${done ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-gradient-to-r from-brand-blue to-brand-blue-strong"}`}
                     />
                   </div>
                   <div className="flex items-center justify-between mt-2 text-xs">

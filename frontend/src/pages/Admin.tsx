@@ -107,7 +107,7 @@ export default function Admin() {
               label: "Usuários",
               value: stats.totalUsers,
               icon: Users,
-              color: "from-brand-blue to-brand-purple",
+              color: "from-brand-blue to-brand-blue-strong",
             },
             {
               label: "Admins",
@@ -125,7 +125,7 @@ export default function Admin() {
               label: "Metas",
               value: stats.totalGoals,
               icon: Target,
-              color: "from-brand-purple to-pink-500",
+              color: "from-brand-blue-strong to-pink-500",
             },
           ].map((s, i) => (
             <motion.div
@@ -275,7 +275,7 @@ export default function Admin() {
                   <tr key={u.id} data-testid={`user-row-${u.id}`}>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-blue to-brand-purple flex items-center justify-center text-white font-bold">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-blue to-brand-blue-strong flex items-center justify-center text-white font-bold">
                           {u.name.charAt(0).toUpperCase()}
                         </div>
                         <span className="font-semibold">{u.name}</span>
@@ -513,7 +513,7 @@ function UserDetail({
           <>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-blue to-brand-purple flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-blue to-brand-blue-strong flex items-center justify-center text-white font-bold text-lg">
                   {data.user.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -898,7 +898,7 @@ function UserDetail({
                       </div>
                       <div className="h-2 bg-surface-strong dark:bg-surface rounded-full mt-1.5 overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-brand-blue to-brand-purple"
+                          className="h-full bg-gradient-to-r from-brand-blue to-brand-blue-strong"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

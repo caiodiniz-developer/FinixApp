@@ -374,7 +374,7 @@ export default function Transactions() {
                     <div className="font-semibold truncate flex items-center gap-2 flex-wrap">
                       {t.title}
                       {t.recurring && (
-                        <span className="chip bg-brand-purple/10 text-brand-purple !py-0.5 text-[10px]">
+                        <span className="chip bg-brand-blue-strong/10 text-brand-blue-strong !py-0.5 text-[10px]">
                           <RefreshCw className="w-3 h-3" />{" "}
                           {t.recurringFrequency || "recorrente"}
                         </span>
@@ -954,7 +954,7 @@ function TxModal({
               <span className="text-sm font-medium text-text dark:text-muted">
                 Transação recorrente
               </span>
-              <RefreshCw className="w-4 h-4 text-brand-purple ml-auto" />
+              <RefreshCw className="w-4 h-4 text-brand-blue-strong ml-auto" />
             </label>
             {isRec && (
               <div className="mt-2">

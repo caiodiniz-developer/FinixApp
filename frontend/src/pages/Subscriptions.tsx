@@ -52,7 +52,7 @@ export default function Subscriptions() {
     <div className="space-y-6" data-testid="subscriptions-page">
       <div>
         <h1 className="text-3xl font-display font-extrabold tracking-tight flex items-center gap-2">
-          <Ghost className="w-7 h-7 text-brand-purple" /> Caça-fantasma de assinaturas
+          <Ghost className="w-7 h-7 text-brand-blue-strong" /> Caça-fantasma de assinaturas
         </h1>
         <p className="text-muted mt-1">
           Cobranças que se repetem no mesmo valor, todo mês, sem você ter marcado como recorrente. Pode ser uma assinatura que ninguém mais usa.
