@@ -129,7 +129,7 @@ export const PLANS: Record<
   },
   PRO: {
     id: "PRO",
-    name: "🚀 Finix Pro",
+    name: "Finix Pro",
     description:
       "Para pequenas empresas - R$35/mês (ou R$350/ano com economia de R$70)",
     price: 35,

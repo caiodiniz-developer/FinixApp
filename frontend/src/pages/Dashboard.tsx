@@ -257,7 +257,7 @@ export default function Dashboard() {
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "var(--color-text)" }}>
+          <h1 className="text-3xl font-display font-semibold tracking-tight" style={{ color: "var(--color-text)" }}>
             {user.plan === "PRO" && user.companyName ? user.companyName : `Olá, ${user.name.split(" ")[0]}`}
           </h1>
           <p className="text-sm mt-0.5 first-letter:" style={{ color: "var(--color-text-low)" }}>

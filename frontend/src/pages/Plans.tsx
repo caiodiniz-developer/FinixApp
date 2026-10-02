@@ -175,7 +175,7 @@ export default function Plans() {
       <div className="space-y-8 pb-10">
         {/* ── HEADER ──────────────────────────────────────────────── */}
         <header>
-          <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "var(--color-text)" }}>Planos</h1>
+          <h1 className="text-3xl font-display font-semibold tracking-tight" style={{ color: "var(--color-text)" }}>Planos</h1>
           <p className="text-sm mt-0.5" style={{ color: "var(--color-text-low)" }}>
             Escolha o plano ideal para sua realidade. Cancele quando quiser, sem multa.
             {currentPlan && <> Seu plano atual é o <strong style={{ color: "var(--color-text)" }}>{currentPlan.name}</strong>.</>}
