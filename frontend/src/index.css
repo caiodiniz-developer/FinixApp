@@ -768,3 +768,25 @@ html[data-app-theme="dark"] .toast-glass {
     bottom: calc(5.25rem + env(safe-area-inset-bottom)) !important;
   }
 }
+
+/* Keyboard key hint */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.35rem;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-low);
+  background: var(--color-hairline);
+  border: 1px solid var(--color-border);
+}
+
+/* The "Ir para…" search opens near the top, like a spotlight. */
+@media (min-width: 640px) {
+  .palette-overlay {
+    align-items: flex-start;
+    padding-top: 14vh;
+  }
+}

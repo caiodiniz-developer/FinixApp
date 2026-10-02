@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import { MotionConfig, LayoutGroup } from "framer-motion";
 import {
@@ -8,7 +8,7 @@ import {
   CalendarDays, Tag, Plus, X, ChevronDown, MoreHorizontal,
   PanelLeftClose, PanelLeftOpen,
   Landmark, CreditCard as CardIcon, Users, Ghost, Trophy,
-  Wallet2, Sparkles, Heart, Repeat, Scale,
+  Wallet2, Sparkles, Heart, Repeat, Scale, Search, UserRound,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "../components/Logo";
@@ -19,6 +19,7 @@ import { api, apiErrorMessage } from "../services/api";
 import { todayISO } from "../utils/format";
 import { ActivePill } from "../components/motion";
 import { ConfirmHost } from "../components/confirm";
+import { CommandPalette, type Command } from "../components/CommandPalette";
 import { MoneyInput } from "../components/MoneyInput";
 
 interface NavItem { to: string; icon: LucideIcon; label: string; testid: string; badge?: number; }
@@ -45,6 +46,32 @@ export default function AppLayout() {
   });
   const [alertCount, setAlertCount] = useState(0);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const openQuickAdd = useCallback(() => setQuickAddOpen(true), []);
+  const isAdmin = user?.role === "ADMIN";
+  // Every screen, for the "Ir para…" search (Ctrl+K).
+  const commands = useMemo<Command[]>(() => [
+    { to: "/app/dashboard", icon: LayoutDashboard, label: "Dashboard", keywords: "inicio resumo saldo" },
+    { to: "/app/transactions", icon: ArrowLeftRight, label: "Transações", keywords: "gastos receitas despesas extrato" },
+    { to: "/app/accounts", icon: Landmark, label: "Contas", keywords: "banco carteira" },
+    { to: "/app/cards", icon: CardIcon, label: "Cartões", keywords: "credito fatura" },
+    { to: "/app/budgets", icon: Wallet, label: "Orçamentos", keywords: "limite" },
+    { to: "/app/goals", icon: Target, label: "Metas", keywords: "objetivo guardar" },
+    { to: "/app/calendar", icon: CalendarDays, label: "Calendário", keywords: "datas vencimentos" },
+    { to: "/app/alerts", icon: Bell, label: "Alertas", keywords: "avisos notificacoes" },
+    { to: "/app/recurring", icon: Repeat, label: "Recorrências", keywords: "fixo mensal" },
+    { to: "/app/contacts", icon: Users, label: "Contatos", keywords: "dividir emprestimo" },
+    { to: "/app/net-worth", icon: Wallet2, label: "Patrimônio", keywords: "investimentos" },
+    { to: "/app/debts", icon: Scale, label: "Dívidas", keywords: "quitar" },
+    { to: "/app/subscriptions", icon: Ghost, label: "Assinaturas", keywords: "streaming" },
+    { to: "/app/challenges", icon: Trophy, label: "Desafios" },
+    { to: "/app/household", icon: Heart, label: "Casal/Família" },
+    { to: "/app/year-review", icon: Sparkles, label: "Resumo do ano" },
+    { to: "/app/categories", icon: Tag, label: "Categorias" },
+    { to: "/app/plans", icon: Crown, label: "Planos", keywords: "assinatura upgrade pro" },
+    { to: "/app/profile", icon: UserRound, label: "Perfil e configurações", keywords: "conta senha foto integracoes" },
+    ...(isAdmin ? [{ to: "/app/admin", icon: Shield, label: "Admin" }] : []),
+  ], [isAdmin]);
   const [quickForm, setQuickForm] = useState({ title: "", amount: "", type: "EXPENSE" as "INCOME" | "EXPENSE", category: "Outros", accountId: "" });
   const [quickLoading, setQuickLoading] = useState(false);
   const [quickAccounts, setQuickAccounts] = useState<{ id: string; name: string }[]>([]);
@@ -225,8 +252,18 @@ export default function AppLayout() {
         </button>
       </div>
 
+      {/* Search */}
+      <div className="px-3 mt-2">
+        <button onClick={() => { setOpen(false); setPaletteOpen(true); }} title="Ir para… (Ctrl+K)" data-testid="open-palette"
+          className={`w-full flex items-center ${collapsed ? "justify-center" : ""} gap-2.5 px-3 py-2 rounded-control text-sm transition-colors hover:bg-[var(--color-card-hover)]`}
+          style={{ color: "var(--color-text-low)", border: "1px solid var(--color-border)" }}>
+          <Search className="w-4 h-4 shrink-0" />
+          {!collapsed && <><span className="flex-1 text-left">Ir para…</span><kbd className="kbd">Ctrl K</kbd></>}
+        </button>
+      </div>
+
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 scrollbar-hide">
+      <nav className="flex-1 overflow-y-auto py-3 px-2 scrollbar-hide">
         {mainItems.map(renderItem)}
 
         <button
@@ -390,6 +427,7 @@ export default function AppLayout() {
           </div>
         </div>
       )}
+      <CommandPalette commands={commands} open={paletteOpen} setOpen={setPaletteOpen} onNewTransaction={openQuickAdd} />
       <ConfirmHost />
     </div>
     </MotionConfig>
