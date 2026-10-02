@@ -73,7 +73,7 @@ export function IntegrationsTab() {
   return (
     <section className="space-y-6">
       {/* Open Finance */}
-      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
+      <div className="card">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="font-display font-semibold text-lg text-text flex items-center gap-2">
@@ -101,7 +101,7 @@ export function IntegrationsTab() {
       </div>
 
       {/* Webhooks */}
-      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
+      <div className="card">
         <h2 className="font-display font-semibold text-lg text-text flex items-center gap-2">
           <Webhook className="w-5 h-5" /> Webhooks
         </h2>
@@ -132,7 +132,7 @@ export function IntegrationsTab() {
       </div>
 
       {/* API Keys */}
-      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
+      <div className="card">
         <h2 className="font-display font-semibold text-lg text-text flex items-center gap-2">
           <KeyRound className="w-5 h-5" /> Chaves de API
         </h2>

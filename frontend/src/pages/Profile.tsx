@@ -351,67 +351,50 @@ export default function Profile() {
 
   return (
     <div className="space-y-6" data-testid="profile-page">
-      <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-        {/* Sidebar */}
-        <aside className="rounded-card border border-border bg-surface p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <Avatar size={56} />
-            <div>
-              <p className="text-sm text-muted">Bom te ver de novo,</p>
-              <h2 className="text-xl font-semibold text-text">{user.name}</h2>
-              <p className="text-sm text-muted">Plano {planName}</p>
-            </div>
+      <div className="page-header">
+        <div className="flex items-center gap-4">
+          <Avatar size={48} />
+          <div>
+            <h1 className="page-title">{user.name}</h1>
+            <p className="page-subtitle">Ajuste sua conta, veja o uso do plano e acesse exportações.</p>
           </div>
+        </div>
+        <span className="chip chip-primary self-start sm:self-auto">{planName}</span>
+      </div>
 
-          <div className="mt-8 space-y-3">
-            {(
-              [
-                "Perfil",
-                "Segurança",
-                "Assinatura",
-                "Notificações",
-                "Empresa",
-                "Exportação",
-                "Integrações",
-                "Ferramentas",
-              ] as Tab[]
-            ).map((item) => (
-              <button
-                key={item}
-                onClick={() => setTab(item)}
-                className={`w-full rounded-card px-4 py-3 text-left text-sm font-medium transition ${
- tab === item
- ? "bg-primary/10 text-primary"
-                    : "bg-surface-strong text-muted hover:bg-surface-strong"
-                }`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </aside>
+      {/* Tabs — one row, scrolls sideways on a phone */}
+      <div className="flex gap-1 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0" role="tablist"
+        style={{ borderBottom: "1px solid var(--color-border)" }}>
+        {(
+          [
+            "Perfil",
+            "Segurança",
+            "Assinatura",
+            "Notificações",
+            "Empresa",
+            "Exportação",
+            "Integrações",
+            "Ferramentas",
+          ] as Tab[]
+        ).map((item) => (
+          <button
+            key={item}
+            role="tab"
+            aria-selected={tab === item}
+            onClick={() => setTab(item)}
+            className="shrink-0 px-3.5 py-2.5 text-sm font-medium transition-colors -mb-px"
+            style={{
+              color: tab === item ? "var(--color-primary)" : "var(--color-text-muted)",
+              borderBottom: `2px solid ${tab === item ? "var(--color-primary)" : "transparent"}`,
+            }}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
 
-        <main className="space-y-6">
-          {/* Header card */}
-          <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-muted">
-                  Perfil
-                </p>
-                <h1 className="page-title">
-                  Configurações pessoais
-                </h1>
-              </div>
-              <div className="rounded-full bg-surface-strong px-4 py-2 text-sm font-semibold text-muted">
-                {planName}
-              </div>
-            </div>
-            <p className="mt-3 text-sm text-muted">
-              Ajuste sua conta, veja o uso do plano e acesse exportações.
-            </p>
-          </div>
-
+      <div>
+        <div className="space-y-6">
           {/* Perfil tab */}
           {tab === "Perfil" && (
             <section className="space-y-6">
@@ -419,7 +402,7 @@ export default function Profile() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-card border border-border bg-surface p-6 shadow-sm"
+                  className="card"
                 >
                   <h2 className="font-display font-semibold text-lg text-text">
                     Dados de usuário
@@ -471,7 +454,7 @@ export default function Profile() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-card border border-border bg-surface p-6 shadow-sm"
+                  className="card"
                 >
                   <h2 className="font-display font-semibold text-lg text-text">
                     Foto de perfil
@@ -581,7 +564,7 @@ export default function Profile() {
 
           {/* Segurança tab */}
           {tab === "Segurança" && (
-            <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
+            <section className="card">
               <h2 className="font-display font-semibold text-lg text-text">
                 Segurança
               </h2>
@@ -709,7 +692,7 @@ export default function Profile() {
           {/* Assinatura tab */}
           {tab === "Assinatura" && (
             <section className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
+              <div className="card">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm text-muted">
@@ -766,7 +749,7 @@ export default function Profile() {
                   </div>
                 </div>
               </div>
-              <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
+              <div className="card">
                 <h3 className="font-semibold text-text">Atualize seu plano</h3>
                 <p className="mt-2 text-sm text-muted">
                   Acesse recursos premium como gestão de categorias, IA e
@@ -784,7 +767,7 @@ export default function Profile() {
 
           {/* Notificações tab */}
           {tab === "Notificações" && (
-            <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
+            <section className="card">
               <h2 className="font-display font-semibold text-lg text-text">
                 Notificações
               </h2>
@@ -844,7 +827,7 @@ export default function Profile() {
 
           {/* Empresa tab */}
           {tab === "Empresa" && (
-            <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
+            <section className="card">
               <h2 className="font-display font-semibold text-lg text-text">
                 Empresa
               </h2>
@@ -894,7 +877,7 @@ export default function Profile() {
 
           {/* Exportação tab */}
           {tab === "Exportação" && (
-            <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
+            <section className="card">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h2 className="font-display font-semibold text-lg text-text">
@@ -968,7 +951,7 @@ export default function Profile() {
           {tab === "Ferramentas" && (
             <ToolsTab />
           )}
-        </main>
+        </div>
       </div>
     </div>
   );

@@ -91,7 +91,7 @@ export function ToolsTab() {
   return (
     <section className="space-y-6">
       {/* Round-up */}
-      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
+      <div className="card">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="font-display font-semibold text-lg text-text flex items-center gap-2">
@@ -123,7 +123,7 @@ export function ToolsTab() {
       </div>
 
       {/* Modo Autônomo/MEI */}
-      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
+      <div className="card">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="font-display font-semibold text-lg text-text flex items-center gap-2">
@@ -193,7 +193,7 @@ export function ToolsTab() {
       </div>
 
       {/* CLT vs PJ */}
-      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
+      <div className="card">
         <h2 className="font-display font-semibold text-lg text-text flex items-center gap-2">
           <Scale className="w-5 h-5" /> Calculadora CLT vs PJ
         </h2>
