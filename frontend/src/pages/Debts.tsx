@@ -106,10 +106,10 @@ export default function Debts() {
           {[1, 2].map((i) => <div key={i} className="skeleton h-32" />)}
         </div>
       ) : items.length === 0 ? (
-        <div className="card text-center py-14">
-          <TrendingDown className="w-12 h-12 mx-auto text-muted" />
-          <p className="mt-3 font-semibold text-lg">Nenhuma dívida cadastrada</p>
-          <p className="text-sm text-muted mt-1">Se você não deve nada, ótimo — nem precisa mexer aqui.</p>
+        <div className="empty-state">
+          <TrendingDown className="w-8 h-8" />
+          <p className="empty-state-title mt-1">Nenhuma dívida cadastrada</p>
+          <p className="text-sm max-w-sm">Se você não deve nada, ótimo — nem precisa mexer aqui.</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

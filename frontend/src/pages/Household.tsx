@@ -52,7 +52,7 @@ export default function Household() {
     try {
       await api.post(`/api/household/invites/${inv.id}/${accept ? "accept" : "decline"}`);
       setInvites((prev) => prev.filter((i) => i.id !== inv.id));
-      if (accept) { toast.success("Você entrou no household!"); fetchAll(); }
+      if (accept) { toast.success("Você entrou no grupo!"); fetchAll(); }
     } catch (e) {
       toast.error(apiErrorMessage(e));
     }
@@ -76,7 +76,7 @@ export default function Household() {
           <p className="text-sm font-semibold">Convites pendentes</p>
           {invites.map((inv) => (
             <div key={inv.id} className="flex items-center justify-between gap-3 rounded-control bg-surface-strong p-3 text-sm">
-              <span><strong>{inv.sender?.name}</strong> te convidou pro household "{inv.household?.name}"</span>
+              <span><strong>{inv.sender?.name}</strong> te convidou para o grupo "{inv.household?.name}"</span>
               <div className="flex gap-2 shrink-0">
                 <button onClick={() => respond(inv, true)} className="btn-primary !py-1.5 !px-3 text-xs"><Check className="w-3.5 h-3.5" /> Aceitar</button>
                 <button onClick={() => respond(inv, false)} className="btn-outline !py-1.5 !px-3 text-xs">Recusar</button>
@@ -89,7 +89,7 @@ export default function Household() {
       {!household ? (
         <div className="card text-center py-14">
           <Users className="w-12 h-12 mx-auto text-muted" />
-          <p className="mt-3 font-semibold text-lg">Você ainda não tem um household</p>
+          <p className="mt-3 font-semibold text-lg">Você ainda não tem um grupo familiar</p>
           <p className="text-sm text-muted mt-1 mb-4">Crie um pra combinar sua visão financeira com seu parceiro(a) ou família.</p>
           <div className="flex gap-2 max-w-sm mx-auto">
             <input value={name} onChange={(e) => setName(e.target.value)} className="input flex-1" placeholder="Nome (ex: Casa)" />

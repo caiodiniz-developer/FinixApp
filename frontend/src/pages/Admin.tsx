@@ -107,25 +107,21 @@ export default function Admin() {
               label: "Usuários",
               value: stats.totalUsers,
               icon: Users,
-              color: "from-primary to-primary",
             },
             {
               label: "Admins",
               value: stats.totalAdmins,
               icon: Shield,
-              color: "from-warning to-warning",
             },
             {
               label: "Transações",
               value: stats.totalTransactions,
               icon: Activity,
-              color: "from-income to-income",
             },
             {
               label: "Metas",
               value: stats.totalGoals,
               icon: Target,
-              color: "from-primary to-expense",
             },
           ].map((s, i) => (
             <motion.div
@@ -136,10 +132,7 @@ export default function Admin() {
               className="card relative overflow-hidden"
             >
               <div
-                className={`absolute -top-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br ${s.color} opacity-10 blur-xl`}
-              />
-              <div
-                className={`w-10 h-10 rounded-control bg-gradient-to-br ${s.color} flex items-center justify-center text-white mb-3`}
+                className="w-9 h-9 rounded-control bg-primary/10 text-primary flex items-center justify-center mb-3"
               >
                 <s.icon className="w-5 h-5" />
               </div>
@@ -181,25 +174,21 @@ export default function Admin() {
               label: "Free",
               value: stats.freeUsers,
               icon: Users,
-              color: "from-slate-500 to-slate-700",
             },
             {
               label: "Basic",
               value: stats.basicUsers,
               icon: Zap,
-              color: "from-primary to-primary",
             },
             {
               label: "Pro",
               value: stats.proUsers,
               icon: Shield,
-              color: "from-primary to-expense",
             },
             {
               label: "Receita",
               value: currency(stats.totalRevenue),
               icon: TrendingUp,
-              color: "from-income to-income",
             },
           ].map((s, i) => (
             <motion.div
@@ -210,10 +199,7 @@ export default function Admin() {
               className="card relative overflow-hidden"
             >
               <div
-                className={`absolute -top-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br ${s.color} opacity-10 blur-xl`}
-              />
-              <div
-                className={`w-10 h-10 rounded-control bg-gradient-to-br ${s.color} flex items-center justify-center text-white mb-3`}
+                className="w-9 h-9 rounded-control bg-primary/10 text-primary flex items-center justify-center mb-3"
               >
                 <s.icon className="w-5 h-5" />
               </div>

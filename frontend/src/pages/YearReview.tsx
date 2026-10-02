@@ -53,18 +53,18 @@ export default function YearReview() {
 
             <div className="grid sm:grid-cols-2 gap-4 mt-10">
               <div className="rounded-card p-5 bg-white/10 backdrop-blur">
-                <TrendingUp className="w-5 h-5 text-income mb-2" />
+                <TrendingUp className="w-5 h-5 text-white/70 mb-2" />
                 <p className="text-xs text-white/60">Total recebido</p>
                 <p className="text-2xl font-semibold mt-1">{currency(data.totalIncome)}</p>
               </div>
               <div className="rounded-card p-5 bg-white/10 backdrop-blur">
-                <TrendingDown className="w-5 h-5 text-expense mb-2" />
+                <TrendingDown className="w-5 h-5 text-white/70 mb-2" />
                 <p className="text-xs text-white/60">Total gasto</p>
                 <p className="text-2xl font-semibold mt-1">{currency(data.totalExpense)}</p>
               </div>
               {data.topCategory && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
-                  <Receipt className="w-5 h-5 text-warning mb-2" />
+                  <Receipt className="w-5 h-5 text-white/70 mb-2" />
                   <p className="text-xs text-white/60">Categoria #1</p>
                   <p className="text-2xl font-semibold mt-1">{data.topCategory.category}</p>
                   <p className="text-xs text-white/60 mt-1">{currency(data.topCategory.amount)}</p>
@@ -72,7 +72,7 @@ export default function YearReview() {
               )}
               {data.bestMonth && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
-                  <Calendar className="w-5 h-5 text-primary mb-2" />
+                  <Calendar className="w-5 h-5 text-white/70 mb-2" />
                   <p className="text-xs text-white/60">Melhor mês</p>
                   <p className="text-2xl font-semibold mt-1">{data.bestMonth.month}</p>
                   <p className="text-xs text-white/60 mt-1">{currency(data.bestMonth.net)}</p>
@@ -80,7 +80,7 @@ export default function YearReview() {
               )}
               {data.goalsCompleted > 0 && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
-                  <Trophy className="w-5 h-5 text-warning mb-2" />
+                  <Trophy className="w-5 h-5 text-white/70 mb-2" />
                   <p className="text-xs text-white/60">Metas concluídas</p>
                   <p className="text-2xl font-semibold mt-1">{data.goalsCompleted}</p>
                 </div>
