@@ -15,6 +15,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Budget } from "../types";
 import { currency, CATEGORIES, CATEGORY_COLORS } from "../utils/format";
 
@@ -35,14 +36,13 @@ export default function Budgets() {
   }, []);
 
   const onDelete = async (b: Budget) => {
-    if (!window.confirm(`Excluir orçamento de ${b.category}?`)) return;
-    try {
-      await api.delete(`/api/budgets/${b.id}`);
-      toast.success("Excluído");
-      fetchData();
-    } catch (e) {
-      toast.error(apiErrorMessage(e));
-    }
+    if (!(await confirmDialog({ title: `Excluir o orçamento de ${b.category}?`, danger: true }))) return;
+    deleteWithUndo({
+      message: `Orçamento de ${b.category} excluído`,
+      hide: () => setItems((list) => list?.filter((i) => i.id !== b.id) ?? null),
+      commit: () => api.delete(`/api/budgets/${b.id}`),
+      refresh: fetchData,
+    });
   };
 
   return (

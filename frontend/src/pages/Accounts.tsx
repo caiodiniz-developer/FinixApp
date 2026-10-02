@@ -17,6 +17,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Account } from "../types";
 import { currency } from "../utils/format";
 import { UpgradeModal } from "../components/UpgradeModal";
@@ -53,14 +54,13 @@ export default function Accounts() {
   }, []);
 
   const onDelete = async (a: Account) => {
-    if (!window.confirm(`Excluir a conta "${a.name}"?`)) return;
-    try {
-      await api.delete(`/api/accounts/${a.id}`);
-      toast.success("Excluída");
-      fetchData();
-    } catch (e) {
-      toast.error(apiErrorMessage(e));
-    }
+    if (!(await confirmDialog({ title: `Excluir a conta "${a.name}"?`, message: "As transações ligadas a ela continuam no histórico.", danger: true }))) return;
+    deleteWithUndo({
+      message: `Conta "${a.name}" excluída`,
+      hide: () => setItems((list) => list?.filter((i) => i.id !== a.id) ?? null),
+      commit: () => api.delete(`/api/accounts/${a.id}`),
+      refresh: fetchData,
+    });
   };
 
   const openNew = () => {

@@ -18,6 +18,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Goal, GoalInvite } from "../types";
 import { currency, dateBR, dateISOForInput } from "../utils/format";
 import { celebrate } from "../utils/celebrate";
@@ -83,14 +84,13 @@ export default function Goals() {
   }, []);
 
   const onDelete = async (g: Goal) => {
-    if (!window.confirm(`Excluir meta "${g.title}"?`)) return;
-    try {
-      await api.delete(`/api/goals/${g.id}`);
-      toast.success("Excluída");
-      fetchData();
-    } catch (e) {
-      toast.error(apiErrorMessage(e));
-    }
+    if (!(await confirmDialog({ title: `Excluir a meta "${g.title}"?`, danger: true }))) return;
+    deleteWithUndo({
+      message: `Meta "${g.title}" excluída`,
+      hide: () => setItems((list) => list?.filter((i) => i.id !== g.id) ?? null),
+      commit: () => api.delete(`/api/goals/${g.id}`),
+      refresh: fetchData,
+    });
   };
 
   const respondInvite = async (invite: GoalInvite, accept: boolean) => {

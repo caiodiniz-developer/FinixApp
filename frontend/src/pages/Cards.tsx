@@ -17,6 +17,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { CreditCard, Transaction } from "../types";
 import { currency, dateBR } from "../utils/format";
 import { UpgradeModal } from "../components/UpgradeModal";
@@ -61,15 +62,14 @@ export default function Cards() {
   }, []);
 
   const onDelete = async (c: CreditCard) => {
-    if (!window.confirm(`Excluir o cartão "${c.name}"?`)) return;
-    try {
-      await api.delete(`/api/cards/${c.id}`);
-      toast.success("Excluído");
-      if (expanded === c.id) setExpanded(null);
-      fetchData();
-    } catch (e) {
-      toast.error(apiErrorMessage(e));
-    }
+    if (!(await confirmDialog({ title: `Excluir o cartão "${c.name}"?`, danger: true }))) return;
+    if (expanded === c.id) setExpanded(null);
+    deleteWithUndo({
+      message: `Cartão "${c.name}" excluído`,
+      hide: () => setItems((list) => list?.filter((i) => i.id !== c.id) ?? null),
+      commit: () => api.delete(`/api/cards/${c.id}`),
+      refresh: fetchData,
+    });
   };
 
   const toggleExpand = (c: CreditCard) => {
