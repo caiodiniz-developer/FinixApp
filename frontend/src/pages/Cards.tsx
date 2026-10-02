@@ -17,6 +17,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { EmptyArt, SkeletonCard } from "../components/placeholders";
 import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { CreditCard, Transaction } from "../types";
@@ -125,12 +126,12 @@ export default function Cards() {
       {items === null ? (
         <div className="grid sm:grid-cols-2 gap-4">
           {[1, 2].map((i) => (
-            <div key={i} className="skeleton h-44" />
+            <SkeletonCard key={i} />
           ))}
         </div>
       ) : items.length === 0 ? (
         <div className="empty-state">
-          <CardIcon className="w-8 h-8" />
+          <EmptyArt icon={CardIcon} />
           <p className="empty-state-title mt-1">Nenhum cartão cadastrado</p>
           <p className="text-sm max-w-sm">
             Cadastre um cartão para acompanhar a fatura sem precisar somar nada na mão.

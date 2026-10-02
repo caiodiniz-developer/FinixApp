@@ -6,6 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { EmptyArt, SkeletonCard } from "../components/placeholders";
 import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { RecurringTransaction } from "../types";
@@ -74,11 +75,11 @@ export default function Recurring() {
 
       {items === null ? (
         <div className="grid sm:grid-cols-2 gap-4">
-          {[1, 2].map((i) => <div key={i} className="skeleton h-28" />)}
+          {[1, 2].map((i) => <SkeletonCard key={i} />)}
         </div>
       ) : items.length === 0 ? (
         <div className="empty-state">
-          <Repeat className="w-8 h-8" />
+          <EmptyArt icon={Repeat} />
           <p className="empty-state-title mt-1">Nenhuma recorrência ainda</p>
           <p className="text-sm max-w-sm">
             Cadastre contas fixas para não esquecer de lançá-las todo mês.

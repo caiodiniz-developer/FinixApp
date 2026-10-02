@@ -18,6 +18,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { EmptyArt } from "../components/placeholders";
 import { confirmDialog } from "../components/confirm";
 import { Contact, SplitExpense, PersonalLoan } from "../types";
 import { currency, dateBR } from "../utils/format";
@@ -207,7 +208,7 @@ export default function Contacts() {
         </div>
       ) : items.length === 0 ? (
         <div className="empty-state">
-          <Users className="w-8 h-8" />
+          <EmptyArt icon={Users} />
           <p className="empty-state-title mt-1">Nenhum contato cadastrado</p>
           <p className="text-sm max-w-sm">
             Cadastre amigos ou familiares para dividir despesas com eles.

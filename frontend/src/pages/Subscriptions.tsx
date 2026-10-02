@@ -3,6 +3,7 @@ import { Ghost, Repeat, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { EmptyArt, SkeletonCard } from "../components/placeholders";
 import { DetectedSubscription } from "../types";
 import { currency, dateBR } from "../utils/format";
 
@@ -61,11 +62,11 @@ export default function Subscriptions() {
 
       {items === null ? (
         <div className="grid sm:grid-cols-2 gap-4">
-          {[1, 2].map((i) => <div key={i} className="skeleton h-32" />)}
+          {[1, 2].map((i) => <SkeletonCard key={i} />)}
         </div>
       ) : items.length === 0 ? (
         <div className="empty-state">
-          <Ghost className="w-8 h-8" />
+          <EmptyArt icon={Ghost} />
           <p className="empty-state-title mt-1">Nenhum fantasma encontrado</p>
           <p className="text-sm max-w-sm">
             Assim que um mesmo lançamento se repetir 3 vezes com intervalo mensal, ele aparece aqui.

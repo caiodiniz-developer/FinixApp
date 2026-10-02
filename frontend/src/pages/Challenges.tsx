@@ -6,6 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { EmptyArt, SkeletonCard } from "../components/placeholders";
 import { MoneyField } from "../components/MoneyInput";
 import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Challenge } from "../types";
@@ -73,11 +74,11 @@ export default function Challenges() {
 
       {items === null ? (
         <div className="grid sm:grid-cols-2 gap-4">
-          {[1, 2].map((i) => <div key={i} className="skeleton h-40" />)}
+          {[1, 2].map((i) => <SkeletonCard key={i} />)}
         </div>
       ) : items.length === 0 ? (
         <div className="empty-state">
-          <Users className="w-8 h-8" />
+          <EmptyArt icon={Users} />
           <p className="empty-state-title mt-1">Nenhum desafio ainda</p>
           <p className="text-sm max-w-sm">Crie um e chame os amigos pra economizar junto.</p>
           <button onClick={() => setOpen(true)} className="btn-primary mt-3">
