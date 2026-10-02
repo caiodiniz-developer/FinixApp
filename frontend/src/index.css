@@ -59,6 +59,7 @@
     --color-shadow: none;
     --shadow-float: 0 20px 50px -24px rgba(15, 23, 42, 0.25);
     --shadow-control: 0 1px 2px rgba(15, 23, 42, 0.05);
+    --shadow-lift: 0 14px 30px -18px rgba(15, 23, 42, 0.28);
 
     /* Glass */
     --glass-bg: rgba(255, 255, 255, 0.66);
@@ -102,6 +103,7 @@
 
     --shadow-float: 0 24px 60px -24px rgba(0, 0, 0, 0.8);
     --shadow-control: none;
+    --shadow-lift: 0 16px 34px -18px rgba(0, 0, 0, 0.9);
 
     --glass-bg: rgba(22, 26, 34, 0.6);
     --glass-bg-strong: rgba(22, 26, 34, 0.82);
@@ -491,6 +493,196 @@
   .eyebrow {
     @apply text-xs font-medium;
     color: var(--color-text-low);
+  }
+}
+
+/* ============================================================================
+   Motion
+   ----------------------------------------------------------------------------
+   Short, quiet and always with a reason: things arrive (page, cards, rows),
+   layers open (dialogs, menus), figures fill up (bars, rings, lines) and
+   controls answer the finger. Keyframes only declare `from` and run with
+   `backwards`, so once they finish no transform is left on the element —
+   a leftover transform would trap `position: fixed` dialogs inside it.
+   Everything here is switched off by "reduce motion" (end of this file).
+   ========================================================================== */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+}
+
+@keyframes grow-x {
+  from { transform: scaleX(0); }
+}
+
+@keyframes draw-line {
+  from { stroke-dashoffset: 1; }
+}
+
+@keyframes draw-ring {
+  from { stroke-dashoffset: var(--ring-length); }
+}
+
+@keyframes confetti-fall {
+  to { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; }
+}
+
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+
+/* A page arriving after a navigation. */
+.page-enter {
+  animation: fade-up 0.32s var(--ease-out) backwards;
+}
+
+/* Children arrive one after the other (dashboard cards, list rows). */
+.stagger > * {
+  animation: fade-up 0.42s var(--ease-out) backwards;
+}
+.stagger > *:nth-child(2) { animation-delay: 40ms; }
+.stagger > *:nth-child(3) { animation-delay: 80ms; }
+.stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(5) { animation-delay: 160ms; }
+.stagger > *:nth-child(6) { animation-delay: 200ms; }
+.stagger > *:nth-child(7) { animation-delay: 240ms; }
+.stagger > *:nth-child(8) { animation-delay: 280ms; }
+.stagger > *:nth-child(n + 9) { animation-delay: 320ms; }
+
+/* Dialogs: the page dims, the panel springs in. On a phone it becomes a
+   sheet that slides up from the bottom edge. */
+.modal-overlay {
+  animation: fade-in 0.18s ease-out backwards;
+}
+
+.modal-panel {
+  animation: pop-in 0.32s var(--ease-spring) backwards;
+}
+
+.menu-pop {
+  transform-origin: top right;
+  animation: pop-in 0.16s var(--ease-out) backwards;
+}
+
+@media (max-width: 639px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-panel {
+    position: relative;
+    width: 100%;
+    max-width: none !important;
+    max-height: 92dvh;
+    overflow-y: auto;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 1.25rem;
+    border-top-right-radius: 1.25rem;
+    padding-top: 1.75rem !important;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
+    animation: sheet-up 0.36s var(--ease-out) backwards;
+  }
+
+  /* Grab handle */
+  .modal-panel::before {
+    content: "";
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    width: 2.25rem;
+    height: 0.25rem;
+    margin-left: -1.125rem;
+    border-radius: 999px;
+    background: var(--color-border-strong);
+  }
+}
+
+@keyframes drawer-in {
+  from { transform: translateX(-100%); }
+}
+
+/* Phone menu sliding in from the left edge. */
+.drawer-overlay {
+  animation: fade-in 0.2s ease-out backwards;
+}
+
+.drawer-panel {
+  animation: drawer-in 0.28s var(--ease-out) backwards;
+}
+
+/* Bars fill from the left, once, when they appear. */
+.progress-fill {
+  transform-origin: left center;
+  animation: grow-x 0.8s var(--ease-out) backwards;
+  animation-delay: 0.15s;
+  transition: width 0.5s var(--ease-out);
+}
+
+/* SVG strokes that draw themselves (sparklines: set pathLength="1"). */
+.draw-line {
+  stroke-dasharray: 1;
+  animation: draw-line 0.9s var(--ease-out) backwards;
+  animation-delay: 0.2s;
+}
+
+.draw-ring {
+  animation: draw-ring 1s var(--ease-out) backwards;
+  animation-delay: 0.15s;
+}
+
+/* Touch feedback: buttons sink a little, clickable cards rise a little. */
+.btn-primary,
+.btn-outline,
+.btn-ghost,
+.btn-danger,
+.btn-icon,
+.pressable {
+  transition-property: color, background-color, border-color, box-shadow, transform;
+  transition-duration: 0.15s;
+}
+
+.btn-primary:active:not(:disabled),
+.btn-outline:active:not(:disabled),
+.btn-ghost:active:not(:disabled),
+.btn-danger:active:not(:disabled),
+.pressable:active {
+  transform: scale(0.97);
+}
+
+.btn-icon:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.lift {
+  transition:
+    transform 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out),
+    border-color 0.2s;
+}
+
+@media (hover: hover) {
+  .lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+    border-color: var(--color-border-strong);
   }
 }
 
