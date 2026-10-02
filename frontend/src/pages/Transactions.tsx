@@ -361,7 +361,7 @@ export default function Transactions() {
                   data-testid={`tx-row-${t.id}`}
                 >
                   <div
-                    className={`w-11 h-11 shrink-0 rounded-control flex items-center justify-center ${t.type === "INCOME" ? "bg-income/10 text-income  " : "bg-expense/10 text-expense  "}`}
+                    className={`w-9 h-9 shrink-0 rounded-control flex items-center justify-center ${t.type === "INCOME" ? "bg-income/10 text-income" : "bg-[var(--color-hairline-strong)] text-muted"}`}
                   >
                     {t.type === "INCOME" ? (
                       <ArrowUpRight className="w-5 h-5" />
@@ -432,7 +432,7 @@ export default function Transactions() {
                   </div>
 
                   <div
-                    className={`min-w-[104px] text-right font-semibold ${t.type === "INCOME" ? "text-income " : "text-expense "} flex flex-col items-end`}
+                    className={`min-w-[104px] text-right font-semibold num ${t.type === "INCOME" ? "text-income" : "text-text"} flex flex-col items-end`}
                   >
                     <span className="text-base sm:text-lg">
                       {t.type === "INCOME" ? "+" : "-"}
