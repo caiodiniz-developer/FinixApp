@@ -145,7 +145,8 @@
      bar, highlight cards), `glass-strong` where text must stay crisp (modals,
      menus). */
   .glass,
-  .glass-strong {
+  .glass-strong,
+  .modal-panel {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     box-shadow: 0 0 0 1px var(--glass-outline);
@@ -153,11 +154,23 @@
     backdrop-filter: blur(var(--glass-blur)) saturate(160%);
   }
 
-  .glass-strong {
+  .glass-strong,
+  .modal-panel {
     background: var(--glass-bg-strong);
     box-shadow:
       0 0 0 1px var(--glass-outline),
       var(--shadow-float);
+  }
+
+  /* Dialogs: a dimmed page with one glass panel on top. */
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+    background: var(--color-overlay);
+  }
+
+  .modal-panel {
+    @apply rounded-card;
+    color: var(--color-text);
   }
 
   /* Browsers without backdrop-filter get an opaque surface instead of an
@@ -165,6 +178,7 @@
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .glass,
     .glass-strong,
+    .modal-panel,
     .btn-outline {
       background: var(--color-surface);
     }

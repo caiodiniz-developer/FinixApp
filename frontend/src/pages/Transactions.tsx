@@ -687,7 +687,7 @@ function TxModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+      className="modal-overlay"
       role="dialog"
       aria-modal="true"
     >
@@ -695,7 +695,7 @@ function TxModal({
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-surface dark:bg-surface-strong border border-border dark:border-border rounded-card shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto"
+        className="modal-panel w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto"
         data-testid="tx-modal"
       >
         <div className="flex items-center justify-between">
