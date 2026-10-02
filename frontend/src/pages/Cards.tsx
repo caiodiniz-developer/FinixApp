@@ -363,7 +363,7 @@ function CardModal({
           <div>
             <label className="text-sm font-medium">Apelido do cartão</label>
             <input
-              {...register("name")}
+              {...register("name")} aria-invalid={!!errors.name}
               className="input mt-1"
               placeholder="Ex: Nubank Ultravioleta"
               data-testid="card-name"
@@ -372,28 +372,28 @@ function CardModal({
           </div>
           <div>
             <label className="text-sm font-medium">Bandeira (opcional)</label>
-            <input {...register("brand")} className="input mt-1" placeholder="Visa, Master..." data-testid="card-brand" />
+            <input {...register("brand")} aria-invalid={!!errors.brand} className="input mt-1" placeholder="Visa, Master..." data-testid="card-brand" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Fecha dia</label>
-              <input type="number" min="1" max="31" {...register("closingDay")} className="input mt-1" data-testid="card-closing-day" />
+              <input type="number" min="1" max="31" {...register("closingDay")} aria-invalid={!!errors.closingDay} className="input mt-1" data-testid="card-closing-day" />
               {errors.closingDay && <p className="text-xs text-expense mt-1">{errors.closingDay.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Vence dia</label>
-              <input type="number" min="1" max="31" {...register("dueDay")} className="input mt-1" data-testid="card-due-day" />
+              <input type="number" min="1" max="31" {...register("dueDay")} aria-invalid={!!errors.dueDay} className="input mt-1" data-testid="card-due-day" />
               {errors.dueDay && <p className="text-xs text-expense mt-1">{errors.dueDay.message}</p>}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Limite (opcional)</label>
-              <input type="number" step="0.01" min="0" {...register("limit")} className="input mt-1" data-testid="card-limit" />
+              <input type="number" step="0.01" min="0" {...register("limit")} aria-invalid={!!errors.limit} className="input mt-1" data-testid="card-limit" />
             </div>
             <div>
               <label className="text-sm font-medium">Cor</label>
-              <input type="color" {...register("color")} className="input mt-1 h-10 !p-1" data-testid="card-color" />
+              <input type="color" {...register("color")} aria-invalid={!!errors.color} className="input mt-1 h-10 !p-1" data-testid="card-color" />
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">

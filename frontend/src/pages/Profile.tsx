@@ -417,7 +417,7 @@ export default function Profile() {
                         Nome
                       </label>
                       <input
-                        {...nameForm.register("name")}
+                        {...nameForm.register("name")} aria-invalid={!!nameForm.formState.errors.name}
                         className="input mt-1 text-text placeholder:text-muted dark:text-text"
                       />
                       {nameForm.formState.errors.name && (
@@ -582,7 +582,7 @@ export default function Profile() {
                   </label>
                   <input
                     type="password"
-                    {...pwForm.register("currentPassword")}
+                    {...pwForm.register("currentPassword")} aria-invalid={!!pwForm.formState.errors.currentPassword}
                     className="input mt-1 text-text placeholder:text-muted dark:text-text"
                   />
                   {pwForm.formState.errors.currentPassword && (
@@ -597,7 +597,7 @@ export default function Profile() {
                   </label>
                   <input
                     type="password"
-                    {...pwForm.register("newPassword")}
+                    {...pwForm.register("newPassword")} aria-invalid={!!pwForm.formState.errors.newPassword}
                     className="input mt-1 text-text placeholder:text-muted dark:text-text"
                   />
                   {pwForm.formState.errors.newPassword && (

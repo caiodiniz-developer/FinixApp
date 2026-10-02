@@ -227,24 +227,24 @@ function InvestmentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
         <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-3">
           <div>
             <label className="text-sm font-medium">Nome</label>
-            <input {...register("name")} className="input mt-1" placeholder="Ex: Tesouro Selic 2029" />
+            <input {...register("name")} aria-invalid={!!errors.name} className="input mt-1" placeholder="Ex: Tesouro Selic 2029" />
             {errors.name && <p className="text-xs text-expense mt-1">{errors.name.message}</p>}
           </div>
           <div>
             <label className="text-sm font-medium">Tipo</label>
-            <select {...register("type")} className="input mt-1">
+            <select {...register("type")} aria-invalid={!!errors.type} className="input mt-1">
               {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Valor investido (R$)</label>
-              <input type="number" step="0.01" {...register("investedAmount")} className="input mt-1" />
+              <input type="number" step="0.01" {...register("investedAmount")} aria-invalid={!!errors.investedAmount} className="input mt-1" />
               {errors.investedAmount && <p className="text-xs text-expense mt-1">{errors.investedAmount.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Valor atual (R$)</label>
-              <input type="number" step="0.01" {...register("currentValue")} className="input mt-1" />
+              <input type="number" step="0.01" {...register("currentValue")} aria-invalid={!!errors.currentValue} className="input mt-1" />
               {errors.currentValue && <p className="text-xs text-expense mt-1">{errors.currentValue.message}</p>}
             </div>
           </div>

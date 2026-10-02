@@ -267,7 +267,7 @@ function BudgetModal({
           <div>
             <label className="text-sm font-medium">Categoria</label>
             <select
-              {...register("category")}
+              {...register("category")} aria-invalid={!!errors.category}
               className="input mt-1"
               disabled={!!editing}
               data-testid="budget-category"
@@ -284,7 +284,7 @@ function BudgetModal({
             <input
               type="number"
               step="0.01"
-              {...register("limit")}
+              {...register("limit")} aria-invalid={!!errors.limit}
               className="input mt-1"
               data-testid="budget-limit"
             />

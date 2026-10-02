@@ -431,23 +431,23 @@ function ContactModal({
         <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-3" data-testid="contact-form">
           <div>
             <label className="text-sm font-medium">Nome</label>
-            <input {...register("name")} className="input mt-1" data-testid="contact-name" />
+            <input {...register("name")} aria-invalid={!!errors.name} className="input mt-1" data-testid="contact-name" />
             {errors.name && <p className="text-xs text-expense mt-1">{errors.name.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">E-mail (opcional)</label>
-              <input {...register("email")} className="input mt-1" data-testid="contact-email" />
+              <input {...register("email")} aria-invalid={!!errors.email} className="input mt-1" data-testid="contact-email" />
               {errors.email && <p className="text-xs text-expense mt-1">{errors.email.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Telefone (opcional)</label>
-              <input {...register("phone")} className="input mt-1" data-testid="contact-phone" />
+              <input {...register("phone")} aria-invalid={!!errors.phone} className="input mt-1" data-testid="contact-phone" />
             </div>
           </div>
           <div>
             <label className="text-sm font-medium">Cor</label>
-            <input type="color" {...register("color")} className="input mt-1 h-10 !p-1" data-testid="contact-color" />
+            <input type="color" {...register("color")} aria-invalid={!!errors.color} className="input mt-1 h-10 !p-1" data-testid="contact-color" />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="btn-outline">

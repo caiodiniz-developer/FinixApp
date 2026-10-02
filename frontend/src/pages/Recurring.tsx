@@ -162,18 +162,18 @@ function RecurringModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
         <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-3">
           <div>
             <label className="text-sm font-medium">Título</label>
-            <input {...register("title")} className="input mt-1" placeholder="Ex: Aluguel" />
+            <input {...register("title")} aria-invalid={!!errors.title} className="input mt-1" placeholder="Ex: Aluguel" />
             {errors.title && <p className="text-xs text-expense mt-1">{errors.title.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Valor (R$)</label>
-              <input type="number" step="0.01" {...register("amount")} className="input mt-1" />
+              <input type="number" step="0.01" {...register("amount")} aria-invalid={!!errors.amount} className="input mt-1" />
               {errors.amount && <p className="text-xs text-expense mt-1">{errors.amount.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Tipo</label>
-              <select {...register("type")} className="input mt-1">
+              <select {...register("type")} aria-invalid={!!errors.type} className="input mt-1">
                 <option value="EXPENSE">Despesa</option>
                 <option value="INCOME">Receita</option>
               </select>
@@ -182,12 +182,12 @@ function RecurringModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Categoria</label>
-              <input {...register("category")} className="input mt-1" placeholder="Ex: Moradia" />
+              <input {...register("category")} aria-invalid={!!errors.category} className="input mt-1" placeholder="Ex: Moradia" />
               {errors.category && <p className="text-xs text-expense mt-1">{errors.category.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Frequência</label>
-              <select {...register("frequency")} className="input mt-1">
+              <select {...register("frequency")} aria-invalid={!!errors.frequency} className="input mt-1">
                 <option value="weekly">Semanal</option>
                 <option value="monthly">Mensal</option>
                 <option value="yearly">Anual</option>
@@ -196,7 +196,7 @@ function RecurringModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
           </div>
           <div>
             <label className="text-sm font-medium">Primeira ocorrência</label>
-            <input type="date" {...register("startDate")} className="input mt-1" />
+            <input type="date" {...register("startDate")} aria-invalid={!!errors.startDate} className="input mt-1" />
             {errors.startDate && <p className="text-xs text-expense mt-1">{errors.startDate.message}</p>}
           </div>
           <div className="flex justify-end gap-2 pt-2">

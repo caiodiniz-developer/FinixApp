@@ -181,34 +181,34 @@ function DebtModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
         <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-3">
           <div>
             <label className="text-sm font-medium">Credor</label>
-            <input {...register("creditor")} className="input mt-1" placeholder="Ex: Cartão Nubank" />
+            <input {...register("creditor")} aria-invalid={!!errors.creditor} className="input mt-1" placeholder="Ex: Cartão Nubank" />
             {errors.creditor && <p className="text-xs text-expense mt-1">{errors.creditor.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Valor total (R$)</label>
-              <input type="number" step="0.01" {...register("totalAmount")} className="input mt-1" />
+              <input type="number" step="0.01" {...register("totalAmount")} aria-invalid={!!errors.totalAmount} className="input mt-1" />
               {errors.totalAmount && <p className="text-xs text-expense mt-1">{errors.totalAmount.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Falta pagar (R$)</label>
-              <input type="number" step="0.01" {...register("remainingAmount")} className="input mt-1" />
+              <input type="number" step="0.01" {...register("remainingAmount")} aria-invalid={!!errors.remainingAmount} className="input mt-1" />
               {errors.remainingAmount && <p className="text-xs text-expense mt-1">{errors.remainingAmount.message}</p>}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Juros (% ao mês)</label>
-              <input type="number" step="0.1" {...register("interestRate")} className="input mt-1" />
+              <input type="number" step="0.1" {...register("interestRate")} aria-invalid={!!errors.interestRate} className="input mt-1" />
             </div>
             <div>
               <label className="text-sm font-medium">Parcela mínima (R$)</label>
-              <input type="number" step="0.01" {...register("minPayment")} className="input mt-1" />
+              <input type="number" step="0.01" {...register("minPayment")} aria-invalid={!!errors.minPayment} className="input mt-1" />
             </div>
           </div>
           <div>
             <label className="text-sm font-medium">Link de negociação (opcional)</label>
-            <input {...register("negotiationUrl")} className="input mt-1" placeholder="https://..." />
+            <input {...register("negotiationUrl")} aria-invalid={!!errors.negotiationUrl} className="input mt-1" placeholder="https://..." />
             {errors.negotiationUrl && <p className="text-xs text-expense mt-1">{errors.negotiationUrl.message}</p>}
           </div>
           <div className="flex justify-end gap-2 pt-2">

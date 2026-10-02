@@ -183,23 +183,23 @@ function ChallengeModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
         <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-3">
           <div>
             <label className="text-sm font-medium">Título</label>
-            <input {...register("title")} className="input mt-1" placeholder="Ex: Economizar R$300 em agosto" />
+            <input {...register("title")} aria-invalid={!!errors.title} className="input mt-1" placeholder="Ex: Economizar R$300 em agosto" />
             {errors.title && <p className="text-xs text-expense mt-1">{errors.title.message}</p>}
           </div>
           <div>
             <label className="text-sm font-medium">Meta (R$)</label>
-            <input type="number" step="0.01" {...register("targetAmount")} className="input mt-1" />
+            <input type="number" step="0.01" {...register("targetAmount")} aria-invalid={!!errors.targetAmount} className="input mt-1" />
             {errors.targetAmount && <p className="text-xs text-expense mt-1">{errors.targetAmount.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Início</label>
-              <input type="date" {...register("startDate")} className="input mt-1" />
+              <input type="date" {...register("startDate")} aria-invalid={!!errors.startDate} className="input mt-1" />
               {errors.startDate && <p className="text-xs text-expense mt-1">{errors.startDate.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Fim</label>
-              <input type="date" {...register("endDate")} className="input mt-1" />
+              <input type="date" {...register("endDate")} aria-invalid={!!errors.endDate} className="input mt-1" />
               {errors.endDate && <p className="text-xs text-expense mt-1">{errors.endDate.message}</p>}
             </div>
           </div>

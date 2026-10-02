@@ -208,7 +208,7 @@ export default function Onboarding() {
                       <input
                         type="radio"
                         value="pessoal"
-                        {...register("usageType")}
+                        {...register("usageType")} aria-invalid={!!errors.usageType}
                         className="mr-3"
                       />
                       <User className="w-6 h-6 text-primary mr-3" />
@@ -224,7 +224,7 @@ export default function Onboarding() {
                       <input
                         type="radio"
                         value="empresarial"
-                        {...register("usageType")}
+                        {...register("usageType")} aria-invalid={!!errors.usageType}
                         className="mr-3"
                       />
                       <Building className="w-6 h-6 text-primary mr-3" />
@@ -240,7 +240,7 @@ export default function Onboarding() {
                       <input
                         type="radio"
                         value="organizar"
-                        {...register("usageType")}
+                        {...register("usageType")} aria-invalid={!!errors.usageType}
                         className="mr-3"
                       />
                       <Users className="w-6 h-6 text-primary mr-3" />
@@ -274,7 +274,7 @@ export default function Onboarding() {
                       </label>
                       <input
                         type="text"
-                        {...register("companyName")}
+                        {...register("companyName")} aria-invalid={!!errors.companyName}
                         className="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         placeholder="Digite o nome da empresa"
                       />
@@ -329,7 +329,7 @@ export default function Onboarding() {
                       </label>
                       <input
                         type="text"
-                        {...register("businessPurpose")}
+                        {...register("businessPurpose")} aria-invalid={!!errors.businessPurpose}
                         className="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         placeholder="Ex: Loja de velas, Mercado, Restaurante..."
                       />
@@ -346,7 +346,7 @@ export default function Onboarding() {
                       </label>
                       <input
                         type="color"
-                        {...register("primaryColor")}
+                        {...register("primaryColor")} aria-invalid={!!errors.primaryColor}
                         className="w-full h-12 border border-border-strong rounded-lg cursor-pointer"
                       />
                     </div>

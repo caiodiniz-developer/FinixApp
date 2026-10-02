@@ -708,7 +708,7 @@ function TxModal({
               Título
             </label>
             <input
-              {...register("title")}
+              {...register("title")} aria-invalid={!!errors.title}
               className="input mt-1"
               data-testid="tx-title"
             />
@@ -727,7 +727,7 @@ function TxModal({
               <input
                 type="number"
                 step="0.01"
-                {...register("amount")}
+                {...register("amount")} aria-invalid={!!errors.amount}
                 className="input mt-1"
                 data-testid="tx-amount"
               />
@@ -743,7 +743,7 @@ function TxModal({
               </label>
               <input
                 type="date"
-                {...register("date")}
+                {...register("date")} aria-invalid={!!errors.date}
                 className="input mt-1"
                 data-testid="tx-date"
               />
@@ -761,7 +761,7 @@ function TxModal({
                 Tipo
               </label>
               <select
-                {...register("type")}
+                {...register("type")} aria-invalid={!!errors.type}
                 className="input mt-1"
                 data-testid="tx-type"
               >
@@ -774,7 +774,7 @@ function TxModal({
                 Categoria
               </label>
               <select
-                {...register("category")}
+                {...register("category")} aria-invalid={!!errors.category}
                 className="input mt-1"
                 data-testid="tx-category"
                 disabled={transactionCategories.length === 0}
@@ -810,7 +810,7 @@ function TxModal({
                 Método de Pagamento
               </label>
               <select
-                {...register("paymentMethod")}
+                {...register("paymentMethod")} aria-invalid={!!errors.paymentMethod}
                 className="input mt-1"
                 data-testid="tx-payment-method"
               >
@@ -824,7 +824,7 @@ function TxModal({
                 Moeda
               </label>
               <select
-                {...register("currency")}
+                {...register("currency")} aria-invalid={!!errors.currency}
                 className="input mt-1"
                 data-testid="tx-currency"
               >
@@ -843,7 +843,7 @@ function TxModal({
                   <label className="text-sm font-medium text-text dark:text-muted">
                     Conta
                   </label>
-                  <select {...register("accountId")} className="input mt-1" data-testid="tx-account">
+                  <select {...register("accountId")} aria-invalid={!!errors.accountId} className="input mt-1" data-testid="tx-account">
                     <option value="">Sem conta</option>
                     {accounts.map((a) => (
                       <option key={a.id} value={a.id}>{a.name}</option>
@@ -856,7 +856,7 @@ function TxModal({
                   <label className="text-sm font-medium text-text dark:text-muted">
                     Cartão
                   </label>
-                  <select {...register("cardId")} className="input mt-1" data-testid="tx-card">
+                  <select {...register("cardId")} aria-invalid={!!errors.cardId} className="input mt-1" data-testid="tx-card">
                     <option value="">Sem cartão</option>
                     {cards.map((c) => (
                       <option key={c.id} value={c.id}>{c.name}</option>
@@ -876,7 +876,7 @@ function TxModal({
                 type="number"
                 min="1"
                 max="60"
-                {...register("installments")}
+                {...register("installments")} aria-invalid={!!errors.installments}
                 className="input mt-1"
                 data-testid="tx-installments"
               />
@@ -902,7 +902,7 @@ function TxModal({
               </label>
               <input
                 type="date"
-                {...register("dueDate")}
+                {...register("dueDate")} aria-invalid={!!errors.dueDate}
                 className="input mt-1"
                 data-testid="tx-due-date"
               />
@@ -953,7 +953,7 @@ function TxModal({
                   Frequência
                 </label>
                 <select
-                  {...register("recurringFrequency")}
+                  {...register("recurringFrequency")} aria-invalid={!!errors.recurringFrequency}
                   className="input mt-1"
                   data-testid="tx-recurring-frequency"
                   defaultValue={editing?.recurringFrequency || "monthly"}
@@ -971,7 +971,7 @@ function TxModal({
               Descrição (opcional)
             </label>
             <textarea
-              {...register("description")}
+              {...register("description")} aria-invalid={!!errors.description}
               rows={2}
               className="input mt-1"
               data-testid="tx-description"

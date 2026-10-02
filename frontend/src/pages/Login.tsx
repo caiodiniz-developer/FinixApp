@@ -221,7 +221,7 @@ export default function Login() {
                 <label className="text-sm font-medium text-text block mb-1.5">E-mail</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-                  <input {...register("email")} type="email" autoComplete="email" data-testid="login-email"
+                  <input {...register("email")} aria-invalid={!!errors.email} type="email" autoComplete="email" data-testid="login-email"
                     className="input pl-10" placeholder="voce@email.com" />
                 </div>
                 {errors.email && <p className="text-xs text-expense mt-1">{errors.email.message}</p>}
@@ -231,7 +231,7 @@ export default function Login() {
                 <label className="text-sm font-medium text-text block mb-1.5">Senha</label>
                 <div className="relative">
                   <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-                  <input {...register("password")} type={show ? "text" : "password"} autoComplete="current-password"
+                  <input {...register("password")} aria-invalid={!!errors.password} type={show ? "text" : "password"} autoComplete="current-password"
                     data-testid="login-password" className="input pl-10 pr-10" placeholder="••••••••" />
                   <button type="button" onClick={() => setShow(!show)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-text transition-colors"

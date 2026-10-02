@@ -408,7 +408,7 @@ function GoalModal({
           <div>
             <label className="text-sm font-medium">Título</label>
             <input
-              {...register("title")}
+              {...register("title")} aria-invalid={!!errors.title}
               className="input mt-1"
               data-testid="goal-title"
             />
@@ -424,7 +424,7 @@ function GoalModal({
               <input
                 type="number"
                 step="0.01"
-                {...register("targetAmount")}
+                {...register("targetAmount")} aria-invalid={!!errors.targetAmount}
                 className="input mt-1"
                 data-testid="goal-target"
               />
@@ -439,7 +439,7 @@ function GoalModal({
               <input
                 type="number"
                 step="0.01"
-                {...register("currentAmount")}
+                {...register("currentAmount")} aria-invalid={!!errors.currentAmount}
                 className="input mt-1"
                 data-testid="goal-current"
               />
@@ -449,7 +449,7 @@ function GoalModal({
             <label className="text-sm font-medium">Prazo</label>
             <input
               type="date"
-              {...register("deadline")}
+              {...register("deadline")} aria-invalid={!!errors.deadline}
               className="input mt-1"
               data-testid="goal-deadline"
             />

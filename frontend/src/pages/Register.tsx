@@ -156,7 +156,7 @@ export default function Register() {
                 <label className="text-sm font-medium text-text block mb-1.5">Nome completo</label>
                 <div className="relative">
                   <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-                  <input {...register("name")} data-testid="register-name"
+                  <input {...register("name")} aria-invalid={!!errors.name} data-testid="register-name"
                     className="input pl-10" placeholder="Seu nome" />
                 </div>
                 {errors.name && <p className="text-xs text-expense mt-1">{errors.name.message}</p>}
@@ -166,7 +166,7 @@ export default function Register() {
                 <label className="text-sm font-medium text-text block mb-1.5">E-mail</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-                  <input {...register("email")} type="email" data-testid="register-email"
+                  <input {...register("email")} aria-invalid={!!errors.email} type="email" data-testid="register-email"
                     className="input pl-10" placeholder="voce@email.com" />
                 </div>
                 {errors.email && <p className="text-xs text-expense mt-1">{errors.email.message}</p>}
@@ -176,7 +176,7 @@ export default function Register() {
                 <label className="text-sm font-medium text-text block mb-1.5">Senha</label>
                 <div className="relative">
                   <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-                  <input {...register("password")} type={show ? "text" : "password"} data-testid="register-password"
+                  <input {...register("password")} aria-invalid={!!errors.password} type={show ? "text" : "password"} data-testid="register-password"
                     className="input pl-10 pr-10" placeholder="Mínimo 6 caracteres" />
                   <button type="button" onClick={() => setShow(!show)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-text transition-colors">

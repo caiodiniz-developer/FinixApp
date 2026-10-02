@@ -262,7 +262,7 @@ function AccountModal({
           <div>
             <label className="text-sm font-medium">Nome</label>
             <input
-              {...register("name")}
+              {...register("name")} aria-invalid={!!errors.name}
               className="input mt-1"
               placeholder="Ex: Nubank, Carteira..."
               data-testid="account-name"
@@ -273,7 +273,7 @@ function AccountModal({
           </div>
           <div>
             <label className="text-sm font-medium">Tipo</label>
-            <select {...register("type")} className="input mt-1" data-testid="account-type">
+            <select {...register("type")} aria-invalid={!!errors.type} className="input mt-1" data-testid="account-type">
               {TYPES.map((t) => (
                 <option key={t.value} value={t.value}>
                   {t.label}
@@ -286,7 +286,7 @@ function AccountModal({
               <label className="text-sm font-medium">Cor</label>
               <input
                 type="color"
-                {...register("color")}
+                {...register("color")} aria-invalid={!!errors.color}
                 className="input mt-1 h-10 !p-1"
                 data-testid="account-color"
               />
@@ -294,7 +294,7 @@ function AccountModal({
             <label className="flex items-center gap-2 cursor-pointer pt-6">
               <input
                 type="checkbox"
-                {...register("isDefault")}
+                {...register("isDefault")} aria-invalid={!!errors.isDefault}
                 className="w-4 h-4 rounded accent-primary"
                 data-testid="account-default"
               />
