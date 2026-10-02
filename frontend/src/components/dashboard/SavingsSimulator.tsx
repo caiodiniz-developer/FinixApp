@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { PiggyBank } from "lucide-react";
 import { currency } from "../../utils/format";
 
 /**
@@ -27,43 +26,38 @@ export function SavingsSimulator({
   }, [income, expense, balance, extraPct]);
 
   return (
-    <div className="rounded-2xl p-5 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", boxShadow: "var(--color-shadow)" }}>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Simulador &quot;e se eu poupasse mais?&quot;</h3>
-          <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Projeção sobre o ritmo atual de receitas/despesas</p>
-        </div>
-        <PiggyBank className="w-4 h-4" style={{ color: "var(--color-text-low)" }} />
-      </div>
+    <section className="card !p-5 h-full">
+      <h3 className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>E se eu poupasse mais?</h3>
+      <p className="text-xs mt-0.5 mb-5" style={{ color: "var(--color-text-low)" }}>Projeção sobre o ritmo atual de receitas e despesas</p>
 
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--color-text-low)" }}>Poupar a mais por mês</span>
-        <span className="text-sm font-black text-violet-400 num">{extraPct}%</span>
+      <div className="flex items-center justify-between mb-2">
+        <label htmlFor="savings-extra" className="eyebrow">Poupar a mais por mês</label>
+        <span className="text-sm font-semibold num" style={{ color: "var(--color-primary)" }}>{extraPct}%</span>
       </div>
       <input
+        id="savings-extra"
         type="range" min={0} max={50} step={1} value={extraPct}
         onChange={e => setExtraPct(Number(e.target.value))}
-        className="w-full accent-violet-500"
+        className="w-full"
+        style={{ accentColor: "var(--color-primary)" }}
         data-testid="savings-simulator-slider"
       />
 
-      <div className="grid grid-cols-2 gap-3 mt-4">
-        <div className="rounded-xl p-3" style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.18)" }}>
-          <p className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: "rgba(196,181,253,0.7)" }}>Em 6 meses</p>
-          <p className="text-base font-black num" style={{ color: "var(--color-text)" }}>{currency(boosted6)}</p>
-        </div>
-        <div className="rounded-xl p-3" style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.18)" }}>
-          <p className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: "rgba(196,181,253,0.7)" }}>Em 12 meses</p>
-          <p className="text-base font-black num" style={{ color: "var(--color-text)" }}>{currency(boosted12)}</p>
-        </div>
+      <div className="grid grid-cols-2 gap-3 mt-5">
+        {[["Em 6 meses", boosted6], ["Em 12 meses", boosted12]].map(([label, value]) => (
+          <div key={label as string} className="rounded-control p-3" style={{ background: "var(--color-card-hover)" }}>
+            <span className="eyebrow">{label}</span>
+            <p className="text-lg font-semibold num mt-0.5" style={{ color: "var(--color-text)" }}>{currency(value as number)}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="flex items-center justify-between mt-3 px-1">
-        <span className="text-[10px]" style={{ color: "var(--color-text-low)" }}>vs. mantendo o ritmo atual ({currency(baseline12)})</span>
-        <span className={`text-xs font-bold num ${delta12 >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+      <div className="flex items-center justify-between gap-3 mt-4 text-xs">
+        <span style={{ color: "var(--color-text-low)" }}>Mantendo o ritmo atual: {currency(baseline12)}</span>
+        <span className="font-medium num" style={{ color: delta12 >= 0 ? "var(--color-income)" : "var(--color-expense)" }}>
           {delta12 >= 0 ? "+" : ""}{currency(delta12)}
         </span>
       </div>
-    </div>
+    </section>
   );
 }
