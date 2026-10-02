@@ -18,6 +18,7 @@ import { useDashboardTheme } from "../contexts/ThemeContext";
 import { api, apiErrorMessage } from "../services/api";
 import { todayISO } from "../utils/format";
 import { ActivePill } from "../components/motion";
+import { ConfirmHost } from "../components/confirm";
 
 interface NavItem { to: string; icon: LucideIcon; label: string; testid: string; badge?: number; }
 
@@ -388,6 +389,7 @@ export default function AppLayout() {
           </div>
         </div>
       )}
+      <ConfirmHost />
     </div>
     </MotionConfig>
   );
