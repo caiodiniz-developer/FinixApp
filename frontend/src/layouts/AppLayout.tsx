@@ -202,7 +202,7 @@ export default function AppLayout() {
           {!collapsed && (user.plan === "PRO" && user.companyName ? (
             <span className="text-sm font-semibold truncate" style={{ color: "var(--color-text)" }}>{user.companyName}</span>
           ) : (
-            <span className="font-display font-semibold text-lg tracking-tight whitespace-nowrap">
+            <span className="font-display font-bold text-[1.05rem] tracking-[0.06em] whitespace-nowrap">
               <span style={{ color: "var(--color-text)" }}>FINI</span>
               <span style={{ color: "var(--color-primary)" }}>X</span>
             </span>

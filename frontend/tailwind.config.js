@@ -32,8 +32,10 @@ module.exports = {
         overlay: "var(--color-overlay)",
       },
       fontFamily: {
+        // Inter for reading and figures; Sora — wide and geometric, like the
+        // FINIX wordmark in the logo — for titles and the brand name.
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ["Poppins", "Inter", "sans-serif"],
+        display: ["Sora", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       // The type scale: 2xs (dense labels) · xs · sm · base · lg and up for
       // headings and figures. Avoid arbitrary sizes like text-[10px].

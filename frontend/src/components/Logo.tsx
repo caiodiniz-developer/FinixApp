@@ -31,7 +31,7 @@ export const Logo: React.FC<Props> = ({
     </div>
     {showText && (
       <div className="flex flex-col leading-none">
-        <span className="font-display font-semibold text-[1.25rem] tracking-tight">
+        <span className="font-display font-bold text-[1.2rem] tracking-[0.06em]">
           <span className="text-brand-dark dark:text-white">FINI</span>
           <span className="bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
             X

@@ -146,8 +146,8 @@
   h2,
   h3,
   h4 {
-    font-family: "Poppins", "Inter", sans-serif;
-    letter-spacing: -0.02em;
+    font-family: "Sora", "Inter", system-ui, sans-serif;
+    letter-spacing: -0.025em;
   }
 
   ::selection {
