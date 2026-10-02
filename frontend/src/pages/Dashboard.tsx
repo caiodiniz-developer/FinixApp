@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   TrendingUp, TrendingDown, Wallet, PiggyBank,
-  FileDown, FileSpreadsheet, ArrowUpRight, ArrowDownRight,
+  FileDown, FileSpreadsheet,
   Info, AlertTriangle, CheckCircle2, Sparkles, Loader2,
   Plus, Target, X, Flame, ChevronRight, ChevronDown, Lightbulb, ShieldCheck, Award,
   Download, Bell, BarChart3, AreaChart as AreaChartIcon,
@@ -29,6 +29,8 @@ import { HealthRing, Sparkline, MetricCard } from "../components/dashboard/widge
 import { ChartTooltip } from "../components/dashboard/ChartTooltip";
 import { SpendingHeatmap } from "../components/dashboard/SpendingHeatmap";
 import { CategoryBars } from "../components/dashboard/CategoryBars";
+import { FirstSteps } from "../components/dashboard/FirstSteps";
+import { categoryIcon, categoryColor } from "../utils/categoryIcons";
 import { ActivePill, CountUp, ProgressBar, usePrefersReducedMotion } from "../components/motion";
 
 // Semantic colours come from the theme; charts need them as plain strings.
@@ -124,7 +126,7 @@ export default function Dashboard() {
 
   const {
     data, loading, error, reload: fetchAll,
-    alerts, budgets, goals, categories, accounts, calDays, forecast, topExpenses,
+    alerts, budgets, goals, categories, accounts, calDays, forecast, topExpenses, extrasReady,
   } = useDashboardData(isFree);
 
   // Close the export menu when clicking anywhere else.
@@ -300,6 +302,19 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {/* ── First access: what to do first ─────────────────────────────────── */}
+      {extrasReady && (
+        <FirstSteps userId={user.id} steps={[
+          { id: "account", title: "Criar sua conta", hint: "Feito. Bem-vindo ao Finix!", done: true },
+          {
+            id: "transaction", title: "Registrar a primeira transação", hint: "Um gasto ou uma receita de hoje.",
+            done: data.recent.length > 0, onClick: () => (canAddTx ? setQuickAddOpen(true) : setUpgradeOpen(true)),
+          },
+          { id: "budget", title: "Definir um orçamento", hint: "Um limite mensal para uma categoria.", done: budgets.length > 0, to: "/app/budgets" },
+          { id: "goal", title: "Criar a primeira meta", hint: "Algo para guardar dinheiro.", done: goals.length > 0, to: "/app/goals" },
+        ]} />
+      )}
+
       {/* ── TABS ───────────────────────────────────────────────────────────── */}
       <div className="inline-flex gap-1 p-1 rounded-control" style={{ background: "var(--color-hairline-strong)" }} role="tablist">
         {([["overview", "Visão geral"], ["analysis", "Análises"]] as const).map(([id, label]) => (
@@ -440,11 +455,14 @@ export default function Dashboard() {
                   <Empty icon={Wallet}>Nenhuma transação</Empty>
                 ) : (
                   <ul className="divide-y" style={{ borderColor: "var(--color-hairline-strong)" }}>
-                    {data.recent.map(t => (
+                    {data.recent.map(t => {
+                      const CategoryIcon = categoryIcon(t.category);
+                      const tint = categoryColor(t.category);
+                      return (
                       <li key={t.id} className="flex items-center gap-3 py-2.5" style={{ borderColor: "var(--color-hairline-strong)" }}>
-                        {t.type === "INCOME"
-                          ? <ArrowUpRight className="w-4 h-4 shrink-0" style={{ color: INCOME }} />
-                          : <ArrowDownRight className="w-4 h-4 shrink-0" style={{ color: EXPENSE }} />}
+                        <span className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center" style={{ background: `${tint}1f`, color: tint }}>
+                          <CategoryIcon className="w-4 h-4" />
+                        </span>
                         <div className="min-w-0 flex-1">
                           <div className="text-sm font-medium truncate" style={{ color: "var(--color-text)" }}>{t.title}</div>
                           <div className="text-xs" style={{ color: "var(--color-text-low)" }}>{t.category} · {dateBR(t.date)}</div>
@@ -453,7 +471,8 @@ export default function Dashboard() {
                           {t.type === "INCOME" ? "+" : "-"}{currency(t.amount)}
                         </div>
                       </li>
-                    ))}
+                      );
+                    })}
                   </ul>
                 )}
               </div>
