@@ -3,6 +3,8 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     include: ["tests/**/*.test.ts"],
+    // Integration tests need a real database — see vitest.integration.config.ts.
+    exclude: ["tests/integration/**", "node_modules/**"],
     environment: "node",
     // Unit tests never touch real services: these values win over any local
     // .env (dotenv does not override variables that are already set).
