@@ -503,7 +503,7 @@ export default function Onboarding() {
                         />
                         <stop
                           offset="95%"
-                          stopColor="#7C3AED"
+                          stopColor="#2563EB"
                           stopOpacity={0.08}
                         />
                       </linearGradient>

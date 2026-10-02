@@ -193,7 +193,7 @@ export default function Admin() {
               label: "Pro",
               value: stats.proUsers,
               icon: Shield,
-              color: "from-purple-500 to-pink-500",
+              color: "from-blue-500 to-pink-500",
             },
             {
               label: "Receita",
@@ -295,7 +295,7 @@ export default function Admin() {
                       <span
                         className={`chip ${
                           u.plan === "PRO"
-                            ? "bg-purple-100 text-purple-700"
+                            ? "bg-blue-100 text-blue-700"
                             : u.plan === "BASIC"
                               ? "bg-blue-100 text-blue-700"
                               : "bg-surface text-text"
@@ -479,7 +479,7 @@ function UserDetail({
   const planColors = {
     FREE: "from-slate-500 to-slate-600",
     BASIC: "from-blue-500 to-blue-600",
-    PRO: "from-purple-500 to-purple-600",
+    PRO: "from-blue-500 to-blue-600",
   };
 
   const planDescriptions = {
@@ -559,7 +559,7 @@ function UserDetail({
             <div className="mt-6 card !p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-purple-600" />
+                  <Zap className="w-5 h-5 text-blue-600" />
                   <h3 className="font-semibold text-lg">Plano</h3>
                 </div>
                 {!editingPlan && (
@@ -581,7 +581,7 @@ function UserDetail({
                         onClick={() => setSelectedPlan(plan)}
                         className={`p-4 rounded-control border-2 transition-all ${
                           selectedPlan === plan
-                            ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                             : "border-border dark:border-border hover:border-border"
                         }`}
                       >
@@ -724,7 +724,7 @@ function UserDetail({
                       <input
                         value={primaryColor}
                         onChange={(e) => setPrimaryColor(e.target.value)}
-                        placeholder="#7C3AED"
+                        placeholder="#2563EB"
                         className="input w-full"
                       />
                     </div>

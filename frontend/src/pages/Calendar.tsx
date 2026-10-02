@@ -659,7 +659,7 @@ export default function Calendar() {
                               )}
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {tx.recurring && (
-                                  <span className="inline-flex items-center gap-1 text-2xs sm:text-2xs font-semibold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                                  <span className="inline-flex items-center gap-1 text-2xs sm:text-2xs font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
                                     🔁 {tx.recurringFrequency || "recorrente"}
                                   </span>
                                 )}

@@ -37,7 +37,7 @@ export default function YearReview() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="rounded-card overflow-hidden p-8 sm:p-12 text-white relative"
-          style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #4c1d95 45%, #7c3aed 100%)" }}
+          style={{ background: "linear-gradient(135deg, #0b1220 0%, #1e3a8a 55%, #2563eb 100%)" }}
         >
           <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
           <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-amber-400/10 blur-3xl" />

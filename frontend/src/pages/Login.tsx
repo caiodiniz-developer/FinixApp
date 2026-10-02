@@ -128,7 +128,7 @@ export default function Login() {
         {/* Bottom social proof */}
         <div className="relative z-10 flex items-center gap-3">
           <div className="flex -space-x-2">
-            {["#2563eb","#7c3aed","#059669","#dc2626"].map((c, i) => (
+            {["#2563eb","#0891b2","#059669","#dc2626"].map((c, i) => (
               <div key={i} className="w-8 h-8 rounded-full border-2 text-2xs font-semibold text-white flex items-center justify-center"
                 style={{ borderColor: "#0f172a", background: c + "cc" }}>
                 {["C","A","R","B"][i]}

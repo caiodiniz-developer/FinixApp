@@ -334,7 +334,7 @@ export default function Profile() {
           style={{
             width: "100%",
             height: "100%",
-            background: "linear-gradient(135deg, #6366f1 0%, #7c3aed 100%)",
+            background: "var(--color-primary)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -487,7 +487,7 @@ export default function Profile() {
                           height: 100,
                           borderRadius: "999px",
                           overflow: "hidden",
-                          border: "3px solid #6366f1",
+                          border: "3px solid var(--color-primary)",
                         }}
                       >
                         {photoSrc ? (
@@ -506,7 +506,7 @@ export default function Profile() {
                               width: "100%",
                               height: "100%",
                               background:
-                                "linear-gradient(135deg, #6366f1 0%, #7c3aed 100%)",
+                                "var(--color-primary)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -530,7 +530,7 @@ export default function Profile() {
                           width: 32,
                           height: 32,
                           borderRadius: "999px",
-                          background: "#6366f1",
+                          background: "var(--color-primary)",
                           border: "2px solid #0F172A",
                           display: "flex",
                           alignItems: "center",

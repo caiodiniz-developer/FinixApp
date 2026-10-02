@@ -30,7 +30,7 @@ export default function Categories() {
     name: "",
     type: "expense",
     icon: "Tag",
-    color: "#7C3AED",
+    color: "#2563EB",
   });
   const [editing, setEditing] = useState<Category | null>(null);
 
@@ -93,7 +93,7 @@ export default function Categories() {
       name: "",
       type: "expense",
       icon: "Tag",
-      color: "#7C3AED",
+      color: "#2563EB",
     });
 
   const saveCategory = async () => {
@@ -145,7 +145,7 @@ export default function Categories() {
       name: category.name,
       type: category.type as "income" | "expense" | "both",
       icon: category.icon || "Tag",
-      color: category.color || "#7C3AED",
+      color: category.color || "#2563EB",
     });
   };
 

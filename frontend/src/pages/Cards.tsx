@@ -27,7 +27,7 @@ const schema = yup.object({
   limit: yup.number().typeError("Valor inválido").min(0).default(0),
   closingDay: yup.number().typeError("Dia inválido").min(1).max(31).required(),
   dueDay: yup.number().typeError("Dia inválido").min(1).max(31).required(),
-  color: yup.string().default("#7c3aed"),
+  color: yup.string().default("#2563eb"),
 });
 type Form = yup.InferType<typeof schema>;
 
@@ -152,7 +152,7 @@ export default function Cards() {
               >
                 <div
                   className="rounded-card p-5 text-white relative overflow-hidden shadow-lg cursor-pointer"
-                  style={{ background: `linear-gradient(135deg, ${c.color || "#7c3aed"}, ${c.color || "#7c3aed"}cc 60%, #111827)` }}
+                  style={{ background: `linear-gradient(135deg, ${c.color || "#2563eb"}, ${c.color || "#2563eb"}cc 60%, #111827)` }}
                   onClick={() => toggleExpand(c)}
                 >
                   <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/10" />
@@ -308,9 +308,9 @@ function CardModal({
           limit: editing.limit,
           closingDay: editing.closingDay,
           dueDay: editing.dueDay,
-          color: editing.color || "#7c3aed",
+          color: editing.color || "#2563eb",
         }
-      : ({ brand: "", limit: 0, closingDay: 5, dueDay: 12, color: "#7c3aed" } as any),
+      : ({ brand: "", limit: 0, closingDay: 5, dueDay: 12, color: "#2563eb" } as any),
   });
 
   const onSubmit = async (data: Form) => {
