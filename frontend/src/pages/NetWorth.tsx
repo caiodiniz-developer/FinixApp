@@ -70,7 +70,7 @@ export default function NetWorthPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
-            <Wallet2 className="w-7 h-7 text-brand-blue" /> Patrimônio
+            <Wallet2 className="w-7 h-7 text-primary" /> Patrimônio
           </h1>
           <p className="text-muted mt-1">Contas + investimentos − dívidas. Onde suas finanças realmente estão.</p>
         </div>
@@ -83,7 +83,7 @@ export default function NetWorthPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="card">
             <p className="text-xs text-muted font-semibold">Patrimônio líquido</p>
-            <p className={`text-2xl font-display font-semibold mt-1 ${netWorth.netWorth >= 0 ? "text-text" : "text-red-500"}`}>
+            <p className={`text-2xl font-display font-semibold mt-1 ${netWorth.netWorth >= 0 ? "text-text" : "text-expense"}`}>
               {currency(netWorth.netWorth)}
             </p>
           </div>
@@ -97,7 +97,7 @@ export default function NetWorthPage() {
           </div>
           <div className="card">
             <p className="text-xs text-muted font-semibold">Investido</p>
-            <p className="text-2xl font-display font-semibold mt-1 text-emerald-500">{currency(netWorth.investedTotal)}</p>
+            <p className="text-2xl font-display font-semibold mt-1 text-income">{currency(netWorth.investedTotal)}</p>
           </div>
         </div>
       )}
@@ -137,11 +137,11 @@ export default function NetWorthPage() {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="font-semibold">{currency(inv.currentValue)}</p>
-                        <p className={`text-xs ${gain >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                        <p className={`text-xs ${gain >= 0 ? "text-income" : "text-expense"}`}>
                           {gain >= 0 ? "+" : ""}{currency(gain)}
                         </p>
                       </div>
-                      <button onClick={() => onDelete(inv)} className="text-muted hover:text-red-500 shrink-0">
+                      <button onClick={() => onDelete(inv)} className="text-muted hover:text-expense shrink-0">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -155,7 +155,7 @@ export default function NetWorthPage() {
         {/* FIRE */}
         <div className="card">
           <h2 className="font-display font-semibold text-lg flex items-center gap-2">
-            <Flame className="w-5 h-5 text-orange-500" /> Independência financeira
+            <Flame className="w-5 h-5 text-warning" /> Independência financeira
           </h2>
           {fire ? (
             <div className="mt-4 space-y-3">
@@ -165,7 +165,7 @@ export default function NetWorthPage() {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted">Poupança média mensal</span>
-                <span className={`font-semibold ${fire.monthlySavings >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                <span className={`font-semibold ${fire.monthlySavings >= 0 ? "text-income" : "text-expense"}`}>
                   {currency(fire.monthlySavings)}
                 </span>
               </div>
@@ -174,11 +174,11 @@ export default function NetWorthPage() {
                 <span className="font-semibold">{currency(fire.currentNetWorth)}</span>
               </div>
               {fire.yearsToFire !== null ? (
-                <div className="rounded-control border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm">
+                <div className="rounded-control border border-income/30 bg-income/5 p-3 text-sm">
                   No seu ritmo atual, você chega lá em <strong>{fire.yearsToFire} anos</strong>.
                 </div>
               ) : (
-                <div className="rounded-control border border-amber-500/30 bg-amber-500/5 p-3 text-sm">
+                <div className="rounded-control border border-warning/30 bg-warning/5 p-3 text-sm">
                   No ritmo atual de poupança, esse número ainda não é alcançável — aumentar a poupança mensal muda essa conta.
                 </div>
               )}
@@ -228,7 +228,7 @@ function InvestmentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
           <div>
             <label className="text-sm font-medium">Nome</label>
             <input {...register("name")} className="input mt-1" placeholder="Ex: Tesouro Selic 2029" />
-            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
+            {errors.name && <p className="text-xs text-expense mt-1">{errors.name.message}</p>}
           </div>
           <div>
             <label className="text-sm font-medium">Tipo</label>
@@ -240,12 +240,12 @@ function InvestmentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
             <div>
               <label className="text-sm font-medium">Valor investido (R$)</label>
               <input type="number" step="0.01" {...register("investedAmount")} className="input mt-1" />
-              {errors.investedAmount && <p className="text-xs text-red-500 mt-1">{errors.investedAmount.message}</p>}
+              {errors.investedAmount && <p className="text-xs text-expense mt-1">{errors.investedAmount.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Valor atual (R$)</label>
               <input type="number" step="0.01" {...register("currentValue")} className="input mt-1" />
-              {errors.currentValue && <p className="text-xs text-red-500 mt-1">{errors.currentValue.message}</p>}
+              {errors.currentValue && <p className="text-xs text-expense mt-1">{errors.currentValue.message}</p>}
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">

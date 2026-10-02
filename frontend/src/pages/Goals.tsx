@@ -165,14 +165,14 @@ export default function Goals() {
                 className="card relative overflow-hidden"
                 data-testid={`goal-card-${g.id}`}
               >
-                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-brand-blue/20 to-brand-blue-strong/20 blur-2xl" />
+                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/20 blur-2xl" />
                 <div className="relative flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       {done ? (
-                        <Trophy className="w-5 h-5 text-amber-500" />
+                        <Trophy className="w-5 h-5 text-warning" />
                       ) : (
-                        <Target className="w-5 h-5 text-brand-blue" />
+                        <Target className="w-5 h-5 text-primary" />
                       )}
                       <h3 className="font-display font-semibold truncate">
                         {g.title}
@@ -203,7 +203,7 @@ export default function Goals() {
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
-                      className="btn-ghost !p-2 hover:!text-red-600"
+                      className="btn-ghost !p-2 hover:!text-expense"
                       onClick={() => onDelete(g)}
                       data-testid={`delete-goal-${g.id}`}
                     >
@@ -231,11 +231,11 @@ export default function Goals() {
                       initial={{ width: 0 }}
                       animate={{ width: `${pct}%` }}
                       transition={{ duration: 1, ease: "easeOut" }}
-                      className={`h-full rounded-full ${done ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-gradient-to-r from-brand-blue to-brand-blue-strong"}`}
+                      className={`h-full rounded-full ${done ? "bg-gradient-to-r from-warning to-warning" : "bg-gradient-to-r from-primary to-primary"}`}
                     />
                   </div>
                   <div className="flex items-center justify-between mt-2 text-xs">
-                    <span className="font-semibold text-brand-blue">
+                    <span className="font-semibold text-primary">
                       {pct.toFixed(0)}% concluído
                     </span>
                     <span className="text-muted">{forecast(g)}</span>
@@ -407,7 +407,7 @@ function GoalModal({
               data-testid="goal-title"
             />
             {errors.title && (
-              <p className="text-xs text-red-500 mt-1">
+              <p className="text-xs text-expense mt-1">
                 {errors.title.message}
               </p>
             )}
@@ -423,7 +423,7 @@ function GoalModal({
                 data-testid="goal-target"
               />
               {errors.targetAmount && (
-                <p className="text-xs text-red-500 mt-1">
+                <p className="text-xs text-expense mt-1">
                   {errors.targetAmount.message}
                 </p>
               )}
@@ -448,7 +448,7 @@ function GoalModal({
               data-testid="goal-deadline"
             />
             {errors.deadline && (
-              <p className="text-xs text-red-500 mt-1">
+              <p className="text-xs text-expense mt-1">
                 {errors.deadline.message}
               </p>
             )}

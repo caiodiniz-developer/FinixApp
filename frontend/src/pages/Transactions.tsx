@@ -254,7 +254,7 @@ export default function Transactions() {
       </div>
 
       {isFree && (
-        <div className="rounded-card border border-brand-blue/10 bg-brand-blue/5 p-5 text-brand-blue">
+        <div className="rounded-card border border-primary/10 bg-primary/5 p-5 text-primary">
           <h2 className="font-semibold">Plano Grátis: acesso básico</h2>
           <p className="mt-2 text-sm text-text">
             Você ainda não pode criar transações ou acessar recursos avançados.
@@ -267,9 +267,9 @@ export default function Transactions() {
       )}
 
       {impulseReview.length > 0 && (
-        <div className="rounded-card border border-amber-500/30 bg-amber-500/5 p-5">
+        <div className="rounded-card border border-warning/30 bg-warning/5 p-5">
           <h2 className="font-semibold text-text flex items-center gap-2">
-            <HeartCrack className="w-4 h-4 text-amber-500" /> Vale a pena revisar
+            <HeartCrack className="w-4 h-4 text-warning" /> Vale a pena revisar
           </h2>
           <p className="mt-1 text-sm text-muted">Compras não planejadas e gastos fora do seu padrão habitual — dá uma olhada de novo com a cabeça fria.</p>
           <div className="mt-3 space-y-2">
@@ -340,7 +340,7 @@ export default function Transactions() {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-border ">
             {displayItems.map((t) => {
               const isInstallment =
                 t.installmentGroupId && (t.totalInstallments ?? 0) > 1;
@@ -361,7 +361,7 @@ export default function Transactions() {
                   data-testid={`tx-row-${t.id}`}
                 >
                   <div
-                    className={`w-11 h-11 shrink-0 rounded-control flex items-center justify-center ${t.type === "INCOME" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300"}`}
+                    className={`w-11 h-11 shrink-0 rounded-control flex items-center justify-center ${t.type === "INCOME" ? "bg-income/10 text-income  " : "bg-expense/10 text-expense  "}`}
                   >
                     {t.type === "INCOME" ? (
                       <ArrowUpRight className="w-5 h-5" />
@@ -374,24 +374,24 @@ export default function Transactions() {
                     <div className="font-semibold truncate flex items-center gap-2 flex-wrap">
                       {t.title}
                       {t.recurring && (
-                        <span className="chip bg-brand-blue-strong/10 text-brand-blue-strong !py-0.5 text-2xs">
+                        <span className="chip bg-primary/10 text-primary !py-0.5 text-2xs">
                           <RefreshCw className="w-3 h-3" />{" "}
                           {t.recurringFrequency || "recorrente"}
                         </span>
                       )}
                       {/* ── CORREÇÃO: chip único "Pago X de N" ── */}
                       {isInstallment && (
-                        <span className="chip bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 !py-0.5 text-2xs font-semibold">
+                        <span className="chip bg-primary/10 text-primary !py-0.5 text-2xs font-semibold">
                           Pago {paidCount} de {totalNum}
                         </span>
                       )}
                       {isInstallment &&
                         (allPaid ? (
-                          <span className="chip bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 !py-0.5 text-2xs inline-flex items-center gap-1">
+                          <span className="chip bg-income/10 text-income !py-0.5 text-2xs inline-flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" /> Quitado
                           </span>
                         ) : (
-                          <span className="chip bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 !py-0.5 text-2xs inline-flex items-center gap-1">
+                          <span className="chip bg-warning/10 text-warning !py-0.5 text-2xs inline-flex items-center gap-1">
                             <Clock className="w-3 h-3" /> {pendingCount}{" "}
                             restante{pendingCount > 1 ? "s" : ""}
                           </span>
@@ -418,7 +418,7 @@ export default function Transactions() {
                       <div className="mt-2 flex items-center gap-2">
                         <div className="flex-1 h-1.5 rounded-full bg-surface-strong dark:bg-surface overflow-hidden max-w-[120px]">
                           <div
-                            className="h-full rounded-full bg-brand-blue transition-all"
+                            className="h-full rounded-full bg-primary-solid transition-all"
                             style={{
                               width: `${(paidCount / totalNum) * 100}%`,
                             }}
@@ -432,7 +432,7 @@ export default function Transactions() {
                   </div>
 
                   <div
-                    className={`min-w-[104px] text-right font-semibold ${t.type === "INCOME" ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300"} flex flex-col items-end`}
+                    className={`min-w-[104px] text-right font-semibold ${t.type === "INCOME" ? "text-income " : "text-expense "} flex flex-col items-end`}
                   >
                     <span className="text-base sm:text-lg">
                       {t.type === "INCOME" ? "+" : "-"}
@@ -465,7 +465,7 @@ export default function Transactions() {
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
-                      className="btn-ghost !p-2 hover:!text-red-600"
+                      className="btn-ghost !p-2 hover:!text-expense"
                       onClick={() => onDelete(t)}
                       data-testid={`delete-${t.id}`}
                       title="Excluir"
@@ -722,7 +722,7 @@ function TxModal({
               data-testid="tx-title"
             />
             {errors.title && (
-              <p className="text-xs text-red-400 mt-1">
+              <p className="text-xs text-expense mt-1">
                 {errors.title.message}
               </p>
             )}
@@ -741,7 +741,7 @@ function TxModal({
                 data-testid="tx-amount"
               />
               {errors.amount && (
-                <p className="text-xs text-red-400 mt-1">
+                <p className="text-xs text-expense mt-1">
                   {errors.amount.message}
                 </p>
               )}
@@ -757,7 +757,7 @@ function TxModal({
                 data-testid="tx-date"
               />
               {errors.date && (
-                <p className="text-xs text-red-400 mt-1">
+                <p className="text-xs text-expense mt-1">
                   {errors.date.message}
                 </p>
               )}
@@ -800,7 +800,7 @@ function TxModal({
               </select>
               {selectedBudget && (
                 <p
-                  className={`text-xs mt-2 ${overLimit ? "text-rose-500" : "text-muted dark:text-muted"}`}
+                  className={`text-xs mt-2 ${overLimit ? "text-expense" : "text-muted dark:text-muted"}`}
                 >
                   Orçamento: {currency(selectedBudget.limit)} · Gasto:{" "}
                   {currency(currentSpent)}
@@ -890,7 +890,7 @@ function TxModal({
                 data-testid="tx-installments"
               />
               {errors.installments && (
-                <p className="text-xs text-red-400 mt-1">
+                <p className="text-xs text-expense mt-1">
                   {errors.installments.message}
                 </p>
               )}
@@ -932,7 +932,7 @@ function TxModal({
               </div>
               <div className="flex justify-between text-sm text-text dark:text-muted">
                 <span>Total ({watchedInstallments}x)</span>
-                <span className="font-semibold text-rose-500">
+                <span className="font-semibold text-expense">
                   {currency(
                     watchedAmount * watchedInstallments,
                     watchedCurrency,
@@ -948,13 +948,13 @@ function TxModal({
                 type="checkbox"
                 checked={isRec}
                 onChange={(e) => setIsRec(e.target.checked)}
-                className="w-4 h-4 rounded accent-brand-blue"
+                className="w-4 h-4 rounded accent-primary"
                 data-testid="tx-recurring"
               />
               <span className="text-sm font-medium text-text dark:text-muted">
                 Transação recorrente
               </span>
-              <RefreshCw className="w-4 h-4 text-brand-blue-strong ml-auto" />
+              <RefreshCw className="w-4 h-4 text-primary ml-auto" />
             </label>
             {isRec && (
               <div className="mt-2">

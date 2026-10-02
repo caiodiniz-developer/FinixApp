@@ -52,7 +52,7 @@ export default function Subscriptions() {
     <div className="space-y-6" data-testid="subscriptions-page">
       <div>
         <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
-          <Ghost className="w-7 h-7 text-brand-blue-strong" /> Caça-fantasma de assinaturas
+          <Ghost className="w-7 h-7 text-primary" /> Caça-fantasma de assinaturas
         </h1>
         <p className="text-muted mt-1">
           Cobranças que se repetem no mesmo valor, todo mês, sem você ter marcado como recorrente. Pode ser uma assinatura que ninguém mais usa.
@@ -84,7 +84,7 @@ export default function Subscriptions() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-display font-semibold truncate">{item.title}</h3>
-                  <span className="text-xl font-semibold text-red-500 shrink-0">{currency(item.avgAmount)}</span>
+                  <span className="text-xl font-semibold text-expense shrink-0">{currency(item.avgAmount)}</span>
                 </div>
                 <p className="text-xs text-muted mt-1">
                   {item.occurrences}x cobrado, a cada ~{item.avgIntervalDays} dias, desde {dateBR(item.firstDate)}

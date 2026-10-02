@@ -88,7 +88,7 @@ export default function Admin() {
   return (
     <div className="space-y-6" data-testid="admin-page">
       <div>
-        <div className="chip bg-amber-100 text-amber-700 border border-amber-200 mb-2">
+        <div className="chip bg-warning/10 text-warning border border-warning/30 mb-2">
           <Shield className="w-3.5 h-3.5" /> Painel administrativo
         </div>
         <h1 className="text-3xl font-display font-semibold tracking-tight">
@@ -107,25 +107,25 @@ export default function Admin() {
               label: "Usuários",
               value: stats.totalUsers,
               icon: Users,
-              color: "from-brand-blue to-brand-blue-strong",
+              color: "from-primary to-primary",
             },
             {
               label: "Admins",
               value: stats.totalAdmins,
               icon: Shield,
-              color: "from-amber-500 to-orange-500",
+              color: "from-warning to-warning",
             },
             {
               label: "Transações",
               value: stats.totalTransactions,
               icon: Activity,
-              color: "from-emerald-500 to-green-500",
+              color: "from-income to-income",
             },
             {
               label: "Metas",
               value: stats.totalGoals,
               icon: Target,
-              color: "from-brand-blue-strong to-pink-500",
+              color: "from-primary to-expense",
             },
           ].map((s, i) => (
             <motion.div
@@ -159,7 +159,7 @@ export default function Admin() {
             <div className="flex items-center gap-2 text-muted text-sm">
               <TrendingUp className="w-4 h-4" /> Volume global — Receitas
             </div>
-            <div className="text-3xl font-display font-semibold text-emerald-600 mt-1">
+            <div className="text-3xl font-display font-semibold text-income mt-1">
               {currency(stats.globalIncome)}
             </div>
           </div>
@@ -168,7 +168,7 @@ export default function Admin() {
               <TrendingUp className="w-4 h-4 rotate-180" /> Volume global —
               Despesas
             </div>
-            <div className="text-3xl font-display font-semibold text-rose-600 mt-1">
+            <div className="text-3xl font-display font-semibold text-expense mt-1">
               {currency(stats.globalExpense)}
             </div>
           </div>
@@ -187,19 +187,19 @@ export default function Admin() {
               label: "Basic",
               value: stats.basicUsers,
               icon: Zap,
-              color: "from-blue-500 to-blue-600",
+              color: "from-primary to-primary",
             },
             {
               label: "Pro",
               value: stats.proUsers,
               icon: Shield,
-              color: "from-blue-500 to-pink-500",
+              color: "from-primary to-expense",
             },
             {
               label: "Receita",
               value: currency(stats.totalRevenue),
               icon: TrendingUp,
-              color: "from-emerald-500 to-green-500",
+              color: "from-income to-income",
             },
           ].map((s, i) => (
             <motion.div
@@ -257,7 +257,7 @@ export default function Admin() {
                 <th className="px-5 py-3 font-semibold text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-border ">
               {users === null ? (
                 <tr>
                   <td colSpan={7} className="p-6">
@@ -275,7 +275,7 @@ export default function Admin() {
                   <tr key={u.id} data-testid={`user-row-${u.id}`}>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-blue to-brand-blue-strong flex items-center justify-center text-white font-semibold">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white font-semibold">
                           {u.name.charAt(0).toUpperCase()}
                         </div>
                         <span className="font-semibold">{u.name}</span>
@@ -286,7 +286,7 @@ export default function Admin() {
                     </td>
                     <td className="px-5 py-3">
                       <span
-                        className={`chip ${u.role === "ADMIN" ? "bg-amber-100 text-amber-700" : "bg-surface text-text"}`}
+                        className={`chip ${u.role === "ADMIN" ? "bg-warning/10 text-warning" : "bg-surface text-text"}`}
                       >
                         {u.role}
                       </span>
@@ -294,10 +294,10 @@ export default function Admin() {
                     <td className="px-5 py-3">
                       <span
                         className={`chip ${
-                          u.plan === "PRO"
-                            ? "bg-blue-100 text-blue-700"
+ u.plan === "PRO"
+                            ? "bg-primary/10 text-primary"
                             : u.plan === "BASIC"
-                              ? "bg-blue-100 text-blue-700"
+                              ? "bg-primary/10 text-primary"
                               : "bg-surface text-text"
                         }`}
                       >
@@ -306,11 +306,11 @@ export default function Admin() {
                     </td>
                     <td className="px-5 py-3">
                       {u.blocked ? (
-                        <span className="chip bg-red-100 text-red-700">
+                        <span className="chip bg-expense/10 text-expense">
                           Bloqueado
                         </span>
                       ) : (
-                        <span className="chip bg-emerald-100 text-emerald-700">
+                        <span className="chip bg-income/10 text-income">
                           Ativo
                         </span>
                       )}
@@ -349,7 +349,7 @@ export default function Admin() {
                           )}
                         </button>
                         <button
-                          className="btn-ghost !p-2 hover:!text-red-600"
+                          className="btn-ghost !p-2 hover:!text-expense"
                           title="Excluir"
                           onClick={() => onDelete(u)}
                           data-testid={`delete-user-${u.id}`}
@@ -478,8 +478,8 @@ function UserDetail({
 
   const planColors = {
     FREE: "from-slate-500 to-slate-600",
-    BASIC: "from-blue-500 to-blue-600",
-    PRO: "from-blue-500 to-blue-600",
+    BASIC: "from-primary to-primary",
+    PRO: "from-primary to-primary",
   };
 
   const planDescriptions = {
@@ -513,7 +513,7 @@ function UserDetail({
           <>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-blue to-brand-blue-strong flex items-center justify-center text-white font-semibold text-lg">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white font-semibold text-lg">
                   {data.user.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -559,7 +559,7 @@ function UserDetail({
             <div className="mt-6 card !p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-blue-600" />
+                  <Zap className="w-5 h-5 text-primary" />
                   <h3 className="font-semibold text-lg">Plano</h3>
                 </div>
                 {!editingPlan && (
@@ -580,8 +580,8 @@ function UserDetail({
                         key={plan}
                         onClick={() => setSelectedPlan(plan)}
                         className={`p-4 rounded-control border-2 transition-all ${
-                          selectedPlan === plan
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+ selectedPlan === plan
+ ? "border-primary bg-primary/10 "
                             : "border-border dark:border-border hover:border-border"
                         }`}
                       >
@@ -864,8 +864,8 @@ function UserDetail({
                     <span
                       className={
                         t.type === "INCOME"
-                          ? "text-emerald-600"
-                          : "text-rose-600"
+                          ? "text-income"
+                          : "text-expense"
                       }
                     >
                       {t.type === "INCOME" ? "+" : "-"}
@@ -898,7 +898,7 @@ function UserDetail({
                       </div>
                       <div className="h-2 bg-surface-strong dark:bg-surface rounded-full mt-1.5 overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-brand-blue to-brand-blue-strong"
+                          className="h-full bg-gradient-to-r from-primary to-primary"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

@@ -21,7 +21,7 @@ export default function YearReview() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
-            <Sparkles className="w-7 h-7 text-amber-400" /> Seu ano em números
+            <Sparkles className="w-7 h-7 text-warning" /> Seu ano em números
           </h1>
           <p className="text-muted mt-1">Print e compartilhe se quiser se gabar (ou se cobrar no ano que vem).</p>
         </div>
@@ -40,7 +40,7 @@ export default function YearReview() {
           style={{ background: "linear-gradient(135deg, #0b1220 0%, #1e3a8a 55%, #2563eb 100%)" }}
         >
           <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-amber-400/10 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-warning/10 blur-3xl" />
 
           <div className="relative">
             <p className="text-sm font-semibold text-white/60">Finix · {data.year}</p>
@@ -53,18 +53,18 @@ export default function YearReview() {
 
             <div className="grid sm:grid-cols-2 gap-4 mt-10">
               <div className="rounded-card p-5 bg-white/10 backdrop-blur">
-                <TrendingUp className="w-5 h-5 text-emerald-300 mb-2" />
+                <TrendingUp className="w-5 h-5 text-income mb-2" />
                 <p className="text-xs text-white/60">Total recebido</p>
                 <p className="text-2xl font-semibold mt-1">{currency(data.totalIncome)}</p>
               </div>
               <div className="rounded-card p-5 bg-white/10 backdrop-blur">
-                <TrendingDown className="w-5 h-5 text-rose-300 mb-2" />
+                <TrendingDown className="w-5 h-5 text-expense mb-2" />
                 <p className="text-xs text-white/60">Total gasto</p>
                 <p className="text-2xl font-semibold mt-1">{currency(data.totalExpense)}</p>
               </div>
               {data.topCategory && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
-                  <Receipt className="w-5 h-5 text-amber-300 mb-2" />
+                  <Receipt className="w-5 h-5 text-warning mb-2" />
                   <p className="text-xs text-white/60">Categoria #1</p>
                   <p className="text-2xl font-semibold mt-1">{data.topCategory.category}</p>
                   <p className="text-xs text-white/60 mt-1">{currency(data.topCategory.amount)}</p>
@@ -72,7 +72,7 @@ export default function YearReview() {
               )}
               {data.bestMonth && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
-                  <Calendar className="w-5 h-5 text-sky-300 mb-2" />
+                  <Calendar className="w-5 h-5 text-primary mb-2" />
                   <p className="text-xs text-white/60">Melhor mês</p>
                   <p className="text-2xl font-semibold mt-1">{data.bestMonth.month}</p>
                   <p className="text-xs text-white/60 mt-1">{currency(data.bestMonth.net)}</p>
@@ -80,7 +80,7 @@ export default function YearReview() {
               )}
               {data.goalsCompleted > 0 && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
-                  <Trophy className="w-5 h-5 text-amber-300 mb-2" />
+                  <Trophy className="w-5 h-5 text-warning mb-2" />
                   <p className="text-xs text-white/60">Metas concluídas</p>
                   <p className="text-2xl font-semibold mt-1">{data.goalsCompleted}</p>
                 </div>

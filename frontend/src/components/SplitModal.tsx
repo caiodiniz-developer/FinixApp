@@ -90,7 +90,7 @@ export function SplitModal({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-              <Split className="w-4 h-4 text-brand-blue-strong" /> Dividir despesa
+              <Split className="w-4 h-4 text-primary" /> Dividir despesa
             </h2>
             <p className="text-xs text-muted mt-0.5">
               {transaction.title} · {currency(transaction.amount)}
@@ -112,7 +112,7 @@ export function SplitModal({
                 type="checkbox"
                 checked={!!selected[c.id]}
                 onChange={() => toggle(c.id)}
-                className="w-4 h-4 rounded accent-brand-blue"
+                className="w-4 h-4 rounded accent-primary"
               />
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"

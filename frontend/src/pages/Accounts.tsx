@@ -124,7 +124,7 @@ export default function Accounts() {
                       <h3 className="font-semibold flex items-center gap-1.5">
                         {a.name}
                         {a.isDefault && (
-                          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                          <Star className="w-3.5 h-3.5 text-warning fill-warning" />
                         )}
                       </h3>
                       <p className="text-xs text-muted capitalize">
@@ -144,7 +144,7 @@ export default function Accounts() {
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
-                      className="btn-ghost !p-2 hover:!text-red-600"
+                      className="btn-ghost !p-2 hover:!text-expense"
                       onClick={() => onDelete(a)}
                       data-testid={`delete-account-${a.id}`}
                     >
@@ -155,7 +155,7 @@ export default function Accounts() {
                 <div className="mt-4">
                   <p className="text-xs text-muted mb-1">Saldo</p>
                   <p
-                    className={`text-2xl font-display font-semibold ${a.balance < 0 ? "text-rose-500" : ""}`}
+                    className={`text-2xl font-display font-semibold ${a.balance < 0 ? "text-expense" : ""}`}
                   >
                     {currency(a.balance)}
                   </p>
@@ -265,7 +265,7 @@ function AccountModal({
               data-testid="account-name"
             />
             {errors.name && (
-              <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
+              <p className="text-xs text-expense mt-1">{errors.name.message}</p>
             )}
           </div>
           <div>
@@ -292,7 +292,7 @@ function AccountModal({
               <input
                 type="checkbox"
                 {...register("isDefault")}
-                className="w-4 h-4 rounded accent-brand-blue"
+                className="w-4 h-4 rounded accent-primary"
                 data-testid="account-default"
               />
               <span className="text-sm font-medium">Conta padrão</span>

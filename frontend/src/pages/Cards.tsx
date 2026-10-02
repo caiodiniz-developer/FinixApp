@@ -177,7 +177,7 @@ export default function Cards() {
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        className="p-1.5 rounded-lg bg-white/10 hover:bg-red-500/60"
+                        className="p-1.5 rounded-lg bg-white/10 hover:bg-expense/60"
                         onClick={(e) => {
                           e.stopPropagation();
                           onDelete(c);
@@ -236,17 +236,17 @@ export default function Cards() {
                           Nenhuma compra nesse ciclo de fatura.
                         </p>
                       ) : (
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800 -mx-1">
+                        <div className="divide-y divide-border -mx-1">
                           {statement.transactions.map((t) => (
                             <div key={t.id} className="flex items-center gap-3 px-1 py-2.5">
-                              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300">
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-expense/10 text-expense ">
                                 <ArrowDownRight className="w-4 h-4" />
                               </div>
                               <div className="min-w-0 flex-1">
                                 <p className="text-sm font-medium truncate">{t.title}</p>
                                 <p className="text-xs text-muted">{t.category} · {dateBR(t.date)}</p>
                               </div>
-                              <span className="text-sm font-semibold text-rose-500">
+                              <span className="text-sm font-semibold text-expense">
                                 {currency(t.amount)}
                               </span>
                             </div>
@@ -362,7 +362,7 @@ function CardModal({
               placeholder="Ex: Nubank Ultravioleta"
               data-testid="card-name"
             />
-            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
+            {errors.name && <p className="text-xs text-expense mt-1">{errors.name.message}</p>}
           </div>
           <div>
             <label className="text-sm font-medium">Bandeira (opcional)</label>
@@ -372,12 +372,12 @@ function CardModal({
             <div>
               <label className="text-sm font-medium">Fecha dia</label>
               <input type="number" min="1" max="31" {...register("closingDay")} className="input mt-1" data-testid="card-closing-day" />
-              {errors.closingDay && <p className="text-xs text-red-500 mt-1">{errors.closingDay.message}</p>}
+              {errors.closingDay && <p className="text-xs text-expense mt-1">{errors.closingDay.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Vence dia</label>
               <input type="number" min="1" max="31" {...register("dueDay")} className="input mt-1" data-testid="card-due-day" />
-              {errors.dueDay && <p className="text-xs text-red-500 mt-1">{errors.dueDay.message}</p>}
+              {errors.dueDay && <p className="text-xs text-expense mt-1">{errors.dueDay.message}</p>}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">

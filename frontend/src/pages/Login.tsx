@@ -88,7 +88,7 @@ export default function Login() {
 
       {/* ── Left panel — dark, estilo landing hero ─────────────────── */}
       <div className="hidden lg:flex flex-col justify-between relative overflow-hidden bg-auth-side p-12">
-        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full bg-brand-blue-strong/20 blur-3xl pointer-events-none" />
+        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full bg-primary/20 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full bg-brand-green/15 blur-3xl pointer-events-none" />
 
         {/* Logo */}
@@ -154,7 +154,7 @@ export default function Login() {
           </h1>
           <p className="text-muted mt-1 text-sm">
             Não tem conta?{" "}
-            <Link to="/register" className="text-brand-blue font-semibold hover:underline" data-testid="goto-register">
+            <Link to="/register" className="text-primary font-semibold hover:underline" data-testid="goto-register">
               Cadastre-se grátis
             </Link>
           </p>
@@ -162,7 +162,7 @@ export default function Login() {
           {pendingToken ? (
             <form onSubmit={onSubmitTwoFactor} className="mt-7 space-y-4" data-testid="twofactor-form">
               <div className="p-4 rounded-control flex items-start gap-3" style={{ background: "var(--color-background)", border: "1px solid var(--color-border)" }}>
-                <KeyRound className="w-5 h-5 text-brand-blue shrink-0 mt-0.5" />
+                <KeyRound className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-text">Verificação em duas etapas</p>
                   <p className="text-xs text-muted mt-1">
@@ -224,7 +224,7 @@ export default function Login() {
                   <input {...register("email")} type="email" autoComplete="email" data-testid="login-email"
                     className="input pl-10" placeholder="voce@email.com" />
                 </div>
-                {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+                {errors.email && <p className="text-xs text-expense mt-1">{errors.email.message}</p>}
               </div>
 
               <div>
@@ -239,12 +239,12 @@ export default function Login() {
                     {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
+                {errors.password && <p className="text-xs text-expense mt-1">{errors.password.message}</p>}
               </div>
 
               <div className="flex items-center gap-2.5">
                 <input id="remember" type="checkbox" checked={remember} onChange={() => setRemember(p => !p)}
-                  className="h-4 w-4 rounded border-border text-brand-blue focus:ring-brand-blue" />
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary" />
                 <label htmlFor="remember" className="text-sm text-text select-none cursor-pointer">Lembre-se de mim</label>
               </div>
 

@@ -64,7 +64,7 @@ export default function Household() {
     <div className="space-y-6" data-testid="household-page">
       <div>
         <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
-          <Users className="w-7 h-7 text-brand-blue-strong" /> Modo Casal / Família
+          <Users className="w-7 h-7 text-primary" /> Modo Casal / Família
         </h1>
         <p className="text-muted mt-1">
           Veja o total combinado de renda e gastos da família, sem juntar as contas bancárias de ninguém.
@@ -103,15 +103,15 @@ export default function Household() {
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="card">
               <p className="text-xs text-muted font-semibold">Renda combinada</p>
-              <p className="text-2xl font-display font-semibold mt-1 text-emerald-500">{currency(household.combinedIncome)}</p>
+              <p className="text-2xl font-display font-semibold mt-1 text-income">{currency(household.combinedIncome)}</p>
             </div>
             <div className="card">
               <p className="text-xs text-muted font-semibold">Gasto combinado</p>
-              <p className="text-2xl font-display font-semibold mt-1 text-red-500">{currency(household.combinedExpense)}</p>
+              <p className="text-2xl font-display font-semibold mt-1 text-expense">{currency(household.combinedExpense)}</p>
             </div>
             <div className="card">
               <p className="text-xs text-muted font-semibold">Saldo combinado</p>
-              <p className={`text-2xl font-display font-semibold mt-1 ${household.combinedBalance >= 0 ? "text-text" : "text-red-500"}`}>
+              <p className={`text-2xl font-display font-semibold mt-1 ${household.combinedBalance >= 0 ? "text-text" : "text-expense"}`}>
                 {currency(household.combinedBalance)}
               </p>
             </div>
@@ -124,8 +124,8 @@ export default function Household() {
                 <motion.div key={m.userId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between rounded-control bg-surface-strong p-3 text-sm">
                   <span className="font-semibold">{m.name}</span>
                   <span className="flex gap-4">
-                    <span className="text-emerald-500">+{currency(m.income)}</span>
-                    <span className="text-red-500">-{currency(m.expense)}</span>
+                    <span className="text-income">+{currency(m.income)}</span>
+                    <span className="text-expense">-{currency(m.expense)}</span>
                   </span>
                 </motion.div>
               ))}

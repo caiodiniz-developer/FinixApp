@@ -355,11 +355,11 @@ export default function Calendar() {
 
       {loading && !calendar ? (
         <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-8 text-center text-muted">
-          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-brand-blue" />
+          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
           Carregando calendário...
         </div>
       ) : error ? (
-        <div className="card border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-surface p-6 text-rose-600 dark:text-rose-300">
+        <div className="card border border-expense/30 bg-expense/10 dark:bg-surface p-6 text-expense ">
           {error}
         </div>
       ) : (
@@ -370,20 +370,20 @@ export default function Calendar() {
               {
                 label: "Receita",
                 value: monthlyTotals.revenue,
-                color: "text-emerald-600 dark:text-emerald-400",
+                color: "text-income ",
               },
               {
                 label: "Despesa",
                 value: monthlyTotals.expense,
-                color: "text-rose-600 dark:text-rose-400",
+                color: "text-expense ",
               },
               {
                 label: "Saldo",
                 value: monthlyTotals.net,
                 color:
                   monthlyTotals.net >= 0
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-rose-600 dark:text-rose-400",
+                    ? "text-income "
+                    : "text-expense ",
               },
             ].map((item) => (
               <div
@@ -462,8 +462,8 @@ export default function Calendar() {
                           !past
                             ? "border-border-strong bg-surface dark:bg-surface-strong/20 opacity-35 cursor-not-allowed"
                             : isActive
-                              ? "border-brand-blue/50 bg-brand-blue/10 dark:bg-brand-blue/10 shadow-sm cursor-pointer"
-                              : "border-border dark:border-border bg-surface dark:bg-surface hover:border-brand-blue/30 hover:bg-surface dark:hover:bg-surface-strong/60 cursor-pointer",
+                              ? "border-primary/50 bg-primary/10 dark:bg-primary/10 shadow-sm cursor-pointer"
+                              : "border-border dark:border-border bg-surface dark:bg-surface hover:border-primary/30 hover:bg-surface dark:hover:bg-surface-strong/60 cursor-pointer",
                         ].join(" ")}
                       >
                         <span className="hidden md:block text-2xs text-muted">
@@ -479,7 +479,7 @@ export default function Calendar() {
                             {date.getDate()}
                           </span>
                           {isToday && (
-                            <span className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-brand-blue flex-shrink-0" />
+                            <span className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-primary-solid flex-shrink-0" />
                           )}
                         </div>
 
@@ -487,7 +487,7 @@ export default function Calendar() {
                           <>
                             <div className="space-y-0.5 text-2xs sm:text-xs leading-tight">
                               {(day.revenue ?? 0) > 0 && (
-                                <div className="text-emerald-600 dark:text-emerald-400 font-medium truncate">
+                                <div className="text-income font-medium truncate">
                                   +
                                   {new Intl.NumberFormat("pt-BR", {
                                     notation: "compact",
@@ -496,7 +496,7 @@ export default function Calendar() {
                                 </div>
                               )}
                               {(day.expense ?? 0) > 0 && (
-                                <div className="text-rose-600 dark:text-rose-400 font-medium truncate">
+                                <div className="text-expense font-medium truncate">
                                   -
                                   {new Intl.NumberFormat("pt-BR", {
                                     notation: "compact",
@@ -512,7 +512,7 @@ export default function Calendar() {
                                 )}
                             </div>
                             <div
-                              className={`mt-auto h-1 sm:h-1.5 rounded-full ${(day.net ?? 0) >= 0 ? "bg-emerald-400" : "bg-rose-400"}`}
+                              className={`mt-auto h-1 sm:h-1.5 rounded-full ${(day.net ?? 0) >= 0 ? "bg-income" : "bg-expense"}`}
                             />
                           </>
                         ) : (
@@ -527,14 +527,14 @@ export default function Calendar() {
               {/* Legend */}
               <div className="mt-3 sm:mt-4 flex flex-wrap items-center gap-3 sm:gap-4 px-1 text-2xs sm:text-xs text-muted">
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />{" "}
+                  <span className="h-2 w-2 rounded-full bg-income" />{" "}
                   Receita
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-rose-400" /> Despesa
+                  <span className="h-2 w-2 rounded-full bg-expense" /> Despesa
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-blue" />{" "}
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary-solid" />{" "}
                   Hoje
                 </span>
                 <span className="flex items-center gap-1.5 opacity-50">
@@ -558,9 +558,9 @@ export default function Calendar() {
                 {selectedDate && (
                   <div
                     className={`rounded-control sm:rounded-card px-2.5 sm:px-3 py-1 text-xs sm:text-sm font-semibold flex-shrink-0 ${
-                      dayTotals.net >= 0
-                        ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
-                        : "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
+ dayTotals.net >= 0
+ ? "bg-income/10  text-income "
+                        : "bg-expense/10  text-expense "
                     }`}
                   >
                     {dayTotals.net >= 0 ? "Positivo" : "Negativo"}
@@ -575,7 +575,7 @@ export default function Calendar() {
                     <div className="text-2xs sm:text-xs text-muted">
                       Receita
                     </div>
-                    <div className="mt-1 sm:mt-1.5 text-sm sm:text-base md:text-lg font-semibold text-emerald-600 dark:text-emerald-400 break-all">
+                    <div className="mt-1 sm:mt-1.5 text-sm sm:text-base md:text-lg font-semibold text-income break-all">
                       {formatCurrency(dayTotals.revenue)}
                     </div>
                   </div>
@@ -583,7 +583,7 @@ export default function Calendar() {
                     <div className="text-2xs sm:text-xs text-muted">
                       Despesa
                     </div>
-                    <div className="mt-1 sm:mt-1.5 text-sm sm:text-base md:text-lg font-semibold text-rose-600 dark:text-rose-400 break-all">
+                    <div className="mt-1 sm:mt-1.5 text-sm sm:text-base md:text-lg font-semibold text-expense break-all">
                       {formatCurrency(dayTotals.expense)}
                     </div>
                   </div>
@@ -596,9 +596,9 @@ export default function Calendar() {
                   </div>
                   <div
                     className={`mt-1 sm:mt-1.5 text-sm sm:text-base md:text-xl font-semibold break-all ${
-                      dayTotals.net >= 0
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-rose-600 dark:text-rose-400"
+ dayTotals.net >= 0
+ ? "text-income "
+                        : "text-expense "
                     }`}
                   >
                     {formatCurrency(dayTotals.net)}
@@ -659,13 +659,13 @@ export default function Calendar() {
                               )}
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {tx.recurring && (
-                                  <span className="inline-flex items-center gap-1 text-2xs sm:text-2xs font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                  <span className="inline-flex items-center gap-1 text-2xs sm:text-2xs font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary ">
                                     🔁 {tx.recurringFrequency || "recorrente"}
                                   </span>
                                 )}
                                 {tx.installmentGroupId &&
                                   (tx.totalInstallments ?? 0) > 1 && (
-                                    <span className="inline-flex items-center gap-1 text-2xs sm:text-2xs font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                    <span className="inline-flex items-center gap-1 text-2xs sm:text-2xs font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary ">
                                       {tx.installmentNumber}/
                                       {tx.totalInstallments}x
                                     </span>
@@ -673,7 +673,7 @@ export default function Calendar() {
                               </div>
                             </div>
                             <div
-                              className={`font-semibold whitespace-nowrap flex-shrink-0 text-right text-xs sm:text-sm md:text-base ${tx.type === "INCOME" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                              className={`font-semibold whitespace-nowrap flex-shrink-0 text-right text-xs sm:text-sm md:text-base ${tx.type === "INCOME" ? "text-income " : "text-expense "}`}
                             >
                               <div>
                                 {tx.type === "INCOME" ? "+" : "-"}

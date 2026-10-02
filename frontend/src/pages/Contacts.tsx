@@ -157,7 +157,7 @@ export default function Contacts() {
       {items && items.length > 0 && (
         <div className="card">
           <h2 className="font-display font-semibold text-lg flex items-center gap-2">
-            <HandCoins className="w-5 h-5 text-emerald-500" /> Empréstimos entre pessoas
+            <HandCoins className="w-5 h-5 text-income" /> Empréstimos entre pessoas
           </h2>
           <p className="text-sm text-muted mt-1">Diferente de dividir uma conta — isso é "emprestei/peguei emprestado", com controle de quitação.</p>
 
@@ -169,9 +169,9 @@ export default function Contacts() {
                     {l.direction === "LENT" ? "Você emprestou pra" : "Você pegou emprestado de"} <strong>{l.contact?.name}</strong>
                   </span>
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className={`font-semibold ${l.direction === "LENT" ? "text-emerald-500" : "text-red-500"}`}>{currency(l.remaining)}</span>
+                    <span className={`font-semibold ${l.direction === "LENT" ? "text-income" : "text-expense"}`}>{currency(l.remaining)}</span>
                     <button onClick={() => settleLoan(l)} className="btn-outline !py-1 !px-2 text-xs">Quitar</button>
-                    <button onClick={() => deleteLoan(l)} className="text-muted hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => deleteLoan(l)} className="text-muted hover:text-expense"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </div>
               ))}
@@ -215,7 +215,7 @@ export default function Contacts() {
         </div>
       ) : (
         <div className="card !p-0 overflow-hidden">
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-border ">
             {items.map((c) => (
               <div key={c.id} data-testid={`contact-row-${c.id}`}>
                 <div
@@ -236,7 +236,7 @@ export default function Contacts() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted">a receber</p>
-                    <p className={`font-semibold ${c.totalOwed > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted"}`}>
+                    <p className={`font-semibold ${c.totalOwed > 0 ? "text-income " : "text-muted"}`}>
                       {currency(c.totalOwed)}
                     </p>
                   </div>
@@ -261,7 +261,7 @@ export default function Contacts() {
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
-                      className="btn-ghost !p-2 hover:!text-red-600"
+                      className="btn-ghost !p-2 hover:!text-expense"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDelete(c);
@@ -295,7 +295,7 @@ export default function Contacts() {
                           Nenhuma despesa dividida com esse contato ainda.
                         </p>
                       ) : (
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800 px-4">
+                        <div className="divide-y divide-border px-4">
                           {splits.map((s) => (
                             <div key={s.id} className="flex items-center gap-3 py-3">
                               <button
@@ -304,7 +304,7 @@ export default function Contacts() {
                                 data-testid={`toggle-split-${s.id}`}
                               >
                                 {s.settled ? (
-                                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                                  <CheckCircle2 className="w-5 h-5 text-income" />
                                 ) : (
                                   <Circle className="w-5 h-5 text-muted" />
                                 )}
@@ -317,7 +317,7 @@ export default function Contacts() {
                                   {s.transaction ? dateBR(s.transaction.date) : dateBR(s.createdAt)}
                                 </p>
                               </div>
-                              <span className={`text-sm font-semibold ${s.settled ? "text-muted" : "text-emerald-600 dark:text-emerald-400"}`}>
+                              <span className={`text-sm font-semibold ${s.settled ? "text-muted" : "text-income "}`}>
                                 {currency(s.amount)}
                               </span>
                             </div>
@@ -426,13 +426,13 @@ function ContactModal({
           <div>
             <label className="text-sm font-medium">Nome</label>
             <input {...register("name")} className="input mt-1" data-testid="contact-name" />
-            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
+            {errors.name && <p className="text-xs text-expense mt-1">{errors.name.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">E-mail (opcional)</label>
               <input {...register("email")} className="input mt-1" data-testid="contact-email" />
-              {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+              {errors.email && <p className="text-xs text-expense mt-1">{errors.email.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Telefone (opcional)</label>

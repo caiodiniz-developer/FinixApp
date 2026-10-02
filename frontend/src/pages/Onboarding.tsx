@@ -172,7 +172,7 @@ export default function Onboarding() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-blue/5 via-white to-brand-green/5">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-white to-brand-green/5">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -204,14 +204,14 @@ export default function Onboarding() {
                     Como você vai usar o Finix?
                   </h2>
                   <div className="grid gap-4">
-                    <label className="flex items-center p-4 border border-border rounded-card cursor-pointer hover:border-brand-blue transition-colors bg-background/80">
+                    <label className="flex items-center p-4 border border-border rounded-card cursor-pointer hover:border-primary transition-colors bg-background/80">
                       <input
                         type="radio"
                         value="pessoal"
                         {...register("usageType")}
                         className="mr-3"
                       />
-                      <User className="w-6 h-6 text-brand-blue mr-3" />
+                      <User className="w-6 h-6 text-primary mr-3" />
                       <div>
                         <div className="font-medium">Uso pessoal</div>
                         <div className="text-sm text-muted">
@@ -220,14 +220,14 @@ export default function Onboarding() {
                       </div>
                     </label>
 
-                    <label className="flex items-center p-4 border border-border rounded-card cursor-pointer hover:border-brand-blue transition-colors bg-background/80">
+                    <label className="flex items-center p-4 border border-border rounded-card cursor-pointer hover:border-primary transition-colors bg-background/80">
                       <input
                         type="radio"
                         value="empresarial"
                         {...register("usageType")}
                         className="mr-3"
                       />
-                      <Building className="w-6 h-6 text-brand-blue mr-3" />
+                      <Building className="w-6 h-6 text-primary mr-3" />
                       <div>
                         <div className="font-medium">Uso empresarial</div>
                         <div className="text-sm text-muted">
@@ -236,14 +236,14 @@ export default function Onboarding() {
                       </div>
                     </label>
 
-                    <label className="flex items-center p-4 border border-border rounded-card cursor-pointer hover:border-brand-blue transition-colors bg-background/80">
+                    <label className="flex items-center p-4 border border-border rounded-card cursor-pointer hover:border-primary transition-colors bg-background/80">
                       <input
                         type="radio"
                         value="organizar"
                         {...register("usageType")}
                         className="mr-3"
                       />
-                      <Users className="w-6 h-6 text-brand-blue mr-3" />
+                      <Users className="w-6 h-6 text-primary mr-3" />
                       <div>
                         <div className="font-medium">
                           Organizar para outra pessoa
@@ -255,7 +255,7 @@ export default function Onboarding() {
                     </label>
                   </div>
                   {errors.usageType && (
-                    <p className="text-red-500 text-sm mt-1">
+                    <p className="text-expense text-sm mt-1">
                       {errors.usageType.message}
                     </p>
                   )}
@@ -269,24 +269,24 @@ export default function Onboarding() {
                     className="space-y-6"
                   >
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-text mb-2">
                         Nome da empresa *
                       </label>
                       <input
                         type="text"
                         {...register("companyName")}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                        className="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         placeholder="Digite o nome da empresa"
                       />
                       {errors.companyName && (
-                        <p className="text-red-500 text-sm mt-1">
+                        <p className="text-expense text-sm mt-1">
                           {errors.companyName.message}
                         </p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-text mb-2">
                         Logo da empresa (opcional)
                       </label>
                       <div className="flex flex-wrap items-center gap-4">
@@ -299,7 +299,7 @@ export default function Onboarding() {
                         />
                         <label
                           htmlFor="logo-upload"
-                          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50"
+                          className="flex items-center gap-2 px-4 py-2 border border-border-strong rounded-lg cursor-pointer hover:bg-surface-strong"
                         >
                           <Upload className="w-4 h-4" />
                           Escolher arquivo
@@ -314,7 +314,7 @@ export default function Onboarding() {
                             <button
                               type="button"
                               onClick={() => setLogoPreview(null)}
-                              className="text-sm text-red-600 hover:text-red-800"
+                              className="text-sm text-expense hover:text-expense"
                             >
                               Remover logo
                             </button>
@@ -324,30 +324,30 @@ export default function Onboarding() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-text mb-2">
                         Finalidade do negócio *
                       </label>
                       <input
                         type="text"
                         {...register("businessPurpose")}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                        className="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         placeholder="Ex: Loja de velas, Mercado, Restaurante..."
                       />
                       {errors.businessPurpose && (
-                        <p className="text-red-500 text-sm mt-1">
+                        <p className="text-expense text-sm mt-1">
                           {errors.businessPurpose.message}
                         </p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-text mb-2">
                         Cor principal (opcional)
                       </label>
                       <input
                         type="color"
                         {...register("primaryColor")}
-                        className="w-full h-12 border border-gray-300 rounded-lg cursor-pointer"
+                        className="w-full h-12 border border-border-strong rounded-lg cursor-pointer"
                       />
                     </div>
                   </motion.div>
@@ -355,10 +355,10 @@ export default function Onboarding() {
 
                 {/* Categorias personalizadas */}
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h2 className="text-xl font-semibold text-text mb-4">
                     Categorias de transações
                   </h2>
-                  <p className="text-sm text-gray-600 mb-6">
+                  <p className="text-sm text-muted mb-6">
                     Selecione as categorias que você quer usar para organizar
                     suas transações. Você pode adicionar novas categorias
                     também.
@@ -374,14 +374,14 @@ export default function Onboarding() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className={`p-4 rounded-card border-2 transition-all flex items-center justify-between ${
-                          categories.includes(cat)
-                            ? "border-brand-blue bg-brand-blue/10"
-                            : "border-border bg-surface hover:border-brand-blue/50"
+ categories.includes(cat)
+ ? "border-primary bg-primary/10"
+                            : "border-border bg-surface hover:border-primary/50"
                         }`}
                       >
                         <span className="font-medium text-text">{cat}</span>
                         {categories.includes(cat) && (
-                          <Check className="w-5 h-5 text-brand-blue" />
+                          <Check className="w-5 h-5 text-primary" />
                         )}
                       </motion.button>
                     ))}
@@ -389,7 +389,7 @@ export default function Onboarding() {
 
                   {/* Add Custom Category */}
                   <div className="border-t border-border pt-6">
-                    <p className="text-sm font-medium text-gray-700 mb-3">
+                    <p className="text-sm font-medium text-text mb-3">
                       Adicionar categoria personalizada
                     </p>
                     <div className="flex gap-2 mb-4">
@@ -399,12 +399,12 @@ export default function Onboarding() {
                         onChange={(e) => setNewCategory(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="Digite uma nova categoria..."
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-card focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                        className="flex-1 px-4 py-3 border border-border-strong rounded-card focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                       <button
                         type="button"
                         onClick={addCategory}
-                        className="px-6 py-3 bg-brand-blue text-white rounded-card hover:bg-brand-blue/90 transition-colors font-medium"
+                        className="px-6 py-3 bg-primary-solid text-white rounded-card hover:bg-primary/90 transition-colors font-medium"
                       >
                         +
                       </button>
@@ -429,7 +429,7 @@ export default function Onboarding() {
                               <button
                                 type="button"
                                 onClick={() => removeCategory(cat)}
-                                className="text-red-500 hover:text-red-700 transition"
+                                className="text-expense hover:text-expense transition"
                               >
                                 <X className="w-5 h-5" />
                               </button>
@@ -440,7 +440,7 @@ export default function Onboarding() {
                   </div>
 
                   {errors.categories && (
-                    <p className="text-red-500 text-sm mt-4">
+                    <p className="text-expense text-sm mt-4">
                       {errors.categories.message}
                     </p>
                   )}
@@ -449,7 +449,7 @@ export default function Onboarding() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-brand-blue text-white py-4 px-6 rounded-control font-semibold hover:bg-brand-blue/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-primary-solid text-white py-4 px-6 rounded-control font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -470,7 +470,7 @@ export default function Onboarding() {
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-xs text-brand-blue font-semibold mb-2">
+                  <div className="text-xs text-primary font-semibold mb-2">
                     Visão rápida
                   </div>
                   <h2 className="text-2xl font-display font-semibold text-text">
@@ -539,7 +539,7 @@ export default function Onboarding() {
               </div>
 
               <div className="mt-8 space-y-4">
-                <div className="rounded-card border border-brand-blue/10 bg-surface/80 p-4">
+                <div className="rounded-card border border-primary/10 bg-surface/80 p-4">
                   <p className="text-sm text-muted">
                     Categorias padrão para todos os planos básicos:
                   </p>
@@ -571,7 +571,7 @@ export default function Onboarding() {
                         href="https://wa.me/5519994737425?text=Olá%20Finix"
                         target="_blank"
                         rel="noreferrer"
-                        className="font-semibold text-brand-blue"
+                        className="font-semibold text-primary"
                       >
                         (19) 99473-7425
                       </a>
@@ -580,7 +580,7 @@ export default function Onboarding() {
                       Email:{" "}
                       <a
                         href="mailto:cvdinizramos@gmail.com"
-                        className="font-semibold text-brand-blue"
+                        className="font-semibold text-primary"
                       >
                         cvdinizramos@gmail.com
                       </a>
@@ -606,13 +606,13 @@ export default function Onboarding() {
                     href="https://wa.me/5519994737425?text=Olá%20Finix"
                     target="_blank"
                     rel="noreferrer"
-                    className="btn-outline text-brand-blue"
+                    className="btn-outline text-primary"
                   >
                     WhatsApp
                   </a>
                   <a
                     href="mailto:cvdinizramos@gmail.com"
-                    className="btn-outline text-brand-blue"
+                    className="btn-outline text-primary"
                   >
                     cvdinizramos@gmail.com
                   </a>

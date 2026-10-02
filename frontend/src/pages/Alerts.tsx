@@ -232,7 +232,7 @@ export default function Alerts() {
           <div className="text-sm text-muted dark:text-muted">
             Limite estourado
           </div>
-          <div className="mt-4 text-3xl font-semibold text-rose-600 dark:text-rose-400">
+          <div className="mt-4 text-3xl font-semibold text-expense ">
             {overLimitCount}
           </div>
         </div>
@@ -240,7 +240,7 @@ export default function Alerts() {
           <div className="text-sm text-muted dark:text-muted">
             Próximo do limite
           </div>
-          <div className="mt-4 text-3xl font-semibold text-amber-500 dark:text-amber-400">
+          <div className="mt-4 text-3xl font-semibold text-warning ">
             {nearingCount}
           </div>
         </div>
@@ -256,7 +256,7 @@ export default function Alerts() {
           <div className="text-sm text-muted dark:text-muted">
             Parcelas próximas
           </div>
-          <div className="mt-4 text-3xl font-semibold text-blue-600 dark:text-blue-400">
+          <div className="mt-4 text-3xl font-semibold text-primary ">
             {installmentDueSoon}
           </div>
         </div>
@@ -266,7 +266,7 @@ export default function Alerts() {
       {notices.length > 0 && (
         <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
           <div className="flex items-center gap-3 mb-5">
-            <BellRing className="w-5 h-5 text-amber-500" />
+            <BellRing className="w-5 h-5 text-warning" />
             <h2 className="text-lg font-semibold text-text dark:text-text">Avisos</h2>
           </div>
           <div className="space-y-3">
@@ -274,9 +274,9 @@ export default function Alerts() {
               <div
                 key={n.id}
                 className={`rounded-card border p-4 ${
-                  n.severity === "danger"
-                    ? "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200"
-                    : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200"
+ n.severity === "danger"
+                    ? "border-expense/30 bg-expense/10 text-expense   "
+                    : "border-warning/30 bg-warning/10 text-warning   "
                 }`}
               >
                 <div className="font-semibold text-sm">{n.title}</div>
@@ -290,7 +290,7 @@ export default function Alerts() {
       {/* ── SEÇÃO: Parcelas de crédito ──────────────────────────────────────── */}
       <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
         <div className="flex items-center gap-3 mb-5">
-          <CreditCard className="w-5 h-5 text-blue-500" />
+          <CreditCard className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold text-text dark:text-text">
             Compras parceladas em aberto
           </h2>
@@ -301,12 +301,12 @@ export default function Alerts() {
             <Loader2 className="w-5 h-5 animate-spin" /> Carregando...
           </div>
         ) : error ? (
-          <div className="rounded-card bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 p-4 text-rose-700 dark:text-rose-300">
+          <div className="rounded-card bg-expense/10 border border-expense/30 p-4 text-expense ">
             {error}
           </div>
         ) : installmentGroups.length === 0 ? (
           <div className="rounded-card border border-dashed border-border-strong dark:border-border bg-surface dark:bg-surface-strong/30 p-8 text-center">
-            <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-400 mb-3" />
+            <CheckCircle2 className="w-10 h-10 mx-auto text-income mb-3" />
             <p className="text-muted dark:text-muted">
               Nenhuma compra parcelada em andamento.
             </p>
@@ -325,10 +325,10 @@ export default function Alerts() {
                 <div
                   key={g.installmentGroupId}
                   className={`rounded-card border p-4 transition-all ${
-                    isDanger
-                      ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30"
+ isDanger
+ ? "border-expense/30  bg-expense/10 "
                       : isWarning
-                        ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30"
+                        ? "border-warning/30  bg-warning/10 "
                         : "border-border dark:border-border bg-surface dark:bg-surface"
                   }`}
                 >
@@ -339,7 +339,7 @@ export default function Alerts() {
                         <span className="font-semibold text-text dark:text-text">
                           {g.title}
                         </span>
-                        <span className="text-2xs font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                        <span className="text-2xs font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary ">
                           {g.paidInstallments}/{g.totalInstallments}x
                         </span>
                         {g.paymentMethod && (
@@ -355,7 +355,7 @@ export default function Alerts() {
                       <div className="mt-2 flex items-center gap-2">
                         <div className="flex-1 h-1.5 rounded-full bg-surface-strong overflow-hidden max-w-[200px]">
                           <div
-                            className="h-full rounded-full bg-blue-500 transition-all"
+                            className="h-full rounded-full bg-primary-solid transition-all"
                             style={{ width: `${progressPercent}%` }}
                           />
                         </div>
@@ -376,7 +376,7 @@ export default function Alerts() {
                         </span>
                         <span>
                           Restante:{" "}
-                          <span className="font-semibold text-rose-600 dark:text-rose-400">
+                          <span className="font-semibold text-expense ">
                             {currency(g.totalRemaining)}
                           </span>
                         </span>
@@ -389,10 +389,10 @@ export default function Alerts() {
                         <>
                           <div
                             className={`text-sm font-semibold ${
-                              isDanger
-                                ? "text-rose-600 dark:text-rose-400"
+ isDanger
+ ? "text-expense "
                                 : isWarning
-                                  ? "text-amber-600 dark:text-amber-400"
+                                  ? "text-warning "
                                   : "text-muted dark:text-muted"
                             }`}
                           >
@@ -407,7 +407,7 @@ export default function Alerts() {
                           </span>
                         </>
                       ) : (
-                        <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+                        <span className="text-xs text-income font-semibold">
                           Quitado ✓
                         </span>
                       )}
@@ -423,7 +423,7 @@ export default function Alerts() {
       {/* ── SEÇÃO: Orçamentos ───────────────────────────────────────────────── */}
       <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
         <div className="flex items-center gap-3 mb-5">
-          <CalendarClock className="w-5 h-5 text-brand-blue" />
+          <CalendarClock className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold text-text dark:text-text">
             Seus orçamentos
           </h2>
@@ -434,12 +434,12 @@ export default function Alerts() {
             <Loader2 className="w-5 h-5 animate-spin" /> Carregando...
           </div>
         ) : error ? (
-          <div className="rounded-card bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 p-4 text-rose-700 dark:text-rose-300">
+          <div className="rounded-card bg-expense/10 border border-expense/30 p-4 text-expense ">
             {error}
           </div>
         ) : budgetAlerts.length === 0 ? (
           <div className="rounded-card border border-dashed border-border-strong dark:border-border bg-surface dark:bg-surface-strong/30 p-8 text-center">
-            <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-400 mb-3" />
+            <CheckCircle2 className="w-10 h-10 mx-auto text-income mb-3" />
             <p className="text-muted dark:text-muted">
               Nenhum orçamento cadastrado ainda.
             </p>
@@ -460,10 +460,10 @@ export default function Alerts() {
                 <div
                   key={b.id}
                   className={`rounded-card border p-4 flex flex-col sm:flex-row sm:items-center gap-3 transition-all ${
-                    isDanger
-                      ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30"
+ isDanger
+ ? "border-expense/30  bg-expense/10 "
                       : isWarning
-                        ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30"
+                        ? "border-warning/30  bg-warning/10 "
                         : "border-border dark:border-border bg-surface dark:bg-surface"
                   }`}
                 >
@@ -473,12 +473,12 @@ export default function Alerts() {
                         {b.category}
                       </span>
                       {b.usedPercent >= 100 && (
-                        <span className="chip bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 text-2xs">
+                        <span className="chip bg-expense/10 text-expense text-2xs">
                           Limite estourado
                         </span>
                       )}
                       {b.usedPercent >= 80 && b.usedPercent < 100 && (
-                        <span className="chip bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 text-2xs">
+                        <span className="chip bg-warning/10 text-warning text-2xs">
                           {b.usedPercent}% usado
                         </span>
                       )}
@@ -487,7 +487,7 @@ export default function Alerts() {
                     <div className="mt-2 flex items-center gap-2">
                       <div className="flex-1 h-1.5 rounded-full bg-surface-strong overflow-hidden max-w-[200px]">
                         <div
-                          className={`h-full rounded-full transition-all ${b.usedPercent >= 100 ? "bg-rose-500" : b.usedPercent >= 80 ? "bg-amber-500" : "bg-emerald-500"}`}
+                          className={`h-full rounded-full transition-all ${b.usedPercent >= 100 ? "bg-expense" : b.usedPercent >= 80 ? "bg-warning" : "bg-income"}`}
                           style={{ width: `${Math.min(100, b.usedPercent)}%` }}
                         />
                       </div>
@@ -501,7 +501,7 @@ export default function Alerts() {
                     {b.dueDate ? (
                       <>
                         <div
-                          className={`text-sm font-semibold ${isDanger ? "text-rose-600 dark:text-rose-400" : isWarning ? "text-amber-600 dark:text-amber-400" : "text-muted dark:text-muted"}`}
+                          className={`text-sm font-semibold ${isDanger ? "text-expense " : isWarning ? "text-warning " : "text-muted dark:text-muted"}`}
                         >
                           {isOverdue
                             ? `Venceu há ${Math.abs(b.diffDays!)} dia${Math.abs(b.diffDays!) > 1 ? "s" : ""}`

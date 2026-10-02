@@ -91,10 +91,10 @@ export default function Budgets() {
             const exceeded = b.percentage > 100;
             const warning = b.percentage >= 80 && !exceeded;
             const color = exceeded
-              ? "from-red-500 to-rose-500"
+              ? "from-expense to-expense"
               : warning
-                ? "from-amber-400 to-orange-500"
-                : "from-brand-blue to-brand-blue-strong";
+                ? "from-warning to-warning"
+                : "from-primary to-primary";
             const catColor = CATEGORY_COLORS[b.category] || "#64748B";
             return (
               <motion.div
@@ -130,7 +130,7 @@ export default function Budgets() {
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
-                      className="btn-ghost !p-2 hover:!text-red-600"
+                      className="btn-ghost !p-2 hover:!text-expense"
                       onClick={() => onDelete(b)}
                       data-testid={`delete-budget-${b.id}`}
                     >
@@ -157,21 +157,21 @@ export default function Budgets() {
                   </div>
                   <div className="flex items-center justify-between mt-2 text-xs">
                     <span
-                      className={`font-semibold ${exceeded ? "text-red-600" : warning ? "text-amber-600" : "text-brand-blue"}`}
+                      className={`font-semibold ${exceeded ? "text-expense" : warning ? "text-warning" : "text-primary"}`}
                     >
                       {b.percentage.toFixed(0)}%
                     </span>
                     {exceeded ? (
-                      <span className="flex items-center gap-1 text-red-600 font-semibold">
+                      <span className="flex items-center gap-1 text-expense font-semibold">
                         <AlertTriangle className="w-3 h-3" /> Limite
                         ultrapassado
                       </span>
                     ) : warning ? (
-                      <span className="flex items-center gap-1 text-amber-600 font-semibold">
+                      <span className="flex items-center gap-1 text-warning font-semibold">
                         <AlertTriangle className="w-3 h-3" /> Atenção
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+                      <span className="flex items-center gap-1 text-income font-semibold">
                         <TrendingUp className="w-3 h-3" /> No ritmo certo
                       </span>
                     )}
@@ -283,7 +283,7 @@ function BudgetModal({
               data-testid="budget-limit"
             />
             {errors.limit && (
-              <p className="text-xs text-red-500 mt-1">
+              <p className="text-xs text-expense mt-1">
                 {errors.limit.message}
               </p>
             )}

@@ -42,8 +42,8 @@ export function SpendingHeatmap({ days }: { days: CalendarDay[] }) {
             className="mt-2 flex items-center justify-between rounded-control px-3 py-2 text-xs"
             style={{ background: "var(--color-hairline)", border: "1px solid var(--color-hairline-strong)" }}>
             <span style={{ color: "var(--color-text-muted)" }}>{new Date(hovered.date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
-            <span className="text-rose-400 font-semibold num">{hovered.expense > 0 ? `- ${currency(hovered.expense)}` : "—"}</span>
-            {hovered.revenue > 0 && <span className="text-emerald-400 font-semibold num">+ {currency(hovered.revenue)}</span>}
+            <span className="text-expense font-semibold num">{hovered.expense > 0 ? `- ${currency(hovered.expense)}` : "—"}</span>
+            {hovered.revenue > 0 && <span className="text-income font-semibold num">+ {currency(hovered.revenue)}</span>}
           </motion.div>
         )}
       </AnimatePresence>

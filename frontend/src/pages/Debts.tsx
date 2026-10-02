@@ -62,7 +62,7 @@ export default function Debts() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
-            <Landmark className="w-7 h-7 text-brand-blue" /> Dívidas
+            <Landmark className="w-7 h-7 text-primary" /> Dívidas
           </h1>
           <p className="text-muted mt-1">Priorize por quem cobra mais juros ou por quem está mais perto de quitar.</p>
         </div>
@@ -77,13 +77,13 @@ export default function Debts() {
             <div className="flex rounded-control overflow-hidden border border-border">
               <button
                 onClick={() => setMethod("avalanche")}
-                className={`px-4 py-2 text-sm font-semibold ${method === "avalanche" ? "bg-brand-blue text-white" : "bg-surface text-muted"}`}
+                className={`px-4 py-2 text-sm font-semibold ${method === "avalanche" ? "bg-primary-solid text-white" : "bg-surface text-muted"}`}
               >
                 Avalanche (maior juros)
               </button>
               <button
                 onClick={() => setMethod("snowball")}
-                className={`px-4 py-2 text-sm font-semibold ${method === "snowball" ? "bg-brand-blue text-white" : "bg-surface text-muted"}`}
+                className={`px-4 py-2 text-sm font-semibold ${method === "snowball" ? "bg-primary-solid text-white" : "bg-surface text-muted"}`}
               >
                 Snowball (menor saldo)
               </button>
@@ -118,20 +118,20 @@ export default function Debts() {
             return (
               <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card relative">
                 {step && (
-                  <div className="absolute -top-2 -left-2 w-7 h-7 rounded-full bg-brand-blue text-white text-xs font-semibold flex items-center justify-center shadow">
+                  <div className="absolute -top-2 -left-2 w-7 h-7 rounded-full bg-primary-solid text-white text-xs font-semibold flex items-center justify-center shadow">
                     {step.order}
                   </div>
                 )}
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-display font-semibold truncate">{d.creditor}</h3>
-                  <button onClick={() => onDelete(d)} className="btn-ghost !p-1.5 hover:!text-red-600 shrink-0">
+                  <button onClick={() => onDelete(d)} className="btn-ghost !p-1.5 hover:!text-expense shrink-0">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="text-2xl font-display font-semibold text-red-500 mt-2">{currency(d.remainingAmount)}</p>
+                <p className="text-2xl font-display font-semibold text-expense mt-2">{currency(d.remainingAmount)}</p>
                 <p className="text-xs text-muted mt-1">de {currency(d.totalAmount)} · {d.interestRate}% a.m.</p>
                 {step && (
-                  <p className="text-xs text-brand-blue font-semibold mt-2">
+                  <p className="text-xs text-primary font-semibold mt-2">
                     Quitação estimada em ~{step.monthsToPayOff} meses nessa ordem
                   </p>
                 )}
@@ -182,18 +182,18 @@ function DebtModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
           <div>
             <label className="text-sm font-medium">Credor</label>
             <input {...register("creditor")} className="input mt-1" placeholder="Ex: Cartão Nubank" />
-            {errors.creditor && <p className="text-xs text-red-500 mt-1">{errors.creditor.message}</p>}
+            {errors.creditor && <p className="text-xs text-expense mt-1">{errors.creditor.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Valor total (R$)</label>
               <input type="number" step="0.01" {...register("totalAmount")} className="input mt-1" />
-              {errors.totalAmount && <p className="text-xs text-red-500 mt-1">{errors.totalAmount.message}</p>}
+              {errors.totalAmount && <p className="text-xs text-expense mt-1">{errors.totalAmount.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Falta pagar (R$)</label>
               <input type="number" step="0.01" {...register("remainingAmount")} className="input mt-1" />
-              {errors.remainingAmount && <p className="text-xs text-red-500 mt-1">{errors.remainingAmount.message}</p>}
+              {errors.remainingAmount && <p className="text-xs text-expense mt-1">{errors.remainingAmount.message}</p>}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -209,7 +209,7 @@ function DebtModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
           <div>
             <label className="text-sm font-medium">Link de negociação (opcional)</label>
             <input {...register("negotiationUrl")} className="input mt-1" placeholder="https://..." />
-            {errors.negotiationUrl && <p className="text-xs text-red-500 mt-1">{errors.negotiationUrl.message}</p>}
+            {errors.negotiationUrl && <p className="text-xs text-expense mt-1">{errors.negotiationUrl.message}</p>}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="btn-outline">Cancelar</button>

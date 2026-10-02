@@ -33,7 +33,7 @@ export const Logo: React.FC<Props> = ({
       <div className="flex flex-col leading-none">
         <span className="font-display font-semibold text-[1.25rem] tracking-tight">
           <span className="text-brand-dark dark:text-white">FINI</span>
-          <span className="bg-gradient-to-r from-brand-blue to-brand-blue-strong bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
             X
           </span>
         </span>

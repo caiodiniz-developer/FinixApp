@@ -159,7 +159,7 @@ export default function Categories() {
           </p>
         </div>
         <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-3 text-sm text-text dark:border-border dark:bg-surface dark:text-muted">
-          <Tag className="w-4 h-4 text-brand-blue" /> {user?.plan} •{" "}
+          <Tag className="w-4 h-4 text-primary" /> {user?.plan} •{" "}
           {canManage
             ? "Gerenciamento total ativado"
             : "Gerenciamento bloqueado"}
@@ -231,7 +231,7 @@ export default function Categories() {
                       onClick={() => hideDefault(name)}
                       title={`Remover ${name}`}
                       type="button"
-                      className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white text-2xs font-semibold"
+                      className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-expense text-white text-2xs font-semibold"
                     >
                       ×
                     </button>
@@ -259,7 +259,7 @@ export default function Categories() {
               </h2>
             </div>
             {editing && (
-              <span className="rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-semibold text-brand-blue">
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 Modo edição
               </span>
             )}
@@ -385,7 +385,7 @@ export default function Categories() {
             categorias...
           </div>
         ) : error ? (
-          <div className="mt-6 rounded-card border border-rose-800 bg-rose-950 p-4 text-rose-400">
+          <div className="mt-6 rounded-card border border-expense/30 bg-expense/15 p-4 text-expense">
             {error}
           </div>
         ) : categories.length === 0 ? (
@@ -442,7 +442,7 @@ export default function Categories() {
                     </button>
                     <button
                       onClick={() => removeCategory(category)}
-                      className="btn-ghost flex items-center gap-2 rounded-card px-4 py-2 text-sm text-rose-400 hover:bg-rose-950"
+                      className="btn-ghost flex items-center gap-2 rounded-card px-4 py-2 text-sm text-expense hover:bg-expense/15"
                       disabled={!canManage}
                     >
                       <Trash2 className="w-4 h-4" /> Excluir

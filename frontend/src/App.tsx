@@ -51,7 +51,7 @@ function FullScreenLoader() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-surface text-text">
       <Logo />
-      <div className="w-10 h-10 border-4 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin" />
+      <div className="w-10 h-10 border-4 border-primary/30 border-t-brand-blue rounded-full animate-spin" />
     </div>
   );
 }

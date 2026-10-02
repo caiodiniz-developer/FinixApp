@@ -98,16 +98,16 @@ export default function Recurring() {
                   <button className="btn-ghost !p-2" onClick={() => toggleActive(r)} title={r.active ? "Pausar" : "Retomar"}>
                     {r.active ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                   </button>
-                  <button className="btn-ghost !p-2 hover:!text-red-600" onClick={() => onDelete(r)}>
+                  <button className="btn-ghost !p-2 hover:!text-expense" onClick={() => onDelete(r)}>
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
               <div className="mt-4 flex items-baseline justify-between">
-                <span className={`text-xl font-display font-semibold ${r.type === "EXPENSE" ? "text-red-500" : "text-emerald-500"}`}>
+                <span className={`text-xl font-display font-semibold ${r.type === "EXPENSE" ? "text-expense" : "text-income"}`}>
                   {r.type === "EXPENSE" ? "-" : "+"}{currency(r.amount)}
                 </span>
-                <span className={`text-xs font-semibold rounded-full px-2 py-1 ${r.active ? "bg-emerald-500/10 text-emerald-500" : "bg-surface-strong text-muted"}`}>
+                <span className={`text-xs font-semibold rounded-full px-2 py-1 ${r.active ? "bg-income/10 text-income" : "bg-surface-strong text-muted"}`}>
                   {r.active ? "Ativa" : "Pausada"}
                 </span>
               </div>
@@ -160,13 +160,13 @@ function RecurringModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
           <div>
             <label className="text-sm font-medium">Título</label>
             <input {...register("title")} className="input mt-1" placeholder="Ex: Aluguel" />
-            {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>}
+            {errors.title && <p className="text-xs text-expense mt-1">{errors.title.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Valor (R$)</label>
               <input type="number" step="0.01" {...register("amount")} className="input mt-1" />
-              {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount.message}</p>}
+              {errors.amount && <p className="text-xs text-expense mt-1">{errors.amount.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Tipo</label>
@@ -180,7 +180,7 @@ function RecurringModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
             <div>
               <label className="text-sm font-medium">Categoria</label>
               <input {...register("category")} className="input mt-1" placeholder="Ex: Moradia" />
-              {errors.category && <p className="text-xs text-red-500 mt-1">{errors.category.message}</p>}
+              {errors.category && <p className="text-xs text-expense mt-1">{errors.category.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Frequência</label>
@@ -194,7 +194,7 @@ function RecurringModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
           <div>
             <label className="text-sm font-medium">Primeira ocorrência</label>
             <input type="date" {...register("startDate")} className="input mt-1" />
-            {errors.startDate && <p className="text-xs text-red-500 mt-1">{errors.startDate.message}</p>}
+            {errors.startDate && <p className="text-xs text-expense mt-1">{errors.startDate.message}</p>}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="btn-outline">Cancelar</button>

@@ -61,7 +61,7 @@ export default function Challenges() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
-            <Trophy className="w-7 h-7 text-amber-500" /> Desafios em grupo
+            <Trophy className="w-7 h-7 text-warning" /> Desafios em grupo
           </h1>
           <p className="text-muted mt-1">Economize em equipe — quem chega mais perto da meta lidera o ranking.</p>
         </div>
@@ -91,7 +91,7 @@ export default function Challenges() {
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-display font-semibold truncate">{c.title}</h3>
                   {c.creatorId === user?.id && (
-                    <button onClick={() => onDelete(c)} className="btn-ghost !p-1.5 hover:!text-red-600 shrink-0">
+                    <button onClick={() => onDelete(c)} className="btn-ghost !p-1.5 hover:!text-expense shrink-0">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
@@ -102,7 +102,7 @@ export default function Challenges() {
                   {ranked.map((p, i) => (
                     <div key={p.id} className="flex items-center justify-between text-xs">
                       <span className="flex items-center gap-1.5">
-                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-2xs font-semibold ${i === 0 ? "bg-amber-400 text-white" : "bg-surface-strong text-muted"}`}>{i + 1}</span>
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-2xs font-semibold ${i === 0 ? "bg-warning text-white" : "bg-surface-strong text-muted"}`}>{i + 1}</span>
                         {p.user?.name || "Participante"} {p.userId === user?.id && "(você)"}
                       </span>
                       <span className="font-semibold">{currency(p.progressAmount)}</span>
@@ -113,7 +113,7 @@ export default function Challenges() {
                 {mine && (
                   <div className="mt-3">
                     <div className="h-2 bg-surface-strong rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full" style={{ width: `${pct}%` }} />
+                      <div className="h-full bg-gradient-to-r from-warning to-warning rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 )}
@@ -181,23 +181,23 @@ function ChallengeModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
           <div>
             <label className="text-sm font-medium">Título</label>
             <input {...register("title")} className="input mt-1" placeholder="Ex: Economizar R$300 em agosto" />
-            {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>}
+            {errors.title && <p className="text-xs text-expense mt-1">{errors.title.message}</p>}
           </div>
           <div>
             <label className="text-sm font-medium">Meta (R$)</label>
             <input type="number" step="0.01" {...register("targetAmount")} className="input mt-1" />
-            {errors.targetAmount && <p className="text-xs text-red-500 mt-1">{errors.targetAmount.message}</p>}
+            {errors.targetAmount && <p className="text-xs text-expense mt-1">{errors.targetAmount.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Início</label>
               <input type="date" {...register("startDate")} className="input mt-1" />
-              {errors.startDate && <p className="text-xs text-red-500 mt-1">{errors.startDate.message}</p>}
+              {errors.startDate && <p className="text-xs text-expense mt-1">{errors.startDate.message}</p>}
             </div>
             <div>
               <label className="text-sm font-medium">Fim</label>
               <input type="date" {...register("endDate")} className="input mt-1" />
-              {errors.endDate && <p className="text-xs text-red-500 mt-1">{errors.endDate.message}</p>}
+              {errors.endDate && <p className="text-xs text-expense mt-1">{errors.endDate.message}</p>}
             </div>
           </div>
           <p className="text-xs text-muted">Depois de criado, compartilhe o convite de metas ou chame amigos pra participar.</p>

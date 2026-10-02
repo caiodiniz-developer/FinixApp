@@ -68,7 +68,7 @@ export default function Register() {
 
       {/* ── Left panel — dark, estilo landing hero ─────────────────── */}
       <div className="hidden lg:flex flex-col justify-between relative overflow-hidden bg-auth-side p-12">
-        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-brand-blue/20 blur-3xl pointer-events-none" />
+        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-primary/20 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] rounded-full bg-brand-green/20 blur-3xl pointer-events-none" />
 
         {/* Logo */}
@@ -129,7 +129,7 @@ export default function Register() {
           </h1>
           <p className="text-muted mt-1 text-sm">
             Já tem conta?{" "}
-            <Link to="/login" className="text-brand-blue font-semibold hover:underline" data-testid="goto-login">
+            <Link to="/login" className="text-primary font-semibold hover:underline" data-testid="goto-login">
               Entrar
             </Link>
           </p>
@@ -159,7 +159,7 @@ export default function Register() {
                   <input {...register("name")} data-testid="register-name"
                     className="input pl-10" placeholder="Seu nome" />
                 </div>
-                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
+                {errors.name && <p className="text-xs text-expense mt-1">{errors.name.message}</p>}
               </div>
 
               <div>
@@ -169,7 +169,7 @@ export default function Register() {
                   <input {...register("email")} type="email" data-testid="register-email"
                     className="input pl-10" placeholder="voce@email.com" />
                 </div>
-                {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+                {errors.email && <p className="text-xs text-expense mt-1">{errors.email.message}</p>}
               </div>
 
               <div>
@@ -197,7 +197,7 @@ export default function Register() {
                     </span>
                   </div>
                 )}
-                {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
+                {errors.password && <p className="text-xs text-expense mt-1">{errors.password.message}</p>}
               </div>
 
               <button type="submit" disabled={isSubmitting} data-testid="register-submit"
@@ -211,9 +211,9 @@ export default function Register() {
 
             <p className="text-2xs text-center text-muted">
               Ao criar uma conta, você concorda com nossos{" "}
-              <span className="font-semibold text-brand-blue cursor-pointer">Termos de Uso</span>{" "}
+              <span className="font-semibold text-primary cursor-pointer">Termos de Uso</span>{" "}
               e{" "}
-              <span className="font-semibold text-brand-blue cursor-pointer">Política de Privacidade</span>.
+              <span className="font-semibold text-primary cursor-pointer">Política de Privacidade</span>.
             </p>
           </div>
         </motion.div>

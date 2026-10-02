@@ -105,7 +105,7 @@ export function ToolsTab() {
             type="checkbox"
             checked={roundUpEnabled}
             onChange={(e) => setRoundUpEnabled(e.target.checked)}
-            className="h-5 w-5 rounded border-border text-brand-blue focus:ring-brand-blue shrink-0"
+            className="h-5 w-5 rounded border-border text-primary focus:ring-primary shrink-0"
           />
         </div>
         {roundUpEnabled && (
@@ -137,7 +137,7 @@ export function ToolsTab() {
             type="checkbox"
             checked={isAutonomous}
             onChange={(e) => setIsAutonomous(e.target.checked)}
-            className="h-5 w-5 rounded border-border text-brand-blue focus:ring-brand-blue shrink-0"
+            className="h-5 w-5 rounded border-border text-primary focus:ring-primary shrink-0"
           />
         </div>
 
@@ -187,7 +187,7 @@ export function ToolsTab() {
                 ))}
               </div>
             )}
-            <p className="mt-4 text-xs text-amber-600 dark:text-amber-400">⚠ {taxData.disclaimer}</p>
+            <p className="mt-4 text-xs text-warning ">⚠ {taxData.disclaimer}</p>
           </div>
         )}
       </div>
@@ -237,7 +237,7 @@ export function ToolsTab() {
               <p className="text-2xl font-display font-semibold mt-1">R$ {cltVsPj.pj.netMonthly.toFixed(2)}</p>
               <p className="text-xs text-muted mt-1">após R$ {cltVsPj.pj.estimatedTax.toFixed(2)} de imposto estimado</p>
             </div>
-            <div className={`sm:col-span-2 rounded-card p-4 ${cltVsPj.difference >= 0 ? "border border-emerald-500/30 bg-emerald-500/5" : "border border-amber-500/30 bg-amber-500/5"}`}>
+            <div className={`sm:col-span-2 rounded-card p-4 ${cltVsPj.difference >= 0 ? "border border-income/30 bg-income/5" : "border border-warning/30 bg-warning/5"}`}>
               <p className="text-sm font-semibold text-text">
                 {cltVsPj.difference >= 0
                   ? `PJ compensa R$ ${cltVsPj.difference.toFixed(2)} a mais por mês.`
@@ -245,7 +245,7 @@ export function ToolsTab() {
               </p>
               <p className="text-xs text-muted mt-1">Lembre: PJ não tem estabilidade, FGTS nem 13º/férias garantidos por lei — é você quem precisa se planejar pra isso.</p>
             </div>
-            <p className="sm:col-span-2 text-xs text-amber-600 dark:text-amber-400">⚠ {cltVsPj.disclaimer}</p>
+            <p className="sm:col-span-2 text-xs text-warning ">⚠ {cltVsPj.disclaimer}</p>
           </div>
         )}
       </div>

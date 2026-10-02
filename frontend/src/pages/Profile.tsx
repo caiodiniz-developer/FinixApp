@@ -380,8 +380,8 @@ export default function Profile() {
                 key={item}
                 onClick={() => setTab(item)}
                 className={`w-full rounded-card px-4 py-3 text-left text-sm font-medium transition ${
-                  tab === item
-                    ? "bg-brand-blue/10 text-brand-blue"
+ tab === item
+ ? "bg-primary/10 text-primary"
                     : "bg-surface-strong text-muted hover:bg-surface-strong"
                 }`}
               >
@@ -438,7 +438,7 @@ export default function Profile() {
                         className="input mt-1 text-text placeholder:text-muted dark:text-text"
                       />
                       {nameForm.formState.errors.name && (
-                        <p className="text-xs text-rose-400 mt-1">
+                        <p className="text-xs text-expense mt-1">
                           {nameForm.formState.errors.name.message}
                         </p>
                       )}
@@ -603,7 +603,7 @@ export default function Profile() {
                     className="input mt-1 text-text placeholder:text-muted dark:text-text"
                   />
                   {pwForm.formState.errors.currentPassword && (
-                    <p className="text-xs text-rose-400 mt-1">
+                    <p className="text-xs text-expense mt-1">
                       {pwForm.formState.errors.currentPassword.message}
                     </p>
                   )}
@@ -618,7 +618,7 @@ export default function Profile() {
                     className="input mt-1 text-text placeholder:text-muted dark:text-text"
                   />
                   {pwForm.formState.errors.newPassword && (
-                    <p className="text-xs text-rose-400 mt-1">
+                    <p className="text-xs text-expense mt-1">
                       {pwForm.formState.errors.newPassword.message}
                     </p>
                   )}
@@ -646,7 +646,7 @@ export default function Profile() {
                         : "Adicione uma camada extra de proteção usando um aplicativo autenticador (Google Authenticator, Authy...)."}
                     </p>
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${user.twoFactorEnabled ? "bg-emerald-500/10 text-emerald-500" : "bg-surface-strong text-muted"}`}>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${user.twoFactorEnabled ? "bg-income/10 text-income" : "bg-surface-strong text-muted"}`}>
                     {user.twoFactorEnabled ? "Ativado" : "Desativado"}
                   </span>
                 </div>
@@ -677,7 +677,7 @@ export default function Profile() {
                 )}
 
                 {backupCodes && (
-                  <div className="mt-4 rounded-card border border-amber-500/30 bg-amber-500/5 p-4">
+                  <div className="mt-4 rounded-card border border-warning/30 bg-warning/5 p-4">
                     <p className="text-sm font-semibold text-text">Guarde seus códigos de backup</p>
                     <p className="text-xs text-muted mt-1">Cada um funciona uma vez, caso você perca acesso ao autenticador. Eles não serão mostrados novamente.</p>
                     <div className="mt-3 grid grid-cols-2 gap-2 font-mono text-xs">
@@ -697,7 +697,7 @@ export default function Profile() {
                     <input value={disableCode} onChange={(e) => setDisableCode(e.target.value)}
                       className="input font-mono" placeholder="Código 2FA" maxLength={6} />
                     <button onClick={disableTwoFactor} disabled={twoFactorLoading || !disablePassword || !disableCode}
-                      className="btn-outline w-full text-rose-500">
+                      className="btn-outline w-full text-expense">
                       {twoFactorLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Desativar 2FA"}
                     </button>
                   </div>
@@ -719,7 +719,7 @@ export default function Profile() {
                       {planName}
                     </h2>
                   </div>
-                  <div className="rounded-full bg-brand-blue/10 px-3 py-1 text-sm font-semibold text-brand-blue">
+                  <div className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
                     {user.plan}
                   </div>
                 </div>
@@ -733,7 +733,7 @@ export default function Profile() {
                   </div>
                   <div className="mt-3 h-3 overflow-hidden rounded-full bg-surface-strong">
                     <div
-                      className="h-full rounded-full bg-brand-blue"
+                      className="h-full rounded-full bg-primary-solid"
                       style={{ width: `${planUsedPercent}%` }}
                     />
                   </div>
@@ -819,7 +819,7 @@ export default function Profile() {
                       <button
                         onClick={enablePush}
                         disabled={pushSubscribed}
-                        className={`rounded-full px-4 py-1.5 text-xs font-semibold ${pushSubscribed ? "bg-emerald-500/10 text-emerald-500" : "btn-primary !py-1.5"}`}
+                        className={`rounded-full px-4 py-1.5 text-xs font-semibold ${pushSubscribed ? "bg-income/10 text-income" : "btn-primary !py-1.5"}`}
                       >
                         {pushSubscribed ? "Ativado" : "Ativar"}
                       </button>
@@ -833,7 +833,7 @@ export default function Profile() {
                             [channel]: e.target.checked,
                           }))
                         }
-                        className="h-5 w-5 rounded border-border text-brand-blue focus:ring-brand-blue"
+                        className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
                       />
                     )}
                   </label>
