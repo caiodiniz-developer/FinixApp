@@ -19,6 +19,7 @@ import { api, apiErrorMessage } from "../services/api";
 import { todayISO } from "../utils/format";
 import { ActivePill } from "../components/motion";
 import { ConfirmHost } from "../components/confirm";
+import { MoneyInput } from "../components/MoneyInput";
 
 interface NavItem { to: string; icon: LucideIcon; label: string; testid: string; badge?: number; }
 
@@ -375,7 +376,7 @@ export default function AppLayout() {
                 })}
               </div>
               <input className="input" placeholder="Descrição" value={quickForm.title} onChange={e => setQuickForm({ ...quickForm, title: e.target.value })} required />
-              <input type="number" step="0.01" min="0.01" className="input num" placeholder="Valor em R$" value={quickForm.amount} onChange={e => setQuickForm({ ...quickForm, amount: e.target.value })} required />
+              <MoneyInput value={quickForm.amount} onChange={v => setQuickForm({ ...quickForm, amount: String(v) })} required data-testid="quick-amount" />
               {quickAccounts.length > 0 && (
                 <select className="input" value={quickForm.accountId} onChange={e => setQuickForm({ ...quickForm, accountId: e.target.value })}>
                   <option value="">Sem conta</option>

@@ -3,6 +3,7 @@ import { Loader2, X } from "lucide-react";
 import { api, apiErrorMessage } from "../../services/api";
 import { todayISO } from "../../utils/format";
 import toast from "react-hot-toast";
+import { MoneyInput } from "../MoneyInput";
 
 // ─── QUICK-ADD MODAL ──────────────────────────────────────────────────────────
 export function QuickAddModal({ open, onClose, onAdded, categories, accounts }: {
@@ -51,7 +52,7 @@ export function QuickAddModal({ open, onClose, onAdded, categories, accounts }: 
           </div>
           <input className="input" placeholder="Descrição" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
           <div className="grid grid-cols-2 gap-3">
-            <input type="number" step="0.01" min="0.01" className="input num" placeholder="Valor em R$" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} required />
+            <MoneyInput value={form.amount} onChange={v => setForm(f => ({ ...f, amount: String(v) }))} required data-testid="quick-amount" />
             <input type="date" className="input" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
           </div>
           <select className="input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
