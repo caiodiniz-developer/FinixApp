@@ -128,12 +128,18 @@ export default function Cards() {
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="card text-center py-14">
-          <CardIcon className="w-12 h-12 mx-auto text-muted" />
-          <p className="mt-3 font-semibold text-lg">Nenhum cartão cadastrado</p>
-          <p className="text-sm text-muted mt-1">
+        <div className="empty-state">
+          <CardIcon className="w-8 h-8" />
+          <p className="empty-state-title mt-1">Nenhum cartão cadastrado</p>
+          <p className="text-sm max-w-sm">
             Cadastre um cartão para acompanhar a fatura sem precisar somar nada na mão.
           </p>
+          <button onClick={() => {
+              setEditing(null);
+              setOpen(true);
+            }} className="btn-primary mt-3">
+            <Plus className="w-4 h-4" /> Novo cartão
+          </button>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 gap-5">

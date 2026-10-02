@@ -76,12 +76,15 @@ export default function Recurring() {
           {[1, 2].map((i) => <div key={i} className="skeleton h-28" />)}
         </div>
       ) : items.length === 0 ? (
-        <div className="card text-center py-14">
-          <Repeat className="w-12 h-12 mx-auto text-muted" />
-          <p className="mt-3 font-semibold text-lg">Nenhuma recorrência ainda</p>
-          <p className="text-sm text-muted mt-1">
+        <div className="empty-state">
+          <Repeat className="w-8 h-8" />
+          <p className="empty-state-title mt-1">Nenhuma recorrência ainda</p>
+          <p className="text-sm max-w-sm">
             Cadastre contas fixas para não esquecer de lançá-las todo mês.
           </p>
+          <button onClick={() => setOpen(true)} className="btn-primary mt-3">
+            <Plus className="w-4 h-4" /> Nova recorrência
+          </button>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

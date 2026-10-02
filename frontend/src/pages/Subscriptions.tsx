@@ -64,10 +64,10 @@ export default function Subscriptions() {
           {[1, 2].map((i) => <div key={i} className="skeleton h-32" />)}
         </div>
       ) : items.length === 0 ? (
-        <div className="card text-center py-14">
-          <Ghost className="w-12 h-12 mx-auto text-muted" />
-          <p className="mt-3 font-semibold text-lg">Nenhum fantasma encontrado</p>
-          <p className="text-sm text-muted mt-1">
+        <div className="empty-state">
+          <Ghost className="w-8 h-8" />
+          <p className="empty-state-title mt-1">Nenhum fantasma encontrado</p>
+          <p className="text-sm max-w-sm">
             Assim que um mesmo lançamento se repetir 3 vezes com intervalo mensal, ele aparece aqui.
           </p>
         </div>

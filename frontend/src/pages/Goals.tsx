@@ -144,12 +144,18 @@ export default function Goals() {
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="card text-center py-14">
-          <Target className="w-12 h-12 mx-auto text-muted" />
-          <p className="mt-3 font-semibold text-lg">Nenhuma meta ainda</p>
-          <p className="text-sm text-muted mt-1">
+        <div className="empty-state">
+          <Target className="w-8 h-8" />
+          <p className="empty-state-title mt-1">Nenhuma meta ainda</p>
+          <p className="text-sm max-w-sm">
             Crie sua primeira meta e transforme desejos em planos.
           </p>
+          <button onClick={() => {
+              setEditing(null);
+              setOpen(true);
+            }} className="btn-primary mt-3">
+            <Plus className="w-4 h-4" /> Nova meta
+          </button>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -75,10 +75,13 @@ export default function Challenges() {
           {[1, 2].map((i) => <div key={i} className="skeleton h-40" />)}
         </div>
       ) : items.length === 0 ? (
-        <div className="card text-center py-14">
-          <Users className="w-12 h-12 mx-auto text-muted" />
-          <p className="mt-3 font-semibold text-lg">Nenhum desafio ainda</p>
-          <p className="text-sm text-muted mt-1">Crie um e chame os amigos pra economizar junto.</p>
+        <div className="empty-state">
+          <Users className="w-8 h-8" />
+          <p className="empty-state-title mt-1">Nenhum desafio ainda</p>
+          <p className="text-sm max-w-sm">Crie um e chame os amigos pra economizar junto.</p>
+          <button onClick={() => setOpen(true)} className="btn-primary mt-3">
+            <Plus className="w-4 h-4" /> Novo desafio
+          </button>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

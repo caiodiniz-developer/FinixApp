@@ -206,12 +206,18 @@ export default function Contacts() {
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="card text-center py-14">
-          <Users className="w-12 h-12 mx-auto text-muted" />
-          <p className="mt-3 font-semibold text-lg">Nenhum contato cadastrado</p>
-          <p className="text-sm text-muted mt-1">
+        <div className="empty-state">
+          <Users className="w-8 h-8" />
+          <p className="empty-state-title mt-1">Nenhum contato cadastrado</p>
+          <p className="text-sm max-w-sm">
             Cadastre amigos ou familiares para dividir despesas com eles.
           </p>
+          <button onClick={() => {
+              setEditing(null);
+              setOpen(true);
+            }} className="btn-primary mt-3">
+            <Plus className="w-4 h-4" /> Novo contato
+          </button>
         </div>
       ) : (
         <div className="card !p-0 overflow-hidden">
