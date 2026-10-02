@@ -398,7 +398,7 @@ export default function Calendar() {
                   </span>
                 </div>
                 <div
-                  className={`mt-2 text-sm sm:text-base md:text-2xl lg:text-3xl font-semibold ${item.color} break-all`}
+                  className={`mt-2 text-xs sm:text-base md:text-2xl lg:text-3xl font-semibold num ${item.color} truncate`}
                 >
                   {formatCurrency(item.value)}
                 </div>
@@ -438,7 +438,7 @@ export default function Calendar() {
                       return (
                         <div
                           key={`empty-${index}`}
-                          className="min-h-[60px] sm:min-h-[80px] md:min-h-[98px] rounded-control sm:rounded-card md:rounded-card border border-border-strong bg-surface dark:bg-surface-strong/20"
+                          className="min-h-[56px] sm:min-h-[76px] md:min-h-[88px]"
                         />
                       );
                     }
@@ -447,7 +447,14 @@ export default function Calendar() {
                     const past = isPastOrToday(day.date);
                     const isActive = day.date === selectedDate;
                     const isToday = day.date === todayStr;
+                    const revenue = day.revenue ?? 0;
+                    const expense = day.expense ?? 0;
+                    const quiet = revenue === 0 && expense === 0;
+                    const compact = (v: number) =>
+                      new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(v);
 
+                    // Days with nothing in them stay almost invisible, so the
+                    // eye lands on the ones where money moved.
                     return (
                       <button
                         key={day.date}
@@ -459,65 +466,41 @@ export default function Calendar() {
                             : undefined
                         }
                         className={[
-                          "group flex flex-col gap-1 sm:gap-2 rounded-control sm:rounded-card md:rounded-card border p-1.5 sm:p-2 md:p-3 text-left transition-all min-h-[60px] sm:min-h-[80px] md:min-h-[98px]",
+                          "pressable flex flex-col gap-1.5 rounded-control border p-1.5 sm:p-2 text-left transition-colors min-h-[56px] sm:min-h-[76px] md:min-h-[88px]",
                           !past
-                            ? "border-border-strong bg-surface dark:bg-surface-strong/20 opacity-35 cursor-not-allowed"
+                            ? "border-transparent opacity-40 cursor-not-allowed"
                             : isActive
-                              ? "border-primary/50 bg-primary/10 dark:bg-primary/10 cursor-pointer"
-                              : "border-border dark:border-border bg-surface dark:bg-surface hover:border-primary/30 hover:bg-surface dark:hover:bg-surface-strong/60 cursor-pointer",
+                              ? "border-primary/50 bg-primary/10 cursor-pointer"
+                              : quiet
+                                ? "border-transparent hover:bg-[var(--color-card-hover)] cursor-pointer"
+                                : "border-border bg-[var(--color-hairline)] hover:border-primary/40 cursor-pointer",
                         ].join(" ")}
                       >
-                        <span className="hidden md:block text-2xs text-muted">
-                          {date.toLocaleDateString("pt-BR", {
-                            weekday: "short",
-                          })}
+                        <span
+                          className={[
+                            "inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full text-xs sm:text-sm font-semibold leading-none num",
+                            isToday ? "text-white" : past && !quiet ? "text-text" : "text-muted",
+                          ].join(" ")}
+                          style={isToday ? { background: "rgb(var(--c-primary-solid))" } : undefined}
+                        >
+                          {date.getDate()}
                         </span>
 
-                        <div className="flex items-center gap-1">
-                          <span
-                            className={`text-sm sm:text-base md:text-xl font-semibold leading-none ${past ? "text-text" : "text-muted"}`}
-                          >
-                            {date.getDate()}
-                          </span>
-                          {isToday && (
-                            <span className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-primary-solid flex-shrink-0" />
-                          )}
-                        </div>
-
-                        {past ? (
-                          <>
-                            <div className="space-y-0.5 text-2xs sm:text-xs leading-tight">
-                              {(day.revenue ?? 0) > 0 && (
-                                <div className="text-income font-medium truncate">
-                                  +
-                                  {new Intl.NumberFormat("pt-BR", {
-                                    notation: "compact",
-                                    maximumFractionDigits: 1,
-                                  }).format(day.revenue)}
-                                </div>
-                              )}
-                              {(day.expense ?? 0) > 0 && (
-                                <div className="text-expense font-medium truncate">
-                                  -
-                                  {new Intl.NumberFormat("pt-BR", {
-                                    notation: "compact",
-                                    maximumFractionDigits: 1,
-                                  }).format(day.expense)}
-                                </div>
-                              )}
-                              {(day.revenue ?? 0) === 0 &&
-                                (day.expense ?? 0) === 0 && (
-                                  <div className="text-muted dark:text-muted text-2xs">
-                                    —
-                                  </div>
-                                )}
-                            </div>
-                            <div
-                              className={`mt-auto h-1 sm:h-1.5 rounded-full ${(day.net ?? 0) >= 0 ? "bg-income" : "bg-expense"}`}
-                            />
-                          </>
-                        ) : (
-                          <div className="mt-auto h-1 sm:h-1.5 rounded-full bg-surface-strong/50" />
+                        {past && !quiet && (
+                          <div className="mt-auto space-y-0.5 text-2xs sm:text-xs leading-tight num">
+                            {revenue > 0 && (
+                              <div className="flex items-center gap-1 text-income font-medium">
+                                <span className="h-1.5 w-1.5 rounded-full bg-income shrink-0" />
+                                <span className="truncate hidden sm:inline">{compact(revenue)}</span>
+                              </div>
+                            )}
+                            {expense > 0 && (
+                              <div className="flex items-center gap-1 text-expense font-medium">
+                                <span className="h-1.5 w-1.5 rounded-full bg-expense shrink-0" />
+                                <span className="truncate hidden sm:inline">{compact(expense)}</span>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </button>
                     );
@@ -535,7 +518,7 @@ export default function Calendar() {
                   <span className="h-2 w-2 rounded-full bg-expense" /> Despesa
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary-solid" />{" "}
+                  <span className="h-2 w-2 rounded-full bg-primary-solid" />{" "}
                   Hoje
                 </span>
                 <span className="flex items-center gap-1.5 opacity-50">
