@@ -1,94 +1,122 @@
-import { useEffect, useRef, useState, lazy, Suspense } from "react";
-import { activePlan } from "../types";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import {
-  TrendingUp,
-  TrendingDown,
-  Wallet,
-  PiggyBank,
-  FileDown,
-  FileSpreadsheet,
-  ArrowUpRight,
-  ArrowDownRight,
-  Info,
-  AlertTriangle,
-  CheckCircle2,
-  Sparkles,
-  Loader2,
-  Plus,
-  Target,
-  X,
-  Activity,
-  Zap,
-  Clock,
-  Flame,
-  ChevronRight,
-  Lightbulb,
-  ShieldCheck,
-  Award,
-  Download,
-  Receipt,
-  Bell,
-  BarChart3,
-  AreaChart as AreaChartIcon,
-  CalendarClock,
-  TriangleAlert,
+  TrendingUp, TrendingDown, Wallet, PiggyBank,
+  FileDown, FileSpreadsheet, ArrowUpRight, ArrowDownRight,
+  Info, AlertTriangle, CheckCircle2, Sparkles, Loader2,
+  Plus, Target, X, Flame, ChevronRight, ChevronDown, Lightbulb, ShieldCheck, Award,
+  Download, Bell, BarChart3, AreaChart as AreaChartIcon,
+  type LucideIcon,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  LineChart,
-  Line,
-  ReferenceLine,
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell,
+  LineChart, Line, ReferenceLine,
 } from "recharts";
+import toast from "react-hot-toast";
 import { api } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
-import { Insight } from "../types";
+import { Insight, activePlan } from "../types";
 import { currency, dateBR, CATEGORY_COLORS } from "../utils/format";
-import { UpgradeModal } from "../components/UpgradeModal";
-import { Reveal } from "../components/dashboard/Reveal";
-import { CountUpCurrency } from "../components/dashboard/CountUpCurrency";
-import { FinancialRadar } from "../components/dashboard/FinancialRadar";
-import { SavingsSimulator } from "../components/dashboard/SavingsSimulator";
-import { Celebration } from "../components/dashboard/Celebration";
-import { Achievements, Achievement } from "../components/dashboard/Achievements";
-import { gsap } from "../lib/gsap";
-import toast from "react-hot-toast";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { computeDashboardMetrics } from "../utils/dashboardMetrics";
+import { UpgradeModal } from "../components/UpgradeModal";
 import { QuickAddModal } from "../components/dashboard/QuickAddModal";
+import { FinancialRadar } from "../components/dashboard/FinancialRadar";
+import { SavingsSimulator } from "../components/dashboard/SavingsSimulator";
+import { Achievements, Achievement } from "../components/dashboard/Achievements";
 import { HealthRing, Sparkline, MetricCard } from "../components/dashboard/widgets";
 import { ChartTooltip } from "../components/dashboard/ChartTooltip";
 import { SpendingHeatmap } from "../components/dashboard/SpendingHeatmap";
 import { CategoryBars } from "../components/dashboard/CategoryBars";
 
-// Three.js is a heavy dependency for a purely decorative element — load it
-// in its own chunk instead of the main dashboard bundle.
-const HealthOrb = lazy(() =>
-  import("../components/dashboard/HealthOrb").then(m => ({ default: m.HealthOrb })),
-);
+// Semantic colours come from the theme; charts need them as plain strings.
+const INCOME = "var(--color-income)";
+const EXPENSE = "var(--color-expense)";
+const PRIMARY = "var(--color-primary)";
+const WARNING = "var(--color-warning)";
+const PIE_COLORS = ["#2563eb", "#0891b2", "#059669", "#d97706", "#dc2626", "#0ea5e9"];
+
+type Tab = "overview" | "analysis";
+
+// ─── Small building blocks ───────────────────────────────────────────────────
+function Panel({ title, subtitle, action, children, className = "" }: {
+  title: string;
+  subtitle?: string;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`card !p-5 ${className}`}>
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>{title}</h3>
+          {subtitle && <p className="text-xs mt-0.5" style={{ color: "var(--color-text-low)" }}>{subtitle}</p>}
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function PanelLink({ to, children }: { to: string; children: ReactNode }) {
+  return (
+    <Link to={to} className="shrink-0 inline-flex items-center gap-0.5 text-xs font-medium hover:underline" style={{ color: PRIMARY }}>
+      {children} <ChevronRight className="w-3.5 h-3.5" />
+    </Link>
+  );
+}
+
+function Empty({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
+  return (
+    <div className="flex flex-col items-center py-8 gap-2 text-center">
+      <Icon className="w-7 h-7" style={{ color: "var(--color-border-strong)" }} />
+      <div className="text-xs" style={{ color: "var(--color-text-low)" }}>{children}</div>
+    </div>
+  );
+}
+
+function ProgressBar({ pct, color }: { pct: number; color: string }) {
+  return (
+    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--color-hairline-strong)" }}>
+      <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${Math.min(Math.max(pct, 0), 100)}%`, background: color }} />
+    </div>
+  );
+}
+
+const insightTone = {
+  info: { icon: Info, color: PRIMARY },
+  warning: { icon: AlertTriangle, color: WARNING },
+  success: { icon: CheckCircle2, color: INCOME },
+} as const;
+
+function InsightCard({ insight }: { insight: Insight }) {
+  const tone = insightTone[insight.type] || insightTone.info;
+  return (
+    <div className="flex gap-2.5 rounded-control p-3.5" style={{ background: "var(--color-card-hover)" }}>
+      <tone.icon className="w-4 h-4 shrink-0 mt-0.5" style={{ color: tone.color }} />
+      <div>
+        <div className="text-xs font-semibold" style={{ color: "var(--color-text)" }}>{insight.title}</div>
+        <div className="text-xs leading-relaxed mt-0.5" style={{ color: "var(--color-text-muted)" }}>{insight.message}</div>
+      </div>
+    </div>
+  );
+}
 
 // ─── MAIN DASHBOARD ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { user } = useAuth();
+  const [tab, setTab] = useState<Tab>("overview");
   const [aiInsights, setAiInsights] = useState<Insight[] | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [csvLoading, setCsvLoading] = useState(false);
   const [chartView, setChartView] = useState<"area" | "bar">("area");
-  const heroRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
 
   const plan = activePlan(user);
   const isFree = plan === "FREE";
@@ -103,43 +131,44 @@ export default function Dashboard() {
     alerts, budgets, goals, categories, accounts, calDays, forecast, topExpenses,
   } = useDashboardData(isFree);
 
-  // Hero entrance choreography — plays once the dashboard payload lands and
-  // the greeting/health ring/chips are actually on screen. Layered on top of
-  // the Framer Motion fade on the hero container itself.
+  // Close the export menu when clicking anywhere else.
   useEffect(() => {
-    if (!data || !heroRef.current) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-      tl.from("[data-hero='ring']", { opacity: 0, scale: 0.7, duration: 0.55 })
-        .from("[data-hero='eyebrow']", { opacity: 0, y: 8, duration: 0.4 }, "-=0.3")
-        .from("[data-hero='heading']", { opacity: 0, y: 10, duration: 0.5 }, "-=0.25")
-        .from("[data-hero='date']", { opacity: 0, y: 6, duration: 0.35 }, "-=0.3")
-        .from("[data-hero='chip']", { opacity: 0, y: 6, scale: 0.85, duration: 0.35, stagger: 0.08 }, "-=0.15")
-        .from("[data-hero='action']", { opacity: 0, y: 8, duration: 0.35, stagger: 0.05 }, "-=0.35");
-    }, heroRef);
-    return () => ctx.revert();
-  }, [data]);
+    if (!exportOpen) return;
+    const close = (e: MouseEvent) => {
+      if (!exportRef.current?.contains(e.target as Node)) setExportOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [exportOpen]);
 
   if (!user) return null;
 
+  const download = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleExport = async (kind: "pdf" | "excel") => {
+    setExportOpen(false);
     if ((kind === "pdf" && !canExportPdf) || (kind === "excel" && !canExportExcel)) { setUpgradeOpen(true); return; }
     try {
       const r = await api.get(`/api/export/${kind}`, { responseType: "blob" });
-      const url = URL.createObjectURL(r.data);
-      const a = document.createElement("a"); a.href = url;
-      a.download = kind === "pdf" ? "finix-relatorio.pdf" : "finix-transacoes.xlsx";
-      a.click(); URL.revokeObjectURL(url); toast.success("Exportado!");
+      download(r.data, kind === "pdf" ? "finix-relatorio.pdf" : "finix-transacoes.xlsx");
+      toast.success("Exportado!");
     } catch { toast.error("Erro ao exportar"); }
   };
 
   const handleExportCsv = async () => {
+    setExportOpen(false);
     if (!canExportCsv) { setUpgradeOpen(true); return; }
     setCsvLoading(true);
     try {
       const r = await api.get("/api/transactions");
-      const rows: any[] = r.data || [];
+      const rows: { date: string; title: string; type: string; category: string; amount: number }[] = r.data || [];
       const escape = (v: string) => `"${String(v ?? "").replace(/"/g, '""')}"`;
       const header = ["Data", "Título", "Tipo", "Categoria", "Valor"].join(";");
       const lines = rows.map(t => [
@@ -147,11 +176,7 @@ export default function Dashboard() {
         String(t.amount).replace(".", ","),
       ].join(";"));
       const csv = "﻿" + [header, ...lines].join("\r\n");
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = "finix-transacoes.csv"; a.click();
-      URL.revokeObjectURL(url);
+      download(new Blob([csv], { type: "text/csv;charset=utf-8;" }), "finix-transacoes.csv");
       toast.success("CSV exportado!");
     } catch { toast.error("Erro ao exportar CSV"); }
     finally { setCsvLoading(false); }
@@ -160,30 +185,34 @@ export default function Dashboard() {
   const generateAi = async () => {
     if (!canUseAi) { setUpgradeOpen(true); return; }
     setAiLoading(true);
-    try { const r = await api.post("/api/insights/ai"); setAiInsights(r.data.insights || []); toast.success("Análise pronta!"); }
+    try {
+      const r = await api.post("/api/insights/ai");
+      setAiInsights(r.data.insights || []);
+      setTab("overview");
+      toast.success("Análise pronta!");
+    }
     catch { toast.error("Falha ao gerar análise"); }
     finally { setAiLoading(false); }
   };
 
-  // ── Loading ──────────────────────────────────────────────────────────────
+  // ── Loading / error ───────────────────────────────────────────────────────
   if (loading) return (
     <div className="space-y-4">
-      <div className="skeleton h-28 rounded-2xl" />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">{[1,2,3,4].map(i => <div key={i} className="skeleton h-24 rounded-xl" />)}</div>
-      <div className="grid sm:grid-cols-3 gap-3">{[1,2,3].map(i => <div key={i} className="skeleton h-20 rounded-xl" />)}</div>
-      <div className="grid lg:grid-cols-3 gap-4"><div className="skeleton h-52 lg:col-span-2 rounded-xl" /><div className="skeleton h-52 rounded-xl" /></div>
-      <div className="grid lg:grid-cols-3 gap-4">{[1,2,3].map(i => <div key={i} className="skeleton h-48 rounded-xl" />)}</div>
+      <div className="skeleton h-14 rounded-card" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">{[1, 2, 3, 4].map(i => <div key={i} className="skeleton h-28 rounded-card" />)}</div>
+      <div className="grid lg:grid-cols-3 gap-4"><div className="skeleton h-72 lg:col-span-2 rounded-card" /><div className="skeleton h-72 rounded-card" /></div>
+      <div className="grid md:grid-cols-2 gap-4">{[1, 2].map(i => <div key={i} className="skeleton h-48 rounded-card" />)}</div>
     </div>
   );
   if (error) return (
-    <div className="p-5 rounded-2xl" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
-      <p className="font-semibold text-rose-400">{error}</p>
+    <div className="card">
+      <p className="font-semibold" style={{ color: EXPENSE }}>{error}</p>
       <button onClick={fetchAll} className="btn-primary mt-3 text-sm">Tentar novamente</button>
     </div>
   );
   if (!data) return null;
 
-  // ── Computed ─────────────────────────────────────────────────────────────
+  // ── Derived numbers ───────────────────────────────────────────────────────
   const now = new Date();
   const {
     daysRemaining, curMonth, dailyRate, dailyLimit, projectedEnd, runway, velocityPct,
@@ -192,644 +221,455 @@ export default function Dashboard() {
   } = computeDashboardMetrics(data, budgets, calDays, now);
 
   const stats = [
-    { label: "Saldo total", value: data.balance, diff: null, inv: false, spark: data.monthly.map(m => m.income - m.expense), color: "#38bdf8", icon: Wallet },
-    { label: "Receitas", value: curMonth.income, diff: incomeDiff, inv: false, spark: data.monthly.map(m => m.income), color: "#22c55e", icon: TrendingUp },
-    { label: "Despesas", value: curMonth.expense, diff: expenseDiff, inv: true, spark: data.monthly.map(m => m.expense), color: "#f87171", icon: TrendingDown },
-    { label: "Economizado", value: data.saved, diff: null, inv: false, spark: data.monthly.map(m => m.income - m.expense), color: "#fbbf24", icon: PiggyBank },
+    { label: "Saldo total", value: data.balance, diff: null as number | null, inv: false, spark: data.monthly.map(m => m.income - m.expense), color: PRIMARY, icon: Wallet },
+    { label: "Receitas", value: curMonth.income, diff: incomeDiff, inv: false, spark: data.monthly.map(m => m.income), color: INCOME, icon: TrendingUp },
+    { label: "Despesas", value: curMonth.expense, diff: expenseDiff, inv: true, spark: data.monthly.map(m => m.expense), color: EXPENSE, icon: TrendingDown },
+    { label: "Economizado", value: data.saved, diff: null, inv: false, spark: data.monthly.map(m => m.income - m.expense), color: PRIMARY, icon: PiggyBank },
   ];
 
-  const insightCfg = {
-    info: { icon: Info, border: "rgba(59,130,246,0.2)", text: "#60a5fa", bg: "rgba(59,130,246,0.05)" },
-    warning: { icon: AlertTriangle, border: "rgba(245,158,11,0.2)", text: "#fbbf24", bg: "rgba(245,158,11,0.05)" },
-    success: { icon: CheckCircle2, border: "rgba(34,197,94,0.2)", text: "#4ade80", bg: "rgba(34,197,94,0.05)" },
-  } as const;
+  const tips: { icon: LucideIcon; text: string; color: string }[] = [];
+  if (streak > 2) tips.push({ icon: Flame, text: `${streak} dias consecutivos positivos`, color: INCOME });
+  if (savingsRate > 20) tips.push({ icon: Award, text: `${savingsRate.toFixed(0)}% poupado — acima da média`, color: INCOME });
+  else if (savingsRate < 5 && data.income > 0) tips.push({ icon: Lightbulb, text: "Tente poupar ao menos 10% da renda", color: WARNING });
+  if (runway < 3) tips.push({ icon: ShieldCheck, text: `Reserva: ${runway.toFixed(1)} meses — ideal 3-6`, color: PRIMARY });
+  if (projectedEnd < 0) tips.push({ icon: TrendingDown, text: `Projeção negativa de ${currency(Math.abs(projectedEnd))}`, color: EXPENSE });
+  if (budgets.some(b => b.percentage > 100)) tips.push({ icon: AlertTriangle, text: "Limite excedido em algum orçamento", color: EXPENSE });
+  if (tips.length === 0) tips.push({ icon: CheckCircle2, text: "Finanças equilibradas. Continue assim!", color: INCOME });
 
-  const PIE_COLORS = ["#2563eb","#0891b2","#059669","#d97706","#dc2626","#0ea5e9"];
-
-  const tips: { icon: React.ElementType; text: string; color: string }[] = [];
-  if (streak > 2) tips.push({ icon: Flame, text: `${streak} dias consecutivos positivos`, color: "#fb923c" });
-  if (savingsRate > 20) tips.push({ icon: Award, text: `${savingsRate.toFixed(0)}% poupado — acima da média`, color: "#4ade80" });
-  else if (savingsRate < 5 && data.income > 0) tips.push({ icon: Lightbulb, text: "Tente poupar ao menos 10% da renda", color: "#fbbf24" });
-  if (runway < 3) tips.push({ icon: ShieldCheck, text: `Reserva: ${runway.toFixed(1)} meses — ideal 3-6`, color: "#60a5fa" });
-  if (projectedEnd < 0) tips.push({ icon: TrendingDown, text: `Projeção negativa de ${currency(Math.abs(projectedEnd))}`, color: "#f87171" });
-  if (budgets.some(b => b.percentage > 100)) tips.push({ icon: AlertTriangle, text: "Limite excedido em algum orçamento", color: "#f87171" });
-  if (tips.length === 0) tips.push({ icon: CheckCircle2, text: "Finanças equilibradas. Continue assim!", color: "#4ade80" });
-
-  const bestGoalPct = goals.length > 0
-    ? Math.max(...goals.map(g => (g.currentAmount / g.targetAmount) * 100))
-    : 0;
+  const bestGoalPct = goals.length > 0 ? Math.max(...goals.map(g => (g.currentAmount / g.targetAmount) * 100)) : 0;
   const achievements: Achievement[] = [
-    { id: "streak", label: "Sequência positiva", hint: "3+ dias seguidos com saldo positivo", icon: Flame, color: "#fb923c", unlocked: streak >= 3 },
-    { id: "saver", label: "Poupador", hint: "Poupando 20%+ da renda", icon: PiggyBank, color: "#a78bfa", unlocked: savingsRate >= 20 },
-    { id: "budget", label: "Orçamento em dia", hint: "Nenhum orçamento estourado", icon: ShieldCheck, color: "#22c55e", unlocked: budgets.length > 0 && !budgets.some(b => b.percentage > 100) },
-    { id: "health", label: "Saúde excelente", hint: "Score de saúde financeira 70+", icon: Award, color: "#facc15", unlocked: healthScore >= 70 },
-    { id: "goal", label: "Meta na metade", hint: "Alguma meta com 50%+ concluída", icon: Target, color: "#34d399", unlocked: bestGoalPct >= 50 },
-    { id: "runway", label: "Reserva sólida", hint: "3+ meses de despesas guardados", icon: Wallet, color: "#38bdf8", unlocked: runway >= 3 },
+    { id: "streak", label: "Sequência positiva", hint: "3+ dias seguidos com saldo positivo", icon: Flame, color: "#f59e0b", unlocked: streak >= 3 },
+    { id: "saver", label: "Poupador", hint: "Poupando 20%+ da renda", icon: PiggyBank, color: "#2563eb", unlocked: savingsRate >= 20 },
+    { id: "budget", label: "Orçamento em dia", hint: "Nenhum orçamento estourado", icon: ShieldCheck, color: "#16a34a", unlocked: budgets.length > 0 && !budgets.some(b => b.percentage > 100) },
+    { id: "health", label: "Saúde excelente", hint: "Score de saúde financeira 70+", icon: Award, color: "#f59e0b", unlocked: healthScore >= 70 },
+    { id: "goal", label: "Meta na metade", hint: "Alguma meta com 50%+ concluída", icon: Target, color: "#16a34a", unlocked: bestGoalPct >= 50 },
+    { id: "runway", label: "Reserva sólida", hint: "3+ meses de despesas guardados", icon: Wallet, color: "#2563eb", unlocked: runway >= 3 },
   ];
 
-  const C = "var(--color-surface)";
-  const B = "1px solid var(--color-border)";
-  const SH = "var(--color-shadow)";
-  const CARD = "rounded-2xl p-5 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5";
-
-  const linkStyle = { color: "#60a5fa", fontSize: "10px", fontWeight: 600, display: "flex", alignItems: "center", gap: 2 };
+  const healthLabel = healthScore >= 70 ? "Excelente" : healthScore >= 40 ? "Regular" : "Atenção";
+  const upgradeLink = (
+    <button onClick={() => setUpgradeOpen(true)} className="text-xs font-medium hover:underline" style={{ color: PRIMARY }}>Fazer upgrade</button>
+  );
+  const menuItem = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-left transition-colors hover:bg-[var(--color-card-hover)]";
 
   return (
     <div className="space-y-5" data-testid="dashboard">
-      <Celebration trigger={healthScore >= 70} />
-
-      {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <motion.div ref={heroRef} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-        className="relative rounded-2xl overflow-hidden p-5 sm:p-6"
-        style={{ background: C, border: B, boxShadow: SH }}>
-        {/* subtle bg glow */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 20% 50%,rgba(14,165,233,0.04) 0%,transparent 60%)" }} />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-5">
-            <div data-hero="ring" className="relative shrink-0 w-20 h-20">
-              <div className="absolute inset-0 flex items-center justify-center opacity-70 pointer-events-none">
-                <Suspense fallback={null}>
-                  <HealthOrb score={healthScore} size={92} />
-                </Suspense>
-              </div>
-              <HealthRing score={healthScore} />
-            </div>
-            <div>
-              <p data-hero="eyebrow" className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: "var(--color-text-low)" }}>Saúde financeira</p>
-              <h1 data-hero="heading" className="text-2xl font-black leading-tight tracking-tight" style={{ color: "var(--color-text)" }}>
-                {user.plan === "PRO" && user.companyName ? user.companyName : `Olá, ${user.name.split(" ")[0]}`}
-              </h1>
-              <p data-hero="date" className="text-xs mt-0.5 capitalize" style={{ color: "var(--color-text-low)" }}>
-                {now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
-              </p>
-              <div className="flex flex-wrap gap-1.5 mt-2.5">
-                {alerts.count > 0 && (
-                  <span data-hero="chip" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold text-rose-400" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
-                    <AlertTriangle className="w-2.5 h-2.5" /> {alerts.count} alertas
-                  </span>
-                )}
-                {streak > 1 && (
-                  <span data-hero="chip" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold text-orange-400" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)" }}>
-                    <Flame className="w-2.5 h-2.5" /> {streak} dias
-                  </span>
-                )}
-                {isFree && (
-                  <span data-hero="chip" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold" style={{ color: "var(--color-text-low)", background: "var(--color-hairline)", border: "1px solid var(--color-hairline-strong)" }}>
-                    <Zap className="w-2.5 h-2.5" /> Grátis
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {canAddTx && (
-              <button data-hero="action" onClick={() => setQuickAddOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white transition-all hover:opacity-90 active:scale-[0.97]"
-                style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 4px 14px rgba(16,185,129,0.3)" }}>
-                <Plus className="w-3.5 h-3.5" /> Transação
-              </button>
+      {/* ── HEADER ─────────────────────────────────────────────────────────── */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "var(--color-text)" }}>
+            {user.plan === "PRO" && user.companyName ? user.companyName : `Olá, ${user.name.split(" ")[0]}`}
+          </h1>
+          <p className="text-sm mt-0.5 first-letter:uppercase" style={{ color: "var(--color-text-low)" }}>
+            {now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
+            {alerts.count > 0 && (
+              <>
+                {" · "}
+                <Link to="/app/alerts" className="font-medium hover:underline" style={{ color: WARNING }}>
+                  {alerts.count} {alerts.count === 1 ? "alerta" : "alertas"}
+                </Link>
+              </>
             )}
-            <button data-hero="action" onClick={generateAi} disabled={aiLoading}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:bg-[var(--color-hairline)]"
-              style={{ color: "var(--color-text-muted)", border: B }} data-testid="ai-insights-btn">
-              {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-              {aiLoading ? "Analisando..." : "Análise IA"}
-            </button>
-            <button data-hero="action" onClick={() => handleExport("pdf")} className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:bg-[var(--color-hairline)] ${!canExportPdf ? "opacity-30" : ""}`} style={{ color: "var(--color-text-muted)", border: B }} data-testid="export-pdf">
-              <FileDown className="w-3.5 h-3.5" /> PDF
-            </button>
-            <button data-hero="action" onClick={() => handleExport("excel")} className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:bg-[var(--color-hairline)] ${!canExportExcel ? "opacity-30" : ""}`} style={{ color: "var(--color-text-muted)", border: B }} data-testid="export-excel">
-              <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
-            </button>
-            <button data-hero="action" onClick={handleExportCsv} disabled={csvLoading} className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:bg-[var(--color-hairline)] ${!canExportCsv ? "opacity-30" : ""}`} style={{ color: "var(--color-text-muted)", border: B }} data-testid="export-csv">
-              {csvLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} CSV
-            </button>
-          </div>
+          </p>
         </div>
-      </motion.div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={generateAi} disabled={aiLoading} className="btn-outline text-sm" data-testid="ai-insights-btn">
+            {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {aiLoading ? "Analisando..." : "Análise IA"}
+          </button>
+          <div className="relative" ref={exportRef}>
+            <button onClick={() => setExportOpen(o => !o)} className="btn-outline text-sm" aria-expanded={exportOpen} data-testid="export-menu">
+              {csvLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Exportar
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+            {exportOpen && (
+              <div className="glass-strong absolute right-0 mt-2 w-44 rounded-control p-1 z-30" style={{ color: "var(--color-text)" }}>
+                <button onClick={() => handleExport("pdf")} className={`${menuItem} ${!canExportPdf ? "opacity-50" : ""}`} data-testid="export-pdf">
+                  <FileDown className="w-4 h-4" /> PDF
+                </button>
+                <button onClick={() => handleExport("excel")} className={`${menuItem} ${!canExportExcel ? "opacity-50" : ""}`} data-testid="export-excel">
+                  <FileSpreadsheet className="w-4 h-4" /> Excel
+                </button>
+                <button onClick={handleExportCsv} className={`${menuItem} ${!canExportCsv ? "opacity-50" : ""}`} data-testid="export-csv">
+                  <Download className="w-4 h-4" /> CSV
+                </button>
+              </div>
+            )}
+          </div>
+          {canAddTx && (
+            <button onClick={() => setQuickAddOpen(true)} className="btn-primary text-sm !px-4 !py-2">
+              <Plus className="w-4 h-4" /> Transação
+            </button>
+          )}
+        </div>
+      </header>
 
-      {/* ── CONQUISTAS ───────────────────────────────────────────────────── */}
-      <Achievements items={achievements} />
-
-      {/* ── STAT CARDS ──────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {stats.map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-            whileHover={{ y: -3 }}
-            transition={{ delay: i * 0.06, type: "spring", damping: 22 }}
-            className="rounded-2xl p-4 relative overflow-hidden group"
-            style={{ background: C, border: B, boxShadow: SH }}>
-            <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: `radial-gradient(ellipse at 80% 20%,${s.color}12 0%,transparent 60%)` }} />
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: "var(--color-text-low)" }}>{s.label}</span>
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${s.color}15`, border: `1px solid ${s.color}25` }}>
-                  <s.icon className="w-3.5 h-3.5" style={{ color: s.color }} />
-                </div>
-              </div>
-              <div className="text-2xl font-black num leading-none mb-2.5 tracking-tight" style={{ color: "var(--color-text)" }} data-testid={`stat-${s.label}`}>
-                <CountUpCurrency value={s.value} />
-              </div>
-              <div className="flex items-end justify-between">
-                {s.diff !== null ? (
-                  <span className={`text-[10px] font-bold num ${(s.inv ? s.diff < 0 : s.diff > 0) ? "text-emerald-400" : s.diff === 0 ? "" : "text-rose-400"}`}
-                    style={s.diff === 0 ? { color: "var(--color-text-low)" } : {}}>
-                    {s.diff > 0 ? "+" : ""}{s.diff.toFixed(1)}%
-                  </span>
-                ) : <div />}
-                <Sparkline values={s.spark} color={s.color} />
-              </div>
-            </div>
-          </motion.div>
+      {/* ── TABS ───────────────────────────────────────────────────────────── */}
+      <div className="inline-flex gap-1 p-1 rounded-control" style={{ background: "var(--color-hairline-strong)" }} role="tablist">
+        {([["overview", "Visão geral"], ["analysis", "Análises"]] as const).map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)} data-testid={`tab-${id}`}
+            className="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors duration-150"
+            style={tab === id
+              ? { background: "var(--color-surface)", color: "var(--color-text)" }
+              : { color: "var(--color-text-muted)" }}>
+            {label}
+          </button>
         ))}
       </div>
 
-      {/* ── METRICS ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <MetricCard label="Ritmo de gastos" value={`${currency(dailyRate)}/dia`}
-          barPct={velocityPct} color={velocityPct < 50 ? "#22c55e" : velocityPct < 80 ? "#f59e0b" : "#ef4444"}
-          sub={velocityPct < 50 ? "Ritmo saudável" : velocityPct < 80 ? "Atenção ao ritmo" : "Ritmo acelerado"} />
-        <MetricCard label="Disponível hoje"
-          value={`${dailyLimit < 0 ? "-" : ""}${currency(Math.abs(dailyLimitSafe))}`}
-          barPct={todayPct} color={todayPct > 80 ? "#ef4444" : todayPct > 50 ? "#f59e0b" : "#22c55e"}
-          sub={`Hoje: ${currency(todaySpent)} · ${daysRemaining} dias restantes`} />
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -2 }}
-          className="rounded-2xl p-4" style={{ background: C, border: B, boxShadow: SH }}>
-          <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "var(--color-text-low)" }}>Projeção & runway</p>
-          <div className="space-y-2">
-            {[
-              { k: "Fim do mês", v: currency(projectedEnd), c: projectedEnd >= 0 ? "#4ade80" : "#f87171" },
-              { k: "Reserva", v: runway < 1 ? `${(runway*30).toFixed(0)} dias` : `${runway.toFixed(1)} meses`, c: "#38bdf8" },
-              { k: "Poupança", v: `${savingsRate.toFixed(1)}%`, c: savingsRate > 20 ? "#4ade80" : savingsRate > 5 ? "#fbbf24" : "#f87171" },
-            ].map(row => (
-              <div key={row.k} className="flex justify-between items-center">
-                <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>{row.k}</span>
-                <span className="text-xs font-bold num" style={{ color: row.c }}>{row.v}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* ── RAIO-X + SIMULADOR ──────────────────────────────────────────── */}
-      <Reveal className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Raio-X financeiro</h3>
-              <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Os 5 sinais que compõem sua saúde financeira</p>
-            </div>
-          </div>
-          <div data-testid="financial-radar">
-            <FinancialRadar axes={[
-              { label: "Poupança", value: savingsRate * 2.5 },
-              { label: "Controle", value: 100 - expenseRatio },
-              { label: "Orçamento", value: budgetHealth },
-              { label: "Consistência", value: streak * 15 },
-              { label: "Reserva", value: (runway / 6) * 100 },
-            ]} />
-          </div>
-        </div>
-
-        <div data-testid="savings-simulator">
-          <SavingsSimulator income={curMonth.income} expense={curMonth.expense} balance={data.balance} />
-        </div>
-      </Reveal>
-
-      {/* ── TIPS STRIP ──────────────────────────────────────────────────── */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-        className="rounded-2xl px-4 py-3 flex items-center gap-3 flex-wrap"
-        style={{ background: "var(--color-hairline)", border: "1px solid var(--color-hairline)" }}>
-        <Lightbulb className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-        <div className="flex gap-3 flex-wrap">
-          {tips.map((t, i) => (
-            <span key={i} className="inline-flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: t.color }}>
-              <t.icon className="w-3 h-3 shrink-0" />{t.text}
-              {i < tips.length - 1 && <span style={{ color: "var(--color-text-low)" }} className="ml-2">·</span>}
-            </span>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* ── SYSTEM INSIGHTS ─────────────────────────────────────────────── */}
-      {data.insights.length > 0 && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-          {data.insights.map((ins, i) => {
-            const cfg = insightCfg[ins.type] || insightCfg.info;
-            return (
-              <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                className="flex gap-2.5 rounded-xl p-3.5" style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
-                <cfg.icon className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: cfg.text }} />
-                <div>
-                  <div className="text-xs font-bold mb-0.5" style={{ color: cfg.text }}>{ins.title}</div>
-                  <div className="text-[11px] leading-relaxed" style={{ color: "var(--color-text-muted)" }}>{ins.message}</div>
+      {tab === "overview" ? (
+        <>
+          {/* ── 1. The numbers of the month ─────────────────────────────────── */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {stats.map(s => {
+              const good = s.diff !== null && s.diff !== 0 && (s.inv ? s.diff < 0 : s.diff > 0);
+              return (
+                <div key={s.label} className="glass rounded-card p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="eyebrow">{s.label}</span>
+                    <s.icon className="w-4 h-4" style={{ color: s.color }} />
+                  </div>
+                  <div className="text-2xl font-semibold num tracking-tight mt-2" style={{ color: "var(--color-text)" }} data-testid={`stat-${s.label}`}>
+                    {currency(s.value)}
+                  </div>
+                  <div className="flex items-end justify-between mt-2 min-h-[1.75rem]">
+                    {s.diff !== null ? (
+                      <span className="text-xs font-medium num" style={{ color: s.diff === 0 ? "var(--color-text-low)" : good ? INCOME : EXPENSE }}>
+                        {s.diff > 0 ? "+" : ""}{s.diff.toFixed(1)}% <span style={{ color: "var(--color-text-low)" }}>vs. mês passado</span>
+                      </span>
+                    ) : <span />}
+                    <Sparkline values={s.spark} color={s.color} />
+                  </div>
                 </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ── CHARTS ──────────────────────────────────────────────────────── */}
-      <Reveal className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className={`lg:col-span-2 ${CARD}`} style={{ background: C, border: B, boxShadow: SH }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Fluxo de caixa</h3>
-              <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Receitas vs despesas — últimos 6 meses</p>
-            </div>
-            <div className="flex items-center gap-1 p-0.5 rounded-lg" style={{ background: "var(--color-hairline)", border: "1px solid var(--color-hairline)" }}>
-              <button onClick={() => setChartView("area")} title="Área"
-                className="p-1.5 rounded-md transition-colors" data-testid="chart-view-area"
-                style={{ background: chartView === "area" ? "rgba(56,189,248,0.15)" : "transparent", color: chartView === "area" ? "#38bdf8" : "var(--color-text-low)" }}>
-                <AreaChartIcon className="w-3.5 h-3.5" />
-              </button>
-              <button onClick={() => setChartView("bar")} title="Barras"
-                className="p-1.5 rounded-md transition-colors" data-testid="chart-view-bar"
-                style={{ background: chartView === "bar" ? "rgba(56,189,248,0.15)" : "transparent", color: chartView === "bar" ? "#38bdf8" : "var(--color-text-low)" }}>
-                <BarChart3 className="w-3.5 h-3.5" />
-              </button>
-            </div>
+              );
+            })}
           </div>
-          <div className="h-52">
-            <ResponsiveContainer>
-              {chartView === "area" ? (
-                <AreaChart data={data.monthly} margin={{ top: 4, right: 0, left: -22, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="gI" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#22c55e" stopOpacity={0.3} /><stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="gE" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f87171" stopOpacity={0.25} /><stop offset="100%" stopColor="#f87171" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-hairline)" vertical={false} />
-                  <XAxis dataKey="month" stroke="var(--color-text-low)" fontSize={10} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--color-text-low)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Area type="monotone" dataKey="income" stroke="#22c55e" fill="url(#gI)" strokeWidth={2} name="Receitas" dot={false} />
-                  <Area type="monotone" dataKey="expense" stroke="#f87171" fill="url(#gE)" strokeWidth={2} name="Despesas" dot={false} />
-                </AreaChart>
+
+          {/* ── AI analysis (only after the user asks for it) ───────────────── */}
+          {aiInsights && (
+            <Panel title="Análise IA" subtitle="Insights personalizados a partir dos seus dados"
+              action={
+                <button onClick={() => setAiInsights(null)} title="Fechar" className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-card-hover)]" style={{ color: "var(--color-text-low)" }}>
+                  <X className="w-4 h-4" />
+                </button>
+              }>
+              <div className="grid gap-3 sm:grid-cols-2" data-testid="ai-insights-panel">
+                {aiInsights.map((ins, i) => <InsightCard key={i} insight={ins} />)}
+              </div>
+            </Panel>
+          )}
+
+          {/* ── 2. Cash flow and where the money goes ───────────────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <Panel className="lg:col-span-2" title="Fluxo de caixa" subtitle="Receitas e despesas dos últimos 6 meses"
+              action={
+                <div className="flex items-center gap-0.5 p-0.5 rounded-lg" style={{ background: "var(--color-hairline-strong)" }}>
+                  {([["area", AreaChartIcon, "Área"], ["bar", BarChart3, "Barras"]] as const).map(([id, Icon, label]) => (
+                    <button key={id} onClick={() => setChartView(id)} title={label} data-testid={`chart-view-${id}`}
+                      className="p-1.5 rounded-md transition-colors"
+                      style={chartView === id ? { background: "var(--color-surface)", color: PRIMARY } : { color: "var(--color-text-low)" }}>
+                      <Icon className="w-4 h-4" />
+                    </button>
+                  ))}
+                </div>
+              }>
+              <div className="h-60">
+                <ResponsiveContainer>
+                  {chartView === "area" ? (
+                    <AreaChart data={data.monthly} margin={{ top: 4, right: 0, left: -18, bottom: 0 }}>
+                      <CartesianGrid stroke="var(--color-hairline-strong)" vertical={false} />
+                      <XAxis dataKey="month" stroke="var(--color-text-low)" fontSize={11} tickLine={false} axisLine={false} />
+                      <YAxis stroke="var(--color-text-low)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                      <Tooltip content={<ChartTooltip />} />
+                      <Area type="monotone" dataKey="income" stroke={INCOME} fill={INCOME} fillOpacity={0.08} strokeWidth={2} name="Receitas" dot={false} isAnimationActive={false} />
+                      <Area type="monotone" dataKey="expense" stroke={EXPENSE} fill={EXPENSE} fillOpacity={0.08} strokeWidth={2} name="Despesas" dot={false} isAnimationActive={false} />
+                    </AreaChart>
+                  ) : (
+                    <BarChart data={data.monthly} margin={{ top: 4, right: 0, left: -18, bottom: 0 }}>
+                      <CartesianGrid stroke="var(--color-hairline-strong)" vertical={false} />
+                      <XAxis dataKey="month" stroke="var(--color-text-low)" fontSize={11} tickLine={false} axisLine={false} />
+                      <YAxis stroke="var(--color-text-low)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                      <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--color-card-hover)" }} />
+                      <Bar dataKey="income" fill={INCOME} name="Receitas" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                      <Bar dataKey="expense" fill={EXPENSE} name="Despesas" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                    </BarChart>
+                  )}
+                </ResponsiveContainer>
+              </div>
+            </Panel>
+
+            <Panel title="Por categoria" subtitle="Para onde foram as despesas">
+              {data.categories.length === 0 ? (
+                <Empty icon={PiggyBank}>Sem despesas ainda</Empty>
               ) : (
-                <BarChart data={data.monthly} margin={{ top: 4, right: 0, left: -22, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-hairline)" vertical={false} />
-                  <XAxis dataKey="month" stroke="var(--color-text-low)" fontSize={10} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--color-text-low)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Bar dataKey="income" fill="#22c55e" name="Receitas" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="expense" fill="#f87171" name="Despesas" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                <>
+                  <div className="h-36">
+                    <ResponsiveContainer>
+                      <PieChart>
+                        <Pie data={data.categories} dataKey="amount" nameKey="category" innerRadius={42} outerRadius={66} paddingAngle={2} strokeWidth={0} isAnimationActive={false}>
+                          {data.categories.map((c, i) => <Cell key={i} fill={CATEGORY_COLORS[c.category] || PIE_COLORS[i % PIE_COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip formatter={(v: number) => currency(Number(v))} contentStyle={{ borderRadius: 12, border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text)", fontSize: 12 }} itemStyle={{ color: "var(--color-text)" }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <ul className="mt-3 space-y-1.5">
+                    {data.categories.slice(0, 5).map((c, i) => (
+                      <li key={c.category} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="flex items-center gap-2 min-w-0" style={{ color: "var(--color-text-muted)" }}>
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: CATEGORY_COLORS[c.category] || PIE_COLORS[i % PIE_COLORS.length] }} />
+                          <span className="truncate">{c.category}</span>
+                        </span>
+                        <span className="num font-medium" style={{ color: "var(--color-text)" }}>{currency(c.amount)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
-            </ResponsiveContainer>
+            </Panel>
           </div>
-        </div>
 
-        <div className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
-          <div className="mb-4">
-            <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Por categoria</h3>
-            <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Distribuição de despesas</p>
-          </div>
-          <div className="h-52">
-            {data.categories.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-xs" style={{ color: "var(--color-text-low)" }}>Sem dados ainda</div>
-            ) : (
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie data={data.categories} dataKey="amount" nameKey="category" cx="50%" cy="45%" innerRadius={32} outerRadius={66} paddingAngle={3} strokeWidth={0}>
-                    {data.categories.map((c, i) => <Cell key={i} fill={CATEGORY_COLORS[c.category] || PIE_COLORS[i % PIE_COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip formatter={(v: any) => currency(Number(v))} contentStyle={{ borderRadius: 10, border: "1px solid var(--color-border-strong)", background: "var(--color-surface)", color: "var(--color-text)", boxShadow: "var(--color-shadow)" }} itemStyle={{ color: "var(--color-text)" }} />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: 10 }} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
-      </Reveal>
-
-      {/* ── PREVISÃO DE APERTO FINANCEIRO ──────────────────────────────── */}
-      {forecast && (
-        <Reveal>
-          <div className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                <CalendarClock className="w-4 h-4" style={{ color: "var(--color-primary)" }} />
-                <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Previsão dos próximos 30 dias</h3>
-              </div>
-            </div>
-            <p className="text-[11px] mb-4" style={{ color: "var(--color-text-low)" }}>
-              Simulação com base nas recorrências e parcelas já cadastradas — não é histórico, é o que ainda vai acontecer.
-            </p>
-
-            {forecast.riskWindows.length > 0 ? (
-              <div className="space-y-2 mb-4">
-                {forecast.riskWindows.map((w, i) => (
-                  <div key={i} className="flex items-start gap-2.5 rounded-xl p-3"
-                    style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)" }}>
-                    <TriangleAlert className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#f87171" }} />
-                    <p className="text-xs" style={{ color: "var(--color-text)" }}>
-                      Entre <strong>{dateBR(w.start)}</strong> e <strong>{dateBR(w.end)}</strong> seu saldo projetado fica negativo
-                      (chega a {currency(w.lowestBalance)}) — por causa de {w.reason}.
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2.5 rounded-xl p-3 mb-4"
-                style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.25)" }}>
-                <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "#4ade80" }} />
-                <p className="text-xs" style={{ color: "var(--color-text)" }}>Nenhum aperto previsto nos próximos 30 dias.</p>
-              </div>
-            )}
-
-            <ResponsiveContainer width="100%" height={140}>
-              <LineChart data={forecast.days}>
-                <XAxis dataKey="date" hide />
-                <YAxis hide domain={["dataMin", "dataMax"]} />
-                <Tooltip
-                  formatter={(v: number) => currency(v)}
-                  labelFormatter={(l) => dateBR(String(l))}
-                  contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, fontSize: 12 }}
-                />
-                <ReferenceLine y={0} stroke="#f87171" strokeDasharray="4 4" />
-                <Line type="monotone" dataKey="balance" stroke="var(--color-primary)" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Reveal>
-      )}
-
-      {/* ── HEATMAP + CATEGORY BARS ─────────────────────────────────────── */}
-      <Reveal className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Mapa de gastos</h3>
-              <p className="text-[10px] mt-0.5 capitalize" style={{ color: "var(--color-text-low)" }}>{now.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</p>
-            </div>
-            <div className="flex gap-0.5">
-              {[0.1,0.3,0.5,0.7,0.9].map(o => <div key={o} className="w-2.5 h-2.5 rounded-sm" style={{ background: `rgba(239,68,68,${o})` }} />)}
-            </div>
-          </div>
-          <SpendingHeatmap days={calDays} />
-        </div>
-
-        <div className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Categorias</h3>
-              <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Participação nos gastos</p>
-            </div>
-            <span className="text-[10px] font-bold num" style={{ color: "var(--color-text-low)" }}>{currency(curMonth.expense)}</span>
-          </div>
-          <CategoryBars categories={data.categories} />
-        </div>
-      </Reveal>
-
-      {/* ── TOP EXPENSES + UPCOMING DUES ─────────────────────────────────── */}
-      <Reveal className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Maiores gastos */}
-        <div className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Maiores gastos</h3>
-              <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Top 5 do mês atual</p>
-            </div>
-            <Receipt className="w-4 h-4" style={{ color: "var(--color-text-low)" }} />
-          </div>
-          {isFree ? (
-            <div className="flex flex-col items-center py-8 gap-2">
-              <Receipt className="w-8 h-8 opacity-10" style={{ color: "var(--color-text)" }} />
-              <p className="text-xs text-center" style={{ color: "var(--color-text-low)" }}>Disponível a partir do plano Básico</p>
-              <button onClick={() => setUpgradeOpen(true)} style={linkStyle}>Fazer upgrade</button>
-            </div>
-          ) : topExpenses.length === 0 ? (
-            <div className="flex flex-col items-center py-8 gap-2">
-              <Receipt className="w-8 h-8 opacity-10" style={{ color: "var(--color-text)" }} />
-              <p className="text-xs" style={{ color: "var(--color-text-low)" }}>Nenhum gasto este mês</p>
-            </div>
-          ) : (
-            <div className="space-y-1" data-testid="top-expenses">
-              {topExpenses.map((t, i) => {
-                const max = topExpenses[0]?.amount || 1;
-                const pct = Math.max(6, (t.amount / max) * 100);
-                return (
-                  <div key={t.id} className="relative flex items-center gap-2.5 px-2 py-2 rounded-xl overflow-hidden">
-                    <div className="absolute inset-y-0 left-0 rounded-xl" style={{ width: `${pct}%`, background: "rgba(239,68,68,0.06)" }} />
-                    <div className="relative w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0" style={{ background: "rgba(239,68,68,0.12)", color: "#f87171" }}>{i + 1}</div>
-                    <div className="relative min-w-0 flex-1">
-                      <div className="text-xs font-medium truncate" style={{ color: "var(--color-text)" }}>{t.title}</div>
-                      <div className="text-[10px]" style={{ color: "var(--color-text-low)" }}>{t.category} · {dateBR(t.date)}</div>
-                    </div>
-                    <div className="relative text-xs font-bold text-rose-400 num shrink-0">{currency(t.amount)}</div>
-                  </div>
-                );
-              })}
+          {/* ── 3. Everything else ──────────────────────────────────────────── */}
+          {data.insights.length > 0 && (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {data.insights.map((ins, i) => (
+                <div key={i} className="card !p-0"><InsightCard insight={ins} /></div>
+              ))}
             </div>
           )}
-        </div>
 
-        {/* Próximos vencimentos */}
-        <div className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Próximos vencimentos</h3>
-              <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Parcelas e cobranças de cartão</p>
-            </div>
-            <a href="/app/alerts" style={linkStyle}>Ver todos <ChevronRight className="w-3 h-3" /></a>
-          </div>
-          {isFree ? (
-            <div className="flex flex-col items-center py-8 gap-2">
-              <Bell className="w-8 h-8 opacity-10" style={{ color: "var(--color-text)" }} />
-              <p className="text-xs text-center" style={{ color: "var(--color-text-low)" }}>Disponível a partir do plano Básico</p>
-              <button onClick={() => setUpgradeOpen(true)} style={linkStyle}>Fazer upgrade</button>
-            </div>
-          ) : alerts.alerts.length === 0 ? (
-            <div className="flex flex-col items-center py-8 gap-2">
-              <CheckCircle2 className="w-8 h-8 opacity-10" style={{ color: "var(--color-text)" }} />
-              <p className="text-xs" style={{ color: "var(--color-text-low)" }}>Tudo em dia por aqui</p>
-            </div>
-          ) : (
-            <div className="space-y-1.5" data-testid="upcoming-dues">
-              {alerts.alerts.slice(0, 5).map(a => {
-                const sev = a.severity === "danger" ? "#f87171" : a.severity === "info" ? "#60a5fa" : "#fbbf24";
-                return (
-                  <div key={a.id} className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl" style={{ background: `${sev}0d`, border: `1px solid ${sev}22` }}>
-                    <Bell className="w-3.5 h-3.5 shrink-0" style={{ color: sev }} />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium truncate" style={{ color: "var(--color-text)" }}>{a.title}</div>
-                      {a.daysUntilDue != null && (
-                        <div className="text-[10px]" style={{ color: sev }}>
-                          {a.daysUntilDue <= 0 ? "vence hoje" : `vence em ${a.daysUntilDue} dia${a.daysUntilDue > 1 ? "s" : ""}`}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Panel title="Recentes" subtitle="Últimas transações" action={<PanelLink to="/app/transactions">Ver todas</PanelLink>}>
+              <div data-testid="recent-transactions">
+                {data.recent.length === 0 ? (
+                  <Empty icon={Wallet}>Nenhuma transação</Empty>
+                ) : (
+                  <ul className="divide-y" style={{ borderColor: "var(--color-hairline-strong)" }}>
+                    {data.recent.map(t => (
+                      <li key={t.id} className="flex items-center gap-3 py-2.5" style={{ borderColor: "var(--color-hairline-strong)" }}>
+                        {t.type === "INCOME"
+                          ? <ArrowUpRight className="w-4 h-4 shrink-0" style={{ color: INCOME }} />
+                          : <ArrowDownRight className="w-4 h-4 shrink-0" style={{ color: EXPENSE }} />}
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium truncate" style={{ color: "var(--color-text)" }}>{t.title}</div>
+                          <div className="text-xs" style={{ color: "var(--color-text-low)" }}>{t.category} · {dateBR(t.date)}</div>
                         </div>
-                      )}
-                    </div>
-                    {a.amount != null && <div className="text-xs font-bold num shrink-0" style={{ color: sev }}>{currency(a.amount)}</div>}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </Reveal>
-
-      {/* ── BUDGETS + GOALS + RECENT ────────────────────────────────────── */}
-      <Reveal className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-        {/* Budgets */}
-        <div className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Orçamentos</h3>
-              <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Mês atual</p>
-            </div>
-            <a href="/app/budgets" style={linkStyle}>Ver todos <ChevronRight className="w-3 h-3" /></a>
-          </div>
-          {budgets.length === 0 ? (
-            <div className="flex flex-col items-center py-8 gap-2">
-              <Wallet className="w-8 h-8 opacity-10" style={{ color: "var(--color-text)" }} />
-              <p className="text-xs" style={{ color: "var(--color-text-low)" }}>Nenhum orçamento</p>
-              {!isFree && <a href="/app/budgets" style={linkStyle}>Criar</a>}
-            </div>
-          ) : (
-            <div className="space-y-3.5">
-              {budgets.map(b => {
-                const pct = Math.min(b.percentage, 100);
-                const col = b.percentage > 100 ? "#ef4444" : b.percentage >= 80 ? "#f59e0b" : "#22c55e";
-                return (
-                  <div key={b.id}>
-                    <div className="flex justify-between items-baseline mb-1.5">
-                      <span className="text-xs font-medium truncate max-w-[110px]" style={{ color: "var(--color-text)" }}>{b.category}</span>
-                      <span className="text-[10px] num" style={{ color: "var(--color-text-low)" }}>{currency(b.spent)} / {currency(b.limit)}</span>
-                    </div>
-                    <div className="h-1 rounded-full overflow-hidden" style={{ background: "var(--color-hairline)" }}>
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8 }}
-                        className="h-full rounded-full" style={{ background: col, boxShadow: `0 0 8px ${col}50` }} />
-                    </div>
-                    {b.percentage > 100 && <p className="text-[9px] text-rose-400 mt-0.5 font-semibold">+{(b.percentage-100).toFixed(0)}% acima</p>}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Goals */}
-        <div className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Metas</h3>
-              <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Em progresso</p>
-            </div>
-            <a href="/app/goals" style={linkStyle}>Ver todas <ChevronRight className="w-3 h-3" /></a>
-          </div>
-          {goals.length === 0 ? (
-            <div className="flex flex-col items-center py-8 gap-2">
-              <Target className="w-8 h-8 opacity-10" style={{ color: "var(--color-text)" }} />
-              <p className="text-xs" style={{ color: "var(--color-text-low)" }}>Nenhuma meta criada</p>
-              <a href="/app/goals" style={linkStyle}>Criar meta</a>
-            </div>
-          ) : (
-            <div className="space-y-3.5">
-              {goals.map(g => {
-                const pct = Math.min((g.currentAmount / g.targetAmount) * 100, 100);
-                const dLeft = Math.max(0, Math.ceil((new Date(g.deadline).getTime() - Date.now()) / 86400000));
-                return (
-                  <div key={g.id}>
-                    <div className="flex justify-between items-baseline mb-1.5">
-                      <span className="text-xs font-medium truncate max-w-[130px]" style={{ color: "var(--color-text)" }}>{g.title}</span>
-                      <span className="text-[10px] font-bold num" style={{ color: "#34d399" }}>{pct.toFixed(0)}%</span>
-                    </div>
-                    <div className="h-1 rounded-full overflow-hidden" style={{ background: "var(--color-hairline)" }}>
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.9 }}
-                        className="h-full rounded-full" style={{ background: "linear-gradient(90deg,#059669,#10b981)", boxShadow: "0 0 8px rgba(16,185,129,0.4)" }} />
-                    </div>
-                    <div className="flex justify-between mt-0.5">
-                      <span className="text-[9px] num" style={{ color: "var(--color-text-low)" }}>{currency(g.currentAmount)} / {currency(g.targetAmount)}</span>
-                      {dLeft > 0 && <span className="text-[9px] flex items-center gap-0.5" style={{ color: "var(--color-text-low)" }}><Clock className="w-2 h-2" />{dLeft}d</span>}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Recent */}
-        <div className={CARD} style={{ background: C, border: B, boxShadow: SH }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Recentes</h3>
-              <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Últimas transações</p>
-            </div>
-            <a href="/app/transactions" style={linkStyle}>Ver todas <ChevronRight className="w-3 h-3" /></a>
-          </div>
-          <div className="space-y-0.5" data-testid="recent-transactions">
-            {data.recent.length === 0 && (
-              <div className="flex flex-col items-center py-8 gap-2">
-                <Activity className="w-8 h-8 opacity-10" style={{ color: "var(--color-text)" }} />
-                <p className="text-xs" style={{ color: "var(--color-text-low)" }}>Nenhuma transação</p>
+                        <div className="text-sm font-medium shrink-0 num" style={{ color: t.type === "INCOME" ? INCOME : "var(--color-text)" }}>
+                          {t.type === "INCOME" ? "+" : "-"}{currency(t.amount)}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
+            </Panel>
+
+            <Panel title="Próximos vencimentos" subtitle="Parcelas e cobranças de cartão" action={<PanelLink to="/app/alerts">Ver todos</PanelLink>}>
+              {isFree ? (
+                <Empty icon={Bell}>Disponível a partir do plano Básico<div className="mt-2">{upgradeLink}</div></Empty>
+              ) : alerts.alerts.length === 0 ? (
+                <Empty icon={CheckCircle2}>Tudo em dia por aqui</Empty>
+              ) : (
+                <ul className="divide-y" data-testid="upcoming-dues">
+                  {alerts.alerts.slice(0, 5).map(a => {
+                    const tone = a.severity === "danger" ? EXPENSE : a.severity === "info" ? PRIMARY : WARNING;
+                    return (
+                      <li key={a.id} className="flex items-center gap-3 py-2.5" style={{ borderColor: "var(--color-hairline-strong)" }}>
+                        <Bell className="w-4 h-4 shrink-0" style={{ color: tone }} />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium truncate" style={{ color: "var(--color-text)" }}>{a.title}</div>
+                          {a.daysUntilDue != null && (
+                            <div className="text-xs" style={{ color: tone }}>
+                              {a.daysUntilDue <= 0 ? "vence hoje" : `vence em ${a.daysUntilDue} dia${a.daysUntilDue > 1 ? "s" : ""}`}
+                            </div>
+                          )}
+                        </div>
+                        {a.amount != null && <div className="text-sm font-medium num shrink-0" style={{ color: "var(--color-text)" }}>{currency(a.amount)}</div>}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </Panel>
+
+            <Panel title="Orçamentos" subtitle="Mês atual" action={<PanelLink to="/app/budgets">Ver todos</PanelLink>}>
+              {budgets.length === 0 ? (
+                <Empty icon={Wallet}>Nenhum orçamento</Empty>
+              ) : (
+                <div className="space-y-4">
+                  {budgets.map(b => (
+                    <div key={b.id}>
+                      <div className="flex justify-between items-baseline gap-2 mb-1.5">
+                        <span className="text-sm font-medium truncate" style={{ color: "var(--color-text)" }}>{b.category}</span>
+                        <span className="text-xs num shrink-0" style={{ color: "var(--color-text-low)" }}>{currency(b.spent)} / {currency(b.limit)}</span>
+                      </div>
+                      <ProgressBar pct={b.percentage} color={b.percentage > 100 ? EXPENSE : b.percentage >= 80 ? WARNING : PRIMARY} />
+                      {b.percentage > 100 && <p className="text-xs mt-1" style={{ color: EXPENSE }}>{(b.percentage - 100).toFixed(0)}% acima do limite</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Panel>
+
+            <Panel title="Metas" subtitle="Em progresso" action={<PanelLink to="/app/goals">Ver todas</PanelLink>}>
+              {goals.length === 0 ? (
+                <Empty icon={Target}>Nenhuma meta criada</Empty>
+              ) : (
+                <div className="space-y-4">
+                  {goals.map(g => {
+                    const pct = Math.min((g.currentAmount / g.targetAmount) * 100, 100);
+                    const daysLeft = Math.max(0, Math.ceil((new Date(g.deadline).getTime() - Date.now()) / 86400000));
+                    return (
+                      <div key={g.id}>
+                        <div className="flex justify-between items-baseline gap-2 mb-1.5">
+                          <span className="text-sm font-medium truncate" style={{ color: "var(--color-text)" }}>{g.title}</span>
+                          <span className="text-xs font-medium num shrink-0" style={{ color: "var(--color-text)" }}>{pct.toFixed(0)}%</span>
+                        </div>
+                        <ProgressBar pct={pct} color={PRIMARY} />
+                        <div className="flex justify-between mt-1 text-xs num" style={{ color: "var(--color-text-low)" }}>
+                          <span>{currency(g.currentAmount)} / {currency(g.targetAmount)}</span>
+                          {daysLeft > 0 && <span>{daysLeft} dias</span>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Panel>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* ── ANÁLISES ────────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <section className="card !p-5 flex items-center gap-5">
+              <div className="relative shrink-0 w-20 h-20"><HealthRing score={healthScore} /></div>
+              <div className="min-w-0">
+                <span className="eyebrow">Saúde financeira</span>
+                <div className="text-xl font-semibold mt-0.5" style={{ color: "var(--color-text)" }}>{healthLabel}</div>
+                <ul className="mt-2 space-y-1">
+                  {tips.slice(0, 3).map((t, i) => (
+                    <li key={i} className="flex items-start gap-1.5 text-xs" style={{ color: "var(--color-text-muted)" }}>
+                      <t.icon className="w-3.5 h-3.5 shrink-0 mt-px" style={{ color: t.color }} /> {t.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+
+            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <MetricCard label="Ritmo de gastos" value={`${currency(dailyRate)}/dia`}
+                barPct={velocityPct} color={velocityPct < 50 ? INCOME : velocityPct < 80 ? WARNING : EXPENSE}
+                sub={velocityPct < 50 ? "Ritmo saudável" : velocityPct < 80 ? "Atenção ao ritmo" : "Ritmo acelerado"} />
+              <MetricCard label="Disponível hoje"
+                value={`${dailyLimit < 0 ? "-" : ""}${currency(Math.abs(dailyLimitSafe))}`}
+                barPct={todayPct} color={todayPct > 80 ? EXPENSE : todayPct > 50 ? WARNING : INCOME}
+                sub={`Hoje: ${currency(todaySpent)} · ${daysRemaining} dias restantes`} />
+              <section className="card !p-4">
+                <span className="eyebrow">Projeção</span>
+                <dl className="mt-2 space-y-2 text-sm">
+                  {[
+                    { k: "Fim do mês", v: currency(projectedEnd), c: projectedEnd >= 0 ? INCOME : EXPENSE },
+                    { k: "Reserva", v: runway < 1 ? `${(runway * 30).toFixed(0)} dias` : `${runway.toFixed(1)} meses`, c: "var(--color-text)" },
+                    { k: "Poupança", v: `${savingsRate.toFixed(1)}%`, c: "var(--color-text)" },
+                  ].map(row => (
+                    <div key={row.k} className="flex justify-between items-center">
+                      <dt style={{ color: "var(--color-text-muted)" }}>{row.k}</dt>
+                      <dd className="font-medium num" style={{ color: row.c }}>{row.v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            </div>
+          </div>
+
+          <Achievements items={achievements} />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Panel title="Raio-X financeiro" subtitle="Os 5 sinais que compõem sua saúde financeira">
+              <div data-testid="financial-radar">
+                <FinancialRadar axes={[
+                  { label: "Poupança", value: savingsRate * 2.5 },
+                  { label: "Controle", value: 100 - expenseRatio },
+                  { label: "Orçamento", value: budgetHealth },
+                  { label: "Consistência", value: streak * 15 },
+                  { label: "Reserva", value: (runway / 6) * 100 },
+                ]} />
+              </div>
+            </Panel>
+            <div data-testid="savings-simulator">
+              <SavingsSimulator income={curMonth.income} expense={curMonth.expense} balance={data.balance} />
+            </div>
+          </div>
+
+          {forecast && (
+            <Panel title="Previsão dos próximos 30 dias" subtitle="Simulação com as recorrências e parcelas já cadastradas — o que ainda vai acontecer">
+              {forecast.riskWindows.length > 0 ? (
+                <div className="space-y-2 mb-4">
+                  {forecast.riskWindows.map((w, i) => (
+                    <div key={i} className="flex items-start gap-2.5 rounded-control p-3" style={{ background: "var(--color-card-hover)" }}>
+                      <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: EXPENSE }} />
+                      <p className="text-sm" style={{ color: "var(--color-text)" }}>
+                        Entre <strong>{dateBR(w.start)}</strong> e <strong>{dateBR(w.end)}</strong> seu saldo projetado fica negativo
+                        (chega a {currency(w.lowestBalance)}) — por causa de {w.reason}.
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2.5 rounded-control p-3 mb-4" style={{ background: "var(--color-card-hover)" }}>
+                  <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: INCOME }} />
+                  <p className="text-sm" style={{ color: "var(--color-text)" }}>Nenhum aperto previsto nos próximos 30 dias.</p>
+                </div>
+              )}
+              <ResponsiveContainer width="100%" height={150}>
+                <LineChart data={forecast.days}>
+                  <XAxis dataKey="date" hide />
+                  <YAxis hide domain={["dataMin", "dataMax"]} />
+                  <Tooltip
+                    formatter={(v: number) => currency(v)}
+                    labelFormatter={(l) => dateBR(String(l))}
+                    contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, fontSize: 12 }}
+                  />
+                  <ReferenceLine y={0} stroke={EXPENSE} strokeDasharray="4 4" />
+                  <Line type="monotone" dataKey="balance" stroke={PRIMARY} strokeWidth={2} dot={false} isAnimationActive={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </Panel>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Panel title="Mapa de gastos" subtitle={now.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}>
+              <SpendingHeatmap days={calDays} />
+            </Panel>
+            <Panel title="Categorias" subtitle="Participação nos gastos">
+              <CategoryBars categories={data.categories} />
+            </Panel>
+          </div>
+
+          <Panel title="Maiores gastos" subtitle="Top 5 do mês atual">
+            {isFree ? (
+              <Empty icon={TrendingDown}>Disponível a partir do plano Básico<div className="mt-2">{upgradeLink}</div></Empty>
+            ) : topExpenses.length === 0 ? (
+              <Empty icon={TrendingDown}>Nenhum gasto este mês</Empty>
+            ) : (
+              <ul className="space-y-3" data-testid="top-expenses">
+                {topExpenses.map(t => (
+                  <li key={t.id}>
+                    <div className="flex items-baseline justify-between gap-3 mb-1.5">
+                      <span className="text-sm font-medium truncate" style={{ color: "var(--color-text)" }}>
+                        {t.title} <span className="font-normal text-xs" style={{ color: "var(--color-text-low)" }}>· {t.category} · {dateBR(t.date)}</span>
+                      </span>
+                      <span className="text-sm font-medium num shrink-0" style={{ color: "var(--color-text)" }}>{currency(t.amount)}</span>
+                    </div>
+                    <ProgressBar pct={(t.amount / (topExpenses[0]?.amount || 1)) * 100} color={EXPENSE} />
+                  </li>
+                ))}
+              </ul>
             )}
-            {data.recent.map((t, i) => (
-              <motion.div key={t.id} initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                className="flex items-center gap-2.5 px-2 py-2 rounded-xl transition-colors cursor-default group"
-                style={{ "--hover-bg": "var(--color-hairline)" } as any}
-                onMouseEnter={e => (e.currentTarget.style.background = "var(--color-hairline)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "")}>
-                <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${t.type === "INCOME" ? "bg-emerald-500/10" : "bg-rose-500/10"}`}>
-                  {t.type === "INCOME" ? <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" /> : <ArrowDownRight className="w-3.5 h-3.5 text-rose-400" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-medium truncate" style={{ color: "var(--color-text)" }}>{t.title}</div>
-                  <div className="text-[10px]" style={{ color: "var(--color-text-low)" }}>{t.category} · {dateBR(t.date)}</div>
-                </div>
-                <div className={`text-xs font-bold shrink-0 num ${t.type === "INCOME" ? "text-emerald-400" : "text-rose-400"}`}>
-                  {t.type === "INCOME" ? "+" : "-"}{currency(t.amount)}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </Reveal>
-
-      {/* ── AI INSIGHTS ─────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {aiInsights && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="rounded-2xl p-5" style={{ background: "var(--color-hairline)", border: "1px solid var(--color-hairline-strong)" }}
-            data-testid="ai-insights-panel">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)" }}>
-                  <Sparkles className="w-4 h-4 text-sky-400" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Análise IA · Claude</h3>
-                  <p className="text-[10px]" style={{ color: "var(--color-text-low)" }}>Insights personalizados</p>
-                </div>
-              </div>
-              <button onClick={() => setAiInsights(null)} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--color-hairline)]" style={{ color: "var(--color-text-low)" }}><X className="w-3.5 h-3.5" /></button>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {aiInsights.map((ins, i) => {
-                const cfg = insightCfg[ins.type] || insightCfg.info;
-                return (
-                  <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-                    className="flex gap-2.5 rounded-xl p-3.5" style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
-                    <cfg.icon className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: cfg.text }} />
-                    <div>
-                      <div className="text-xs font-bold mb-0.5" style={{ color: cfg.text }}>{ins.title}</div>
-                      <div className="text-[11px] leading-relaxed" style={{ color: "var(--color-text-muted)" }}>{ins.message}</div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </Panel>
+        </>
+      )}
 
       <QuickAddModal open={quickAddOpen} onClose={() => setQuickAddOpen(false)} onAdded={fetchAll} categories={categories} accounts={accounts} />
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
