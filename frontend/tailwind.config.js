@@ -22,11 +22,14 @@ module.exports = {
         text: "var(--color-text)",
         muted: "var(--color-text-muted)",
         "text-low": "var(--color-text-low)",
-        primary: "var(--color-primary)",
+        // Theme-aware and opacity-ready: bg-expense/10, border-primary/30...
+        primary: "rgb(var(--c-primary) / <alpha-value>)",
+        "primary-solid": "rgb(var(--c-primary-solid) / <alpha-value>)",
         "primary-soft": "var(--color-primary-soft)",
+        income: "rgb(var(--c-income) / <alpha-value>)",
+        expense: "rgb(var(--c-expense) / <alpha-value>)",
+        warning: "rgb(var(--c-warning) / <alpha-value>)",
         overlay: "var(--color-overlay)",
-        income: "var(--color-income)",
-        expense: "var(--color-expense)",
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
