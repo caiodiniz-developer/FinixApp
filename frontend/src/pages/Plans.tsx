@@ -24,7 +24,7 @@ const PLANS = [
       { text: "Cartões", ok: false },
       { text: "Relatórios", ok: false },
       { text: "Exportação PDF/Excel", ok: false },
-      { text: "IA Fingu", ok: false },
+      { text: "Finix IA", ok: false },
       { text: "Suporte prioritário", ok: false },
     ],
   },
@@ -42,7 +42,7 @@ const PLANS = [
       { text: "DRE Gerencial automático", ok: true },
       { text: "Calendário financeiro", ok: true },
       { text: "Importação OFX/XLS/CSV", ok: true },
-      { text: "IA Fingu", ok: false },
+      { text: "Finix IA", ok: false },
       { text: "Suporte via e-mail", ok: true },
     ],
     highlighted: false,
@@ -62,7 +62,7 @@ const PLANS = [
       { text: "DRE por centro de custo", ok: true },
       { text: "Fluxo de caixa projetado", ok: true },
       { text: "Importação + Conciliação", ok: true },
-      { text: "IA Fingu — análise e chat", ok: true },
+      { text: "Finix IA — análise e chat", ok: true },
       { text: "Suporte prioritário WhatsApp", ok: true },
     ],
     highlighted: true,
@@ -75,7 +75,7 @@ const COMPARE = [
   { feature: "Contas bancárias", icon: CreditCard, free: "—", basic: "2", pro: "Ilimitadas" },
   { feature: "Cartões de crédito", icon: CreditCard, free: "—", basic: "2", pro: "Ilimitados" },
   { feature: "DRE Gerencial", icon: FileText, free: "—", basic: "✓", pro: "✓" },
-  { feature: "IA Fingu", icon: Brain, free: "—", basic: "—", pro: "✓" },
+  { feature: "Finix IA", icon: Brain, free: "—", basic: "—", pro: "✓" },
   { feature: "Relatórios PDF/Excel", icon: BarChart3, free: "—", basic: "PDF", pro: "PDF + Excel" },
   { feature: "Suporte", icon: Headphones, free: "—", basic: "E-mail", pro: "WhatsApp + E-mail" },
 ];
@@ -93,7 +93,7 @@ function DowngradeModal({ onConfirm, onClose, loading }: {
         <AlertTriangle className="w-6 h-6 mb-4" style={{ color: "var(--color-warning)" }} />
         <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--color-text)" }}>Fazer downgrade?</h2>
         <p className="text-sm mb-5" style={{ color: "var(--color-text-muted)" }}>
-          Você perderá acesso à IA Fingu, relatórios avançados, centros de custo e suporte via WhatsApp.
+          Você perderá acesso à Finix IA, relatórios avançados, centros de custo e suporte via WhatsApp.
         </p>
         <div className="flex gap-2.5">
           <button onClick={onClose} className="btn-outline flex-1 text-sm">Manter Pro</button>
@@ -315,7 +315,7 @@ export default function Plans() {
           <div className="space-y-2">
             {[
               { q: "Posso mudar de plano a qualquer momento?", a: "Sim. Upgrades entram em vigor imediatamente, e a troca do Pro para o Básico também é aplicada na hora, com o valor ajustado na fatura." },
-              { q: "O que acontece ao fazer downgrade do Pro para o Básico?", a: "Você perde IA Fingu, relatórios avançados, DRE por centro de custo e suporte via WhatsApp. Seus dados permanecem salvos." },
+              { q: "O que acontece ao fazer downgrade do Pro para o Básico?", a: "Você perde Finix IA, relatórios avançados, DRE por centro de custo e suporte via WhatsApp. Seus dados permanecem salvos." },
               { q: "Há cobrança recorrente?", a: "Sim. Básico e Pro são cobrados mensalmente via Stripe. Cancele sem multa a qualquer momento." },
               { q: "Preciso de cartão para o trial grátis?", a: "Não. Contas novas usam os recursos do plano Básico por 7 dias sem cartão. Cartão só é necessário para assinar um plano pago." },
             ].map(item => (
