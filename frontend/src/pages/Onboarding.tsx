@@ -181,7 +181,7 @@ export default function Onboarding() {
             className="text-center mb-8"
           >
             <Logo className="mx-auto mb-4" />
-            <h1 className="text-3xl sm:text-4xl font-display font-bold text-text mb-2">
+            <h1 className="text-3xl sm:text-4xl font-display font-semibold text-text mb-2">
               Personalize sua experiência Finix
             </h1>
             <p className="text-muted max-w-xl mx-auto">
@@ -473,7 +473,7 @@ export default function Onboarding() {
                   <div className="text-xs uppercase tracking-[0.3em] text-brand-blue font-semibold mb-2">
                     Visão rápida
                   </div>
-                  <h2 className="text-2xl font-display font-bold text-text">
+                  <h2 className="text-2xl font-display font-semibold text-text">
                     Seu onboarding com cores e progresso
                   </h2>
                 </div>

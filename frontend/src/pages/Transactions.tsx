@@ -237,7 +237,7 @@ export default function Transactions() {
     <div className="space-y-6" data-testid="transactions-page">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-extrabold tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-display font-semibold tracking-tight">
             Transações
           </h1>
           <p className="text-sm md:text-base text-muted dark:text-muted mt-1">
@@ -432,7 +432,7 @@ export default function Transactions() {
                   </div>
 
                   <div
-                    className={`min-w-[104px] text-right font-bold ${t.type === "INCOME" ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300"} flex flex-col items-end`}
+                    className={`min-w-[104px] text-right font-semibold ${t.type === "INCOME" ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300"} flex flex-col items-end`}
                   >
                     <span className="text-base sm:text-lg">
                       {t.type === "INCOME" ? "+" : "-"}
@@ -699,7 +699,7 @@ function TxModal({
         data-testid="tx-modal"
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold text-text text-text">
+          <h2 className="font-display text-xl font-semibold text-text text-text">
             {editing ? "Editar transação" : "Nova transação"}
           </h2>
           <button onClick={onClose} className="btn-ghost !p-2">

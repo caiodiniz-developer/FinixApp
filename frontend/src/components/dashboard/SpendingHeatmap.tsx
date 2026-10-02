@@ -20,7 +20,7 @@ export function SpendingHeatmap({ days }: { days: CalendarDay[] }) {
     <div>
       <div className="grid grid-cols-7 gap-1 mb-0.5">
         {["D","S","T","Q","Q","S","S"].map((d, i) => (
-          <div key={i} className="text-center text-[8px] font-bold uppercase" style={{ color: "var(--color-text-low)" }}>{d}</div>
+          <div key={i} className="text-center text-[8px] font-semibold uppercase" style={{ color: "var(--color-text-low)" }}>{d}</div>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1">

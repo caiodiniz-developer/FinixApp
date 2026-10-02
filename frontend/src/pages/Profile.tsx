@@ -358,7 +358,7 @@ export default function Profile() {
             <Avatar size={56} />
             <div>
               <p className="text-sm text-muted">Bom te ver de novo,</p>
-              <h2 className="text-xl font-bold text-text">{user.name}</h2>
+              <h2 className="text-xl font-semibold text-text">{user.name}</h2>
               <p className="text-sm text-muted">Plano {planName}</p>
             </div>
           </div>
@@ -399,7 +399,7 @@ export default function Profile() {
                 <p className="text-sm uppercase tracking-[0.3em] text-muted">
                   Perfil
                 </p>
-                <h1 className="text-3xl font-display font-extrabold text-text">
+                <h1 className="text-3xl font-display font-semibold text-text">
                   Configurações pessoais
                 </h1>
               </div>
@@ -421,7 +421,7 @@ export default function Profile() {
                   animate={{ opacity: 1, y: 0 }}
                   className="rounded-card border border-border bg-surface p-6 shadow-sm"
                 >
-                  <h2 className="font-display font-bold text-lg text-text">
+                  <h2 className="font-display font-semibold text-lg text-text">
                     Dados de usuário
                   </h2>
                   <form
@@ -473,7 +473,7 @@ export default function Profile() {
                   animate={{ opacity: 1, y: 0 }}
                   className="rounded-card border border-border bg-surface p-6 shadow-sm"
                 >
-                  <h2 className="font-display font-bold text-lg text-text">
+                  <h2 className="font-display font-semibold text-lg text-text">
                     Foto de perfil
                   </h2>
                   <div className="mt-6 flex flex-col items-center gap-6">
@@ -582,7 +582,7 @@ export default function Profile() {
           {/* Segurança tab */}
           {tab === "Segurança" && (
             <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
-              <h2 className="font-display font-bold text-lg text-text">
+              <h2 className="font-display font-semibold text-lg text-text">
                 Segurança
               </h2>
               <p className="mt-2 text-sm text-muted">
@@ -785,7 +785,7 @@ export default function Profile() {
           {/* Notificações tab */}
           {tab === "Notificações" && (
             <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
-              <h2 className="font-display font-bold text-lg text-text">
+              <h2 className="font-display font-semibold text-lg text-text">
                 Notificações
               </h2>
               <p className="mt-2 text-sm text-muted">
@@ -845,7 +845,7 @@ export default function Profile() {
           {/* Empresa tab */}
           {tab === "Empresa" && (
             <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
-              <h2 className="font-display font-bold text-lg text-text">
+              <h2 className="font-display font-semibold text-lg text-text">
                 Empresa
               </h2>
               <p className="mt-2 text-sm text-muted">
@@ -897,7 +897,7 @@ export default function Profile() {
             <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="font-display font-bold text-lg text-text">
+                  <h2 className="font-display font-semibold text-lg text-text">
                     Exportação de dados
                   </h2>
                   <p className="mt-2 text-sm text-muted">

@@ -60,7 +60,7 @@ export default function Challenges() {
     <div className="space-y-6" data-testid="challenges-page">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-extrabold tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
             <Trophy className="w-7 h-7 text-amber-500" /> Desafios em grupo
           </h1>
           <p className="text-muted mt-1">Economize em equipe — quem chega mais perto da meta lidera o ranking.</p>
@@ -89,7 +89,7 @@ export default function Challenges() {
             return (
               <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-display font-bold truncate">{c.title}</h3>
+                  <h3 className="font-display font-semibold truncate">{c.title}</h3>
                   {c.creatorId === user?.id && (
                     <button onClick={() => onDelete(c)} className="btn-ghost !p-1.5 hover:!text-red-600 shrink-0">
                       <Trash2 className="w-4 h-4" />
@@ -102,7 +102,7 @@ export default function Challenges() {
                   {ranked.map((p, i) => (
                     <div key={p.id} className="flex items-center justify-between text-xs">
                       <span className="flex items-center gap-1.5">
-                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold ${i === 0 ? "bg-amber-400 text-white" : "bg-surface-strong text-muted"}`}>{i + 1}</span>
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-semibold ${i === 0 ? "bg-amber-400 text-white" : "bg-surface-strong text-muted"}`}>{i + 1}</span>
                         {p.user?.name || "Participante"} {p.userId === user?.id && "(você)"}
                       </span>
                       <span className="font-semibold">{currency(p.progressAmount)}</span>
@@ -137,7 +137,7 @@ export default function Challenges() {
             className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setAddingProgress(null)}>
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
               className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
-              <h2 className="font-display text-lg font-bold">Registrar economia em "{addingProgress.title}"</h2>
+              <h2 className="font-display text-lg font-semibold">Registrar economia em "{addingProgress.title}"</h2>
               <input
                 type="number"
                 value={progressValue}
@@ -174,7 +174,7 @@ function ChallengeModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
       <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
         className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">Novo desafio</h2>
+          <h2 className="font-display text-xl font-semibold">Novo desafio</h2>
           <button onClick={onClose} className="btn-ghost !p-2"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-3">

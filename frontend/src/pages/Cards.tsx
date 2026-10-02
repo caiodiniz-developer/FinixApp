@@ -104,7 +104,7 @@ export default function Cards() {
     <div className="space-y-6" data-testid="cards-page">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-extrabold tracking-tight">Cartões</h1>
+          <h1 className="text-3xl font-display font-semibold tracking-tight">Cartões</h1>
           <p className="text-muted dark:text-muted mt-1">
             Fatura calculada automaticamente a partir das suas compras no crédito
           </p>
@@ -162,7 +162,7 @@ export default function Cards() {
                       <p className="text-xs uppercase tracking-widest opacity-70">
                         {c.brand || "Cartão de crédito"}
                       </p>
-                      <h3 className="text-lg font-bold mt-0.5">{c.name}</h3>
+                      <h3 className="text-lg font-semibold mt-0.5">{c.name}</h3>
                     </div>
                     <div className="flex gap-1">
                       <button
@@ -190,7 +190,7 @@ export default function Cards() {
                   </div>
                   <div className="relative mt-6">
                     <p className="text-[11px] opacity-70">Fatura atual</p>
-                    <p className="text-2xl font-display font-bold">
+                    <p className="text-2xl font-display font-semibold">
                       {currency(c.currentStatement.total)}
                     </p>
                   </div>
@@ -246,7 +246,7 @@ export default function Cards() {
                                 <p className="text-sm font-medium truncate">{t.title}</p>
                                 <p className="text-xs text-muted">{t.category} · {dateBR(t.date)}</p>
                               </div>
-                              <span className="text-sm font-bold text-rose-500">
+                              <span className="text-sm font-semibold text-rose-500">
                                 {currency(t.amount)}
                               </span>
                             </div>
@@ -346,7 +346,7 @@ function CardModal({
         data-testid="card-modal"
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">
+          <h2 className="font-display text-xl font-semibold">
             {editing ? "Editar cartão" : "Novo cartão"}
           </h2>
           <button onClick={onClose} className="btn-ghost !p-2">

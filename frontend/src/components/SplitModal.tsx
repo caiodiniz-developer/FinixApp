@@ -89,7 +89,7 @@ export function SplitModal({
       >
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-display text-xl font-bold flex items-center gap-2">
+            <h2 className="font-display text-xl font-semibold flex items-center gap-2">
               <Split className="w-4 h-4 text-brand-blue-strong" /> Dividir despesa
             </h2>
             <p className="text-xs text-muted mt-0.5">
@@ -115,7 +115,7 @@ export function SplitModal({
                 className="w-4 h-4 rounded accent-brand-blue"
               />
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
                 style={{ background: c.color || "#f59e0b" }}
               >
                 {c.name.charAt(0).toUpperCase()}

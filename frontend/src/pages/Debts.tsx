@@ -61,7 +61,7 @@ export default function Debts() {
     <div className="space-y-6" data-testid="debts-page">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-extrabold tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
             <Landmark className="w-7 h-7 text-brand-blue" /> Dívidas
           </h1>
           <p className="text-muted mt-1">Priorize por quem cobra mais juros ou por quem está mais perto de quitar.</p>
@@ -118,17 +118,17 @@ export default function Debts() {
             return (
               <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card relative">
                 {step && (
-                  <div className="absolute -top-2 -left-2 w-7 h-7 rounded-full bg-brand-blue text-white text-xs font-bold flex items-center justify-center shadow">
+                  <div className="absolute -top-2 -left-2 w-7 h-7 rounded-full bg-brand-blue text-white text-xs font-semibold flex items-center justify-center shadow">
                     {step.order}
                   </div>
                 )}
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-display font-bold truncate">{d.creditor}</h3>
+                  <h3 className="font-display font-semibold truncate">{d.creditor}</h3>
                   <button onClick={() => onDelete(d)} className="btn-ghost !p-1.5 hover:!text-red-600 shrink-0">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="text-2xl font-display font-bold text-red-500 mt-2">{currency(d.remainingAmount)}</p>
+                <p className="text-2xl font-display font-semibold text-red-500 mt-2">{currency(d.remainingAmount)}</p>
                 <p className="text-xs text-muted mt-1">de {currency(d.totalAmount)} · {d.interestRate}% a.m.</p>
                 {step && (
                   <p className="text-xs text-brand-blue font-semibold mt-2">
@@ -175,7 +175,7 @@ function DebtModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
       <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
         className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">Nova dívida</h2>
+          <h2 className="font-display text-xl font-semibold">Nova dívida</h2>
           <button onClick={onClose} className="btn-ghost !p-2"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-3">

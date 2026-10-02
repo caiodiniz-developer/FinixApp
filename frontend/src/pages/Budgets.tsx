@@ -49,7 +49,7 @@ export default function Budgets() {
     <div className="space-y-6" data-testid="budgets-page">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-extrabold tracking-tight">
+          <h1 className="text-3xl font-display font-semibold tracking-tight">
             Orçamentos
           </h1>
           <p className="text-muted dark:text-muted mt-1">
@@ -114,7 +114,7 @@ export default function Budgets() {
                       <Wallet className="w-5 h-5" style={{ color: catColor }} />
                     </div>
                     <div>
-                      <h3 className="font-bold">{b.category}</h3>
+                      <h3 className="font-semibold">{b.category}</h3>
                       <p className="text-xs text-muted">Limite mensal</p>
                     </div>
                   </div>
@@ -140,7 +140,7 @@ export default function Budgets() {
                 </div>
                 <div className="mt-4">
                   <div className="flex items-baseline justify-between mb-1">
-                    <span className="text-xl font-display font-bold">
+                    <span className="text-xl font-display font-semibold">
                       {currency(b.spent)}
                     </span>
                     <span className="text-sm text-muted">
@@ -157,7 +157,7 @@ export default function Budgets() {
                   </div>
                   <div className="flex items-center justify-between mt-2 text-xs">
                     <span
-                      className={`font-bold ${exceeded ? "text-red-600" : warning ? "text-amber-600" : "text-brand-blue"}`}
+                      className={`font-semibold ${exceeded ? "text-red-600" : warning ? "text-amber-600" : "text-brand-blue"}`}
                     >
                       {b.percentage.toFixed(0)}%
                     </span>
@@ -246,7 +246,7 @@ function BudgetModal({
         data-testid="budget-modal"
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">
+          <h2 className="font-display text-xl font-semibold">
             {editing ? "Editar orçamento" : "Novo orçamento"}
           </h2>
           <button onClick={onClose} className="btn-ghost !p-2">

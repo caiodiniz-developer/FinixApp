@@ -36,7 +36,7 @@ export function QuickAddModal({ open, onClose, onAdded, categories, accounts }: 
         <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-bold text-base" style={{ color: "var(--color-text)" }}>Nova transação</h2>
+              <h2 className="font-semibold text-base" style={{ color: "var(--color-text)" }}>Nova transação</h2>
               <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Adicione uma receita ou despesa</p>
             </div>
             <button onClick={onClose} className="w-8 h-8 rounded-control flex items-center justify-center transition-colors hover:bg-[var(--color-hairline)]" style={{ color: "var(--color-text-low)" }}>
@@ -49,7 +49,7 @@ export function QuickAddModal({ open, onClose, onAdded, categories, accounts }: 
           <div className="grid grid-cols-2 gap-1 p-1 rounded-control" style={{ background: "var(--color-surface-strong)" }}>
             {(["EXPENSE", "INCOME"] as const).map(t => (
               <button key={t} type="button" onClick={() => setForm(f => ({ ...f, type: t }))}
-                className={`py-3 rounded-lg text-xs font-bold transition-all ${form.type === t ? t === "EXPENSE" ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20" : "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "opacity-40"}`}
+                className={`py-3 rounded-lg text-xs font-semibold transition-all ${form.type === t ? t === "EXPENSE" ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20" : "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "opacity-40"}`}
                 style={{ color: form.type === t ? undefined : "var(--color-text-muted)" }}>
                 {t === "EXPENSE" ? "↓ Despesa" : "↑ Receita"}
               </button>
@@ -70,7 +70,7 @@ export function QuickAddModal({ open, onClose, onAdded, categories, accounts }: 
             </select>
           )}
           <button type="submit" disabled={loading}
-            className="w-full py-3 rounded-control text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
+            className="w-full py-3 rounded-control text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
             style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 4px 20px rgba(16,185,129,0.3)" }}>
             {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Salvar transação"}
           </button>

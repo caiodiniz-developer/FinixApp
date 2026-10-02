@@ -99,12 +99,12 @@ export default function Login() {
         {/* Content */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.65 }}
           className="relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white/80"
+          <div className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-white/80"
             style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}>
             <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
             Plataforma ativa
           </div>
-          <h2 className="text-[42px] font-display font-extrabold leading-tight text-white">
+          <h2 className="text-[42px] font-display font-semibold leading-tight text-white">
             Seu dinheiro<br />sob controle total.
           </h2>
           <p className="text-base text-white/65 leading-relaxed max-w-sm">
@@ -118,7 +118,7 @@ export default function Login() {
                 className="rounded-card p-4"
                 style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}>
                 <s.icon className="w-4 h-4 mb-2.5" style={{ color: s.color }} />
-                <div className="text-xl font-extrabold text-white leading-none mb-1">{s.value}</div>
+                <div className="text-xl font-semibold text-white leading-none mb-1">{s.value}</div>
                 <div className="text-[10px] text-white/45 leading-tight">{s.label}</div>
               </motion.div>
             ))}
@@ -129,7 +129,7 @@ export default function Login() {
         <div className="relative z-10 flex items-center gap-3">
           <div className="flex -space-x-2">
             {["#2563eb","#7c3aed","#059669","#dc2626"].map((c, i) => (
-              <div key={i} className="w-8 h-8 rounded-full border-2 text-[10px] font-bold text-white flex items-center justify-center"
+              <div key={i} className="w-8 h-8 rounded-full border-2 text-[10px] font-semibold text-white flex items-center justify-center"
                 style={{ borderColor: "#0f172a", background: c + "cc" }}>
                 {["C","A","R","B"][i]}
               </div>
@@ -149,7 +149,7 @@ export default function Login() {
             <Logo />
           </div>
 
-          <h1 className="text-3xl font-display font-extrabold tracking-tight text-text">
+          <h1 className="text-3xl font-display font-semibold tracking-tight text-text">
             Entrar
           </h1>
           <p className="text-muted mt-1 text-sm">

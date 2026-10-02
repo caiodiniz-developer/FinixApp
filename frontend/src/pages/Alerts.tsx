@@ -210,7 +210,7 @@ export default function Alerts() {
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-display font-extrabold text-text dark:text-text">
+          <h1 className="text-3xl font-display font-semibold text-text dark:text-text">
             Alertas Financeiros
           </h1>
           <p className="mt-2 text-muted dark:text-muted">
@@ -232,7 +232,7 @@ export default function Alerts() {
           <div className="text-sm uppercase tracking-[0.3em] text-muted dark:text-muted">
             Limite estourado
           </div>
-          <div className="mt-4 text-3xl font-bold text-rose-600 dark:text-rose-400">
+          <div className="mt-4 text-3xl font-semibold text-rose-600 dark:text-rose-400">
             {overLimitCount}
           </div>
         </div>
@@ -240,7 +240,7 @@ export default function Alerts() {
           <div className="text-sm uppercase tracking-[0.3em] text-muted dark:text-muted">
             Próximo do limite
           </div>
-          <div className="mt-4 text-3xl font-bold text-amber-500 dark:text-amber-400">
+          <div className="mt-4 text-3xl font-semibold text-amber-500 dark:text-amber-400">
             {nearingCount}
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function Alerts() {
           <div className="text-sm uppercase tracking-[0.3em] text-muted dark:text-muted">
             Vencem em 7 dias
           </div>
-          <div className="mt-4 text-3xl font-bold text-text">
+          <div className="mt-4 text-3xl font-semibold text-text">
             {dueSoonCount}
           </div>
         </div>
@@ -256,7 +256,7 @@ export default function Alerts() {
           <div className="text-sm uppercase tracking-[0.3em] text-muted dark:text-muted">
             Parcelas próximas
           </div>
-          <div className="mt-4 text-3xl font-bold text-blue-600 dark:text-blue-400">
+          <div className="mt-4 text-3xl font-semibold text-blue-600 dark:text-blue-400">
             {installmentDueSoon}
           </div>
         </div>

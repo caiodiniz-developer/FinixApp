@@ -91,7 +91,7 @@ export default function Admin() {
         <div className="chip bg-amber-100 text-amber-700 border border-amber-200 mb-2">
           <Shield className="w-3.5 h-3.5" /> Painel administrativo
         </div>
-        <h1 className="text-3xl font-display font-extrabold tracking-tight">
+        <h1 className="text-3xl font-display font-semibold tracking-tight">
           Gestão Global
         </h1>
         <p className="text-muted mt-1">
@@ -146,7 +146,7 @@ export default function Admin() {
               <div className="text-xs text-muted uppercase tracking-wider font-semibold">
                 {s.label}
               </div>
-              <div className="text-2xl font-display font-bold mt-1">
+              <div className="text-2xl font-display font-semibold mt-1">
                 {s.value}
               </div>
             </motion.div>
@@ -159,7 +159,7 @@ export default function Admin() {
             <div className="flex items-center gap-2 text-muted text-sm">
               <TrendingUp className="w-4 h-4" /> Volume global — Receitas
             </div>
-            <div className="text-3xl font-display font-bold text-emerald-600 mt-1">
+            <div className="text-3xl font-display font-semibold text-emerald-600 mt-1">
               {currency(stats.globalIncome)}
             </div>
           </div>
@@ -168,7 +168,7 @@ export default function Admin() {
               <TrendingUp className="w-4 h-4 rotate-180" /> Volume global —
               Despesas
             </div>
-            <div className="text-3xl font-display font-bold text-rose-600 mt-1">
+            <div className="text-3xl font-display font-semibold text-rose-600 mt-1">
               {currency(stats.globalExpense)}
             </div>
           </div>
@@ -220,7 +220,7 @@ export default function Admin() {
               <div className="text-xs text-muted uppercase tracking-wider font-semibold">
                 {s.label}
               </div>
-              <div className="text-2xl font-display font-bold mt-1">
+              <div className="text-2xl font-display font-semibold mt-1">
                 {s.value}
               </div>
             </motion.div>
@@ -275,7 +275,7 @@ export default function Admin() {
                   <tr key={u.id} data-testid={`user-row-${u.id}`}>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-blue to-brand-blue-strong flex items-center justify-center text-white font-bold">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-blue to-brand-blue-strong flex items-center justify-center text-white font-semibold">
                           {u.name.charAt(0).toUpperCase()}
                         </div>
                         <span className="font-semibold">{u.name}</span>
@@ -513,11 +513,11 @@ function UserDetail({
           <>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-blue to-brand-blue-strong flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-blue to-brand-blue-strong flex items-center justify-center text-white font-semibold text-lg">
                   {data.user.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h2 className="font-display font-bold text-xl">
+                  <h2 className="font-display font-semibold text-xl">
                     {data.user.name}
                   </h2>
                   <p className="text-sm text-muted">
@@ -533,17 +533,17 @@ function UserDetail({
             <div className="mt-6 grid grid-cols-3 gap-3">
               <div className="card !p-4">
                 <div className="text-xs text-muted">Transações</div>
-                <div className="text-xl font-bold">
+                <div className="text-xl font-semibold">
                   {data.transactions.length}
                 </div>
               </div>
               <div className="card !p-4">
                 <div className="text-xs text-muted">Metas</div>
-                <div className="text-xl font-bold">{data.goals.length}</div>
+                <div className="text-xl font-semibold">{data.goals.length}</div>
               </div>
               <div className="card !p-4">
                 <div className="text-xs text-muted">Saldo</div>
-                <div className="text-xl font-bold">
+                <div className="text-xl font-semibold">
                   {currency(
                     data.transactions.reduce(
                       (s, t) =>
@@ -611,7 +611,7 @@ function UserDetail({
               ) : (
                 <div className="flex items-center gap-3 p-4 rounded-control bg-gradient-to-r bg-background dark:bg-surface-strong">
                   <div
-                    className={`inline-block px-4 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r ${planColors[(data.user.plan as "FREE" | "BASIC" | "PRO") || "FREE"]}`}
+                    className={`inline-block px-4 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r ${planColors[(data.user.plan as "FREE" | "BASIC" | "PRO") || "FREE"]}`}
                   >
                     {data.user.plan || "FREE"}
                   </div>

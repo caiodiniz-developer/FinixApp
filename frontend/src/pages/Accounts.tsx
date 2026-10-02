@@ -72,7 +72,7 @@ export default function Accounts() {
     <div className="space-y-6" data-testid="accounts-page">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-extrabold tracking-tight">
+          <h1 className="text-3xl font-display font-semibold tracking-tight">
             Contas
           </h1>
           <p className="text-muted dark:text-muted mt-1">
@@ -121,7 +121,7 @@ export default function Accounts() {
                       <Icon className="w-5 h-5" style={{ color }} />
                     </div>
                     <div>
-                      <h3 className="font-bold flex items-center gap-1.5">
+                      <h3 className="font-semibold flex items-center gap-1.5">
                         {a.name}
                         {a.isDefault && (
                           <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
@@ -155,7 +155,7 @@ export default function Accounts() {
                 <div className="mt-4">
                   <p className="text-xs text-muted mb-1">Saldo</p>
                   <p
-                    className={`text-2xl font-display font-bold ${a.balance < 0 ? "text-rose-500" : ""}`}
+                    className={`text-2xl font-display font-semibold ${a.balance < 0 ? "text-rose-500" : ""}`}
                   >
                     {currency(a.balance)}
                   </p>
@@ -248,7 +248,7 @@ function AccountModal({
         data-testid="account-modal"
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">
+          <h2 className="font-display text-xl font-semibold">
             {editing ? "Editar conta" : "Nova conta"}
           </h2>
           <button onClick={onClose} className="btn-ghost !p-2">

@@ -69,7 +69,7 @@ export default function NetWorthPage() {
     <div className="space-y-6" data-testid="networth-page">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-extrabold tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
             <Wallet2 className="w-7 h-7 text-brand-blue" /> Patrimônio
           </h1>
           <p className="text-muted mt-1">Contas + investimentos − dívidas. Onde suas finanças realmente estão.</p>
@@ -83,21 +83,21 @@ export default function NetWorthPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="card">
             <p className="text-xs text-muted uppercase tracking-wide font-semibold">Patrimônio líquido</p>
-            <p className={`text-2xl font-display font-bold mt-1 ${netWorth.netWorth >= 0 ? "text-text" : "text-red-500"}`}>
+            <p className={`text-2xl font-display font-semibold mt-1 ${netWorth.netWorth >= 0 ? "text-text" : "text-red-500"}`}>
               {currency(netWorth.netWorth)}
             </p>
           </div>
           <div className="card">
             <p className="text-xs text-muted uppercase tracking-wide font-semibold">Caixa livre</p>
-            <p className="text-2xl font-display font-bold mt-1">{currency(netWorth.liquidCash)}</p>
+            <p className="text-2xl font-display font-semibold mt-1">{currency(netWorth.liquidCash)}</p>
           </div>
           <div className="card">
             <p className="text-xs text-muted uppercase tracking-wide font-semibold">Em metas</p>
-            <p className="text-2xl font-display font-bold mt-1">{currency(netWorth.goalsSaved)}</p>
+            <p className="text-2xl font-display font-semibold mt-1">{currency(netWorth.goalsSaved)}</p>
           </div>
           <div className="card">
             <p className="text-xs text-muted uppercase tracking-wide font-semibold">Investido</p>
-            <p className="text-2xl font-display font-bold mt-1 text-emerald-500">{currency(netWorth.investedTotal)}</p>
+            <p className="text-2xl font-display font-semibold mt-1 text-emerald-500">{currency(netWorth.investedTotal)}</p>
           </div>
         </div>
       )}
@@ -105,7 +105,7 @@ export default function NetWorthPage() {
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Investimentos */}
         <div className="card">
-          <h2 className="font-display font-bold text-lg flex items-center gap-2">
+          <h2 className="font-display font-semibold text-lg flex items-center gap-2">
             <TrendingUp className="w-5 h-5" /> Investimentos
           </h2>
           {investments === null ? (
@@ -136,7 +136,7 @@ export default function NetWorthPage() {
                         <p className="text-xs text-muted">{TYPE_LABELS[inv.type]}</p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="font-bold">{currency(inv.currentValue)}</p>
+                        <p className="font-semibold">{currency(inv.currentValue)}</p>
                         <p className={`text-xs ${gain >= 0 ? "text-emerald-500" : "text-red-500"}`}>
                           {gain >= 0 ? "+" : ""}{currency(gain)}
                         </p>
@@ -154,14 +154,14 @@ export default function NetWorthPage() {
 
         {/* FIRE */}
         <div className="card">
-          <h2 className="font-display font-bold text-lg flex items-center gap-2">
+          <h2 className="font-display font-semibold text-lg flex items-center gap-2">
             <Flame className="w-5 h-5 text-orange-500" /> Independência financeira
           </h2>
           {fire ? (
             <div className="mt-4 space-y-3">
               <div className="rounded-control bg-surface-strong p-4">
                 <p className="text-xs text-muted">Seu "número FIRE" (25x gasto anual, regra dos 4%)</p>
-                <p className="text-xl font-bold mt-1">{currency(fire.fireNumber)}</p>
+                <p className="text-xl font-semibold mt-1">{currency(fire.fireNumber)}</p>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted">Poupança média mensal</span>
@@ -221,7 +221,7 @@ function InvestmentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
       <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
         className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">Novo investimento</h2>
+          <h2 className="font-display text-xl font-semibold">Novo investimento</h2>
           <button onClick={onClose} className="btn-ghost !p-2"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-3">

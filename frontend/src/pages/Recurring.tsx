@@ -61,7 +61,7 @@ export default function Recurring() {
     <div className="space-y-6" data-testid="recurring-page">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-extrabold tracking-tight">Recorrências</h1>
+          <h1 className="text-3xl font-display font-semibold tracking-tight">Recorrências</h1>
           <p className="text-muted mt-1">
             Transações que se repetem sozinhas — aluguel, assinatura, salário. O Finix cria a transação automaticamente em cada ciclo.
           </p>
@@ -89,7 +89,7 @@ export default function Recurring() {
             <div key={r.id} className="card" data-testid={`recurring-card-${r.id}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h3 className="font-display font-bold truncate">{r.title}</h3>
+                  <h3 className="font-display font-semibold truncate">{r.title}</h3>
                   <p className="text-xs text-muted mt-1">
                     {FREQUENCY_LABEL[r.frequency]} · {r.category}
                   </p>
@@ -104,7 +104,7 @@ export default function Recurring() {
                 </div>
               </div>
               <div className="mt-4 flex items-baseline justify-between">
-                <span className={`text-xl font-display font-bold ${r.type === "EXPENSE" ? "text-red-500" : "text-emerald-500"}`}>
+                <span className={`text-xl font-display font-semibold ${r.type === "EXPENSE" ? "text-red-500" : "text-emerald-500"}`}>
                   {r.type === "EXPENSE" ? "-" : "+"}{currency(r.amount)}
                 </span>
                 <span className={`text-xs font-semibold rounded-full px-2 py-1 ${r.active ? "bg-emerald-500/10 text-emerald-500" : "bg-surface-strong text-muted"}`}>
@@ -153,7 +153,7 @@ function RecurringModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
         className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-lg p-6"
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">Nova recorrência</h2>
+          <h2 className="font-display text-xl font-semibold">Nova recorrência</h2>
           <button onClick={onClose} className="btn-ghost !p-2"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-3">

@@ -82,7 +82,7 @@ export default function Register() {
           <div className="chip bg-white/10 text-white border border-white/20 backdrop-blur w-fit">
             <Sparkles className="w-3.5 h-3.5" /> Grátis para sempre
           </div>
-          <h2 className="text-[40px] font-display font-extrabold leading-tight text-white">
+          <h2 className="text-[40px] font-display font-semibold leading-tight text-white">
             Transforme seus<br />gastos em resultados.
           </h2>
           <p className="text-base text-white/65 leading-relaxed max-w-sm">
@@ -108,7 +108,7 @@ export default function Register() {
           style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}>
           <span className="text-xl">🔒</span>
           <div>
-            <p className="text-xs font-bold text-white">Dados protegidos</p>
+            <p className="text-xs font-semibold text-white">Dados protegidos</p>
             <p className="text-[11px] text-white/45">Stripe · SSL 256-bit · LGPD</p>
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function Register() {
             <Logo />
           </div>
 
-          <h1 className="text-3xl font-display font-extrabold tracking-tight text-text">
+          <h1 className="text-3xl font-display font-semibold tracking-tight text-text">
             Criar conta
           </h1>
           <p className="text-muted mt-1 text-sm">

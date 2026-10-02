@@ -137,7 +137,7 @@ export default function Contacts() {
     <div className="space-y-6" data-testid="contacts-page">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-extrabold tracking-tight">Contatos</h1>
+          <h1 className="text-3xl font-display font-semibold tracking-tight">Contatos</h1>
           <p className="text-muted dark:text-muted mt-1">
             Divida despesas e acompanhe quem ainda te deve
           </p>
@@ -156,7 +156,7 @@ export default function Contacts() {
 
       {items && items.length > 0 && (
         <div className="card">
-          <h2 className="font-display font-bold text-lg flex items-center gap-2">
+          <h2 className="font-display font-semibold text-lg flex items-center gap-2">
             <HandCoins className="w-5 h-5 text-emerald-500" /> Empréstimos entre pessoas
           </h2>
           <p className="text-sm text-muted mt-1">Diferente de dividir uma conta — isso é "emprestei/peguei emprestado", com controle de quitação.</p>
@@ -169,7 +169,7 @@ export default function Contacts() {
                     {l.direction === "LENT" ? "Você emprestou pra" : "Você pegou emprestado de"} <strong>{l.contact?.name}</strong>
                   </span>
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className={`font-bold ${l.direction === "LENT" ? "text-emerald-500" : "text-red-500"}`}>{currency(l.remaining)}</span>
+                    <span className={`font-semibold ${l.direction === "LENT" ? "text-emerald-500" : "text-red-500"}`}>{currency(l.remaining)}</span>
                     <button onClick={() => settleLoan(l)} className="btn-outline !py-1 !px-2 text-xs">Quitar</button>
                     <button onClick={() => deleteLoan(l)} className="text-muted hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
@@ -223,7 +223,7 @@ export default function Contacts() {
                   onClick={() => toggleExpand(c)}
                 >
                   <div
-                    className="w-11 h-11 shrink-0 rounded-full flex items-center justify-center font-bold text-white"
+                    className="w-11 h-11 shrink-0 rounded-full flex items-center justify-center font-semibold text-white"
                     style={{ background: c.color || "#f59e0b" }}
                   >
                     {c.name.charAt(0).toUpperCase()}
@@ -236,7 +236,7 @@ export default function Contacts() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted">a receber</p>
-                    <p className={`font-bold ${c.totalOwed > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted"}`}>
+                    <p className={`font-semibold ${c.totalOwed > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted"}`}>
                       {currency(c.totalOwed)}
                     </p>
                   </div>
@@ -317,7 +317,7 @@ export default function Contacts() {
                                   {s.transaction ? dateBR(s.transaction.date) : dateBR(s.createdAt)}
                                 </p>
                               </div>
-                              <span className={`text-sm font-bold ${s.settled ? "text-muted" : "text-emerald-600 dark:text-emerald-400"}`}>
+                              <span className={`text-sm font-semibold ${s.settled ? "text-muted" : "text-emerald-600 dark:text-emerald-400"}`}>
                                 {currency(s.amount)}
                               </span>
                             </div>
@@ -415,7 +415,7 @@ function ContactModal({
         data-testid="contact-modal"
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">
+          <h2 className="font-display text-xl font-semibold">
             {editing ? "Editar contato" : "Novo contato"}
           </h2>
           <button onClick={onClose} className="btn-ghost !p-2">

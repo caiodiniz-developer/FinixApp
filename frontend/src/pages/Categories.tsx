@@ -153,7 +153,7 @@ export default function Categories() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-display font-extrabold">Categorias</h1>
+          <h1 className="text-3xl font-display font-semibold">Categorias</h1>
           <p className="mt-2 text-muted">
             Organize e personalize suas categorias conforme o plano.
           </p>
@@ -231,7 +231,7 @@ export default function Categories() {
                       onClick={() => hideDefault(name)}
                       title={`Remover ${name}`}
                       type="button"
-                      className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-bold"
+                      className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-semibold"
                     >
                       ×
                     </button>

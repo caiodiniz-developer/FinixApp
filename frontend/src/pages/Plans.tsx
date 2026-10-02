@@ -112,7 +112,7 @@ function DowngradeModal({ onConfirm, onClose, loading }: {
         <div className="w-12 h-12 rounded-card flex items-center justify-center mb-5" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)" }}>
           <AlertTriangle className="w-6 h-6 text-amber-400" />
         </div>
-        <h2 className="text-lg font-black text-white mb-2">Fazer downgrade?</h2>
+        <h2 className="text-lg font-semibold text-white mb-2">Fazer downgrade?</h2>
         <p className="text-sm mb-5" style={{ color: "rgba(255,255,255,0.45)" }}>
           Você perderá acesso à IA Fingu, relatórios avançados, centros de custo e suporte via WhatsApp.
         </p>
@@ -122,7 +122,7 @@ function DowngradeModal({ onConfirm, onClose, loading }: {
             Manter Pro
           </button>
           <button onClick={onConfirm} disabled={loading}
-            className="flex-1 py-2.5 rounded-control text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-control text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
             style={{ background: "#f59e0b" }}>
             {loading ? "Processando..." : "Confirmar"}
           </button>
@@ -218,7 +218,7 @@ export default function Plans() {
             <span className="ml-2 text-xs font-semibold" style={{ color: "rgba(255,255,255,0.4)" }}>4.9/5 · 5.800+ clientes</span>
           </div>
 
-          <h1 className="text-4xl font-black tracking-tight mb-2">
+          <h1 className="text-4xl font-semibold tracking-tight mb-2">
             <span style={{ color: "var(--color-text)" }}>Planos &amp; </span>
             <span style={{ background: "linear-gradient(90deg,#f59e0b,#fbbf24)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Preços
@@ -232,11 +232,11 @@ export default function Plans() {
           {currentPlan && (
             <div className="inline-flex items-center gap-3 mt-5 px-4 py-2.5 rounded-full"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.3)" }}>Plano atual</span>
-              <span className="text-sm font-black" style={{ color: "var(--color-text)" }}>{currentPlan.name}</span>
+              <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.3)" }}>Plano atual</span>
+              <span className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>{currentPlan.name}</span>
               {user?.plan !== "FREE" && (
                 <button onClick={handleCancel} disabled={loading === "cancel"}
-                  className="text-[11px] font-bold text-rose-400 hover:text-rose-300 transition disabled:opacity-50 ml-1">
+                  className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 transition disabled:opacity-50 ml-1">
                   {loading === "cancel" ? "…" : "Cancelar"}
                 </button>
               )}
@@ -255,7 +255,7 @@ export default function Plans() {
             <span className="text-sm font-medium" style={{ color: annual ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.4)" }}>Anual</span>
             {annual && (
               <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
-                className="text-[10px] font-black px-2 py-0.5 rounded-full"
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "rgba(16,185,129,0.15)", color: "#34d399", border: "1px solid rgba(16,185,129,0.25)" }}>
                 ECONOMIZE 20%
               </motion.span>
@@ -305,14 +305,14 @@ export default function Plans() {
 
                 {/* Popular badge */}
                 {plan.badge && (
-                  <div className="absolute top-0 left-0 right-0 text-center py-1.5 text-[10px] font-black uppercase tracking-widest"
+                  <div className="absolute top-0 left-0 right-0 text-center py-1.5 text-[10px] font-semibold uppercase tracking-widest"
                     style={{ background: `linear-gradient(90deg,${plan.accent},#fbbf24)`, color: "#000" }}>
                     {plan.badge}
                   </div>
                 )}
 
                 {isCurrent && (
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold"
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-semibold"
                     style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)", color: "#34d399" }}>
                     Ativo
                   </div>
@@ -326,7 +326,7 @@ export default function Plans() {
                       <Icon className="w-5 h-5" style={{ color: plan.accent }} />
                     </div>
                     <div>
-                      <div className="font-black text-base" style={{ color: "var(--color-text)" }}>{plan.name}</div>
+                      <div className="font-semibold text-base" style={{ color: "var(--color-text)" }}>{plan.name}</div>
                       <div className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: plan.accent }}>{plan.label}</div>
                     </div>
                   </div>
@@ -335,13 +335,13 @@ export default function Plans() {
                   <div>
                     <div className="flex items-baseline gap-1.5">
                       {plan.price === 0 ? (
-                        <span className="text-4xl font-black" style={{ color: "var(--color-text)" }}>Grátis</span>
+                        <span className="text-4xl font-semibold" style={{ color: "var(--color-text)" }}>Grátis</span>
                       ) : (
                         <>
-                          <span className="text-xl font-bold" style={{ color: "rgba(255,255,255,0.4)" }}>R$</span>
+                          <span className="text-xl font-semibold" style={{ color: "rgba(255,255,255,0.4)" }}>R$</span>
                           <motion.span key={displayPrice}
                             initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                            className="text-4xl font-black num" style={{ color: "var(--color-text)" }}>
+                            className="text-4xl font-semibold num" style={{ color: "var(--color-text)" }}>
                             {displayPrice.toFixed(2).replace(".", ",")}
                           </motion.span>
                           <span className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>/mês</span>
@@ -358,7 +358,7 @@ export default function Plans() {
 
                   {/* CTA */}
                   <button onClick={() => handleUpgrade(plan.id)} disabled={btnDisabled}
-                    className="w-full py-3 rounded-control text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-default"
+                    className="w-full py-3 rounded-control text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-default"
                     style={
                       isCurrent ? { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.3)" }
                         : isDowngrade ? { background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)", color: "#fbbf24" }
@@ -400,7 +400,7 @@ export default function Plans() {
           className="rounded-card overflow-hidden"
           style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="px-6 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}>
-            <h2 className="font-black text-sm uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <h2 className="font-semibold text-sm uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
               Comparativo completo
             </h2>
           </div>
@@ -408,11 +408,11 @@ export default function Plans() {
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <th className="py-3 px-5 text-left text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.3)", width: "40%" }}>
+                  <th className="py-3 px-5 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.3)", width: "40%" }}>
                     Recurso
                   </th>
                   {["Grátis","Básico","Pro"].map((p, i) => (
-                    <th key={p} className="py-3 px-4 text-center text-xs font-bold" style={{ color: i === 2 ? "#fbbf24" : "rgba(255,255,255,0.4)" }}>
+                    <th key={p} className="py-3 px-4 text-center text-xs font-semibold" style={{ color: i === 2 ? "#fbbf24" : "rgba(255,255,255,0.4)" }}>
                       {p}
                     </th>
                   ))}
@@ -460,7 +460,7 @@ export default function Plans() {
                 <t.icon className="w-4.5 h-4.5" style={{ color: t.color, width: 18, height: 18 }} />
               </div>
               <div>
-                <div className="text-sm font-bold" style={{ color: "var(--color-text)" }}>{t.title}</div>
+                <div className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>{t.title}</div>
                 <div className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.35)" }}>{t.desc}</div>
               </div>
             </motion.div>
@@ -470,7 +470,7 @@ export default function Plans() {
         {/* ── FAQ ─────────────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
           className="max-w-2xl">
-          <h2 className="text-xl font-black mb-5" style={{ color: "var(--color-text)" }}>Perguntas frequentes</h2>
+          <h2 className="text-xl font-semibold mb-5" style={{ color: "var(--color-text)" }}>Perguntas frequentes</h2>
           <div className="space-y-2.5">
             {[
               { q: "Posso mudar de plano a qualquer momento?", a: "Sim. Upgrades entram em vigor imediatamente. Downgrades são aplicados no próximo ciclo de cobrança." },
@@ -483,7 +483,7 @@ export default function Plans() {
                 <summary className="flex items-center justify-between p-4 font-semibold text-sm select-none"
                   style={{ color: "var(--color-text)" }}>
                   {item.q}
-                  <span className="ml-4 text-lg font-bold transition-transform group-open:rotate-45"
+                  <span className="ml-4 text-lg font-semibold transition-transform group-open:rotate-45"
                     style={{ color: "rgba(255,255,255,0.3)" }}>+</span>
                 </summary>
                 <div className="px-4 pb-4 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.45)", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
@@ -500,15 +500,15 @@ export default function Plans() {
             className="rounded-card p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
             style={{ background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.12)" }}>
             <div className="max-w-md">
-              <p className="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-1.5">Zona de cancelamento</p>
-              <p className="text-sm font-bold text-white mb-1">Cancelar assinatura</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-rose-500 mb-1.5">Zona de cancelamento</p>
+              <p className="text-sm font-semibold text-white mb-1">Cancelar assinatura</p>
               <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
                 Ao cancelar, você volta ao plano Grátis no final do período atual. Seus dados permanecem salvos por 30 dias.
                 {user?.plan === "PRO" && " Considere fazer downgrade para o Básico antes."}
               </p>
             </div>
             <button onClick={handleCancel} disabled={loading === "cancel"}
-              className="shrink-0 px-5 py-2.5 rounded-control text-sm font-bold text-rose-400 transition-all hover:bg-rose-500/10 disabled:opacity-50"
+              className="shrink-0 px-5 py-2.5 rounded-control text-sm font-semibold text-rose-400 transition-all hover:bg-rose-500/10 disabled:opacity-50"
               style={{ border: "1px solid rgba(239,68,68,0.25)" }}>
               {loading === "cancel" ? "Cancelando..." : "Cancelar assinatura"}
             </button>

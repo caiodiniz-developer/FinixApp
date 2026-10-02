@@ -327,7 +327,7 @@ export default function Calendar() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-extrabold text-text dark:text-text">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-semibold text-text dark:text-text">
             Calendário Financeiro
           </h1>
           <p className="mt-1 sm:mt-2 text-xs sm:text-sm md:text-base text-muted dark:text-muted">
@@ -397,7 +397,7 @@ export default function Calendar() {
                   </span>
                 </div>
                 <div
-                  className={`mt-2 text-sm sm:text-base md:text-2xl lg:text-3xl font-bold ${item.color} break-all`}
+                  className={`mt-2 text-sm sm:text-base md:text-2xl lg:text-3xl font-semibold ${item.color} break-all`}
                 >
                   {formatCurrency(item.value)}
                 </div>
@@ -673,7 +673,7 @@ export default function Calendar() {
                               </div>
                             </div>
                             <div
-                              className={`font-bold whitespace-nowrap flex-shrink-0 text-right text-xs sm:text-sm md:text-base ${tx.type === "INCOME" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                              className={`font-semibold whitespace-nowrap flex-shrink-0 text-right text-xs sm:text-sm md:text-base ${tx.type === "INCOME" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
                             >
                               <div>
                                 {tx.type === "INCOME" ? "+" : "-"}

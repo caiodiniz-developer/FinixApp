@@ -95,7 +95,7 @@ export default function Goals() {
     <div className="space-y-6" data-testid="goals-page">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-extrabold tracking-tight">
+          <h1 className="text-3xl font-display font-semibold tracking-tight">
             Metas
           </h1>
           <p className="text-muted dark:text-muted mt-1">
@@ -174,7 +174,7 @@ export default function Goals() {
                       ) : (
                         <Target className="w-5 h-5 text-brand-blue" />
                       )}
-                      <h3 className="font-display font-bold truncate">
+                      <h3 className="font-display font-semibold truncate">
                         {g.title}
                       </h3>
                     </div>
@@ -219,7 +219,7 @@ export default function Goals() {
                 )}
                 <div className="relative mt-5">
                   <div className="flex items-baseline justify-between mb-2">
-                    <span className="text-2xl font-display font-bold">
+                    <span className="text-2xl font-display font-semibold">
                       {currency(g.currentAmount)}
                     </span>
                     <span className="text-sm text-muted">
@@ -301,7 +301,7 @@ function InviteModal({ goal, onClose }: { goal: Goal; onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold">Convidar para "{goal.title}"</h2>
+          <h2 className="font-display text-lg font-semibold">Convidar para "{goal.title}"</h2>
           <button onClick={onClose} className="btn-ghost !p-2">
             <X className="w-4 h-4" />
           </button>
@@ -387,7 +387,7 @@ function GoalModal({
         data-testid="goal-modal"
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">
+          <h2 className="font-display text-xl font-semibold">
             {editing ? "Editar meta" : "Nova meta"}
           </h2>
           <button onClick={onClose} className="btn-ghost !p-2">

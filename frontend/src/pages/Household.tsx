@@ -63,7 +63,7 @@ export default function Household() {
   return (
     <div className="space-y-6" data-testid="household-page">
       <div>
-        <h1 className="text-3xl font-display font-extrabold tracking-tight flex items-center gap-2">
+        <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
           <Users className="w-7 h-7 text-brand-blue-strong" /> Modo Casal / Família
         </h1>
         <p className="text-muted mt-1">
@@ -103,22 +103,22 @@ export default function Household() {
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="card">
               <p className="text-xs text-muted uppercase tracking-wide font-semibold">Renda combinada</p>
-              <p className="text-2xl font-display font-bold mt-1 text-emerald-500">{currency(household.combinedIncome)}</p>
+              <p className="text-2xl font-display font-semibold mt-1 text-emerald-500">{currency(household.combinedIncome)}</p>
             </div>
             <div className="card">
               <p className="text-xs text-muted uppercase tracking-wide font-semibold">Gasto combinado</p>
-              <p className="text-2xl font-display font-bold mt-1 text-red-500">{currency(household.combinedExpense)}</p>
+              <p className="text-2xl font-display font-semibold mt-1 text-red-500">{currency(household.combinedExpense)}</p>
             </div>
             <div className="card">
               <p className="text-xs text-muted uppercase tracking-wide font-semibold">Saldo combinado</p>
-              <p className={`text-2xl font-display font-bold mt-1 ${household.combinedBalance >= 0 ? "text-text" : "text-red-500"}`}>
+              <p className={`text-2xl font-display font-semibold mt-1 ${household.combinedBalance >= 0 ? "text-text" : "text-red-500"}`}>
                 {currency(household.combinedBalance)}
               </p>
             </div>
           </div>
 
           <div className="card">
-            <h2 className="font-display font-bold text-lg">Membros — {household.name}</h2>
+            <h2 className="font-display font-semibold text-lg">Membros — {household.name}</h2>
             <div className="mt-4 space-y-2">
               {household.members.map((m) => (
                 <motion.div key={m.userId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between rounded-control bg-surface-strong p-3 text-sm">

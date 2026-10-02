@@ -20,7 +20,7 @@ export default function YearReview() {
     <div className="space-y-6" data-testid="year-review-page">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-extrabold tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
             <Sparkles className="w-7 h-7 text-amber-400" /> Seu ano em números
           </h1>
           <p className="text-muted mt-1">Print e compartilhe se quiser se gabar (ou se cobrar no ano que vem).</p>
@@ -43,11 +43,11 @@ export default function YearReview() {
           <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-amber-400/10 blur-3xl" />
 
           <div className="relative">
-            <p className="text-sm font-bold uppercase tracking-[0.3em] text-white/60">Finix · {data.year}</p>
-            <h2 className="text-4xl sm:text-5xl font-display font-extrabold mt-2">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">Finix · {data.year}</p>
+            <h2 className="text-4xl sm:text-5xl font-display font-semibold mt-2">
               {data.totalSaved >= 0 ? "Você economizou" : "Suas contas ficaram apertadas em"}
             </h2>
-            <p className="text-5xl sm:text-6xl font-display font-black mt-2" style={{ color: data.totalSaved >= 0 ? "#4ade80" : "#f87171" }}>
+            <p className="text-5xl sm:text-6xl font-display font-semibold mt-2" style={{ color: data.totalSaved >= 0 ? "#4ade80" : "#f87171" }}>
               {currency(Math.abs(data.totalSaved))}
             </p>
 
@@ -55,18 +55,18 @@ export default function YearReview() {
               <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                 <TrendingUp className="w-5 h-5 text-emerald-300 mb-2" />
                 <p className="text-xs text-white/60 uppercase tracking-wide">Total recebido</p>
-                <p className="text-2xl font-bold mt-1">{currency(data.totalIncome)}</p>
+                <p className="text-2xl font-semibold mt-1">{currency(data.totalIncome)}</p>
               </div>
               <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                 <TrendingDown className="w-5 h-5 text-rose-300 mb-2" />
                 <p className="text-xs text-white/60 uppercase tracking-wide">Total gasto</p>
-                <p className="text-2xl font-bold mt-1">{currency(data.totalExpense)}</p>
+                <p className="text-2xl font-semibold mt-1">{currency(data.totalExpense)}</p>
               </div>
               {data.topCategory && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                   <Receipt className="w-5 h-5 text-amber-300 mb-2" />
                   <p className="text-xs text-white/60 uppercase tracking-wide">Categoria #1</p>
-                  <p className="text-2xl font-bold mt-1">{data.topCategory.category}</p>
+                  <p className="text-2xl font-semibold mt-1">{data.topCategory.category}</p>
                   <p className="text-xs text-white/60 mt-1">{currency(data.topCategory.amount)}</p>
                 </div>
               )}
@@ -74,7 +74,7 @@ export default function YearReview() {
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                   <Calendar className="w-5 h-5 text-sky-300 mb-2" />
                   <p className="text-xs text-white/60 uppercase tracking-wide">Melhor mês</p>
-                  <p className="text-2xl font-bold mt-1">{data.bestMonth.month}</p>
+                  <p className="text-2xl font-semibold mt-1">{data.bestMonth.month}</p>
                   <p className="text-xs text-white/60 mt-1">{currency(data.bestMonth.net)}</p>
                 </div>
               )}
@@ -82,13 +82,13 @@ export default function YearReview() {
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                   <Trophy className="w-5 h-5 text-amber-300 mb-2" />
                   <p className="text-xs text-white/60 uppercase tracking-wide">Metas concluídas</p>
-                  <p className="text-2xl font-bold mt-1">{data.goalsCompleted}</p>
+                  <p className="text-2xl font-semibold mt-1">{data.goalsCompleted}</p>
                 </div>
               )}
               {data.biggestExpense && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                   <p className="text-xs text-white/60 uppercase tracking-wide">Maior gasto único</p>
-                  <p className="text-lg font-bold mt-1 truncate">{data.biggestExpense.title}</p>
+                  <p className="text-lg font-semibold mt-1 truncate">{data.biggestExpense.title}</p>
                   <p className="text-xs text-white/60 mt-1">{currency(data.biggestExpense.amount)}</p>
                 </div>
               )}
