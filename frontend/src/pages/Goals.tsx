@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Plus,
   Target,
@@ -20,6 +20,8 @@ import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
 import { Goal, GoalInvite } from "../types";
 import { currency, dateBR, dateISOForInput } from "../utils/format";
+import { celebrate } from "../utils/celebrate";
+import { CountUp } from "../components/motion";
 
 const schema = yup.object({
   title: yup.string().required("Título obrigatório"),
@@ -50,9 +52,22 @@ export default function Goals() {
   const [inviteFor, setInviteFor] = useState<Goal | null>(null);
   const [invites, setInvites] = useState<GoalInvite[]>([]);
 
+  // Goals already complete the last time the list loaded: confetti is only
+  // for a goal that crosses the line now, not for every visit to the page.
+  const doneBefore = useRef<Set<string> | null>(null);
+
   const fetchData = async () => {
     const r = await api.get("/api/goals");
-    setItems(r.data);
+    const goals: Goal[] = r.data;
+    const done = new Set(goals.filter((g) => g.currentAmount >= g.targetAmount).map((g) => g.id));
+    const previous = doneBefore.current;
+    const justReached = previous ? goals.find((g) => done.has(g.id) && !previous.has(g.id)) : undefined;
+    if (justReached) {
+      celebrate();
+      toast.success(`Meta "${justReached.title}" concluída!`);
+    }
+    doneBefore.current = done;
+    setItems(goals);
   };
   const fetchInvites = async () => {
     try {
@@ -168,7 +183,7 @@ export default function Goals() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="card relative overflow-hidden"
+                className="card lift relative overflow-hidden"
                 data-testid={`goal-card-${g.id}`}
               >
                 <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/20 blur-2xl" />
@@ -226,7 +241,7 @@ export default function Goals() {
                 <div className="relative mt-5">
                   <div className="flex items-baseline justify-between mb-2">
                     <span className="text-2xl font-display font-semibold">
-                      {currency(g.currentAmount)}
+                      <CountUp value={g.currentAmount} />
                     </span>
                     <span className="text-sm text-muted">
                       de {currency(g.targetAmount)}
