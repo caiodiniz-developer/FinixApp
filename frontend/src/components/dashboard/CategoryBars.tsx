@@ -24,7 +24,7 @@ export function CategoryBars({ categories }: { categories: { category: string; a
               </div>
             </div>
             <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--color-hairline-strong)" }}>
-              <div className="h-full rounded-full transition-[width] duration-500" style={{ background: color, width: `${pct}%` }} />
+              <div className="progress-fill h-full rounded-full" style={{ background: color, width: `${pct}%` }} />
             </div>
           </div>
         );

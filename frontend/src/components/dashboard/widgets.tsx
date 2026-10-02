@@ -7,7 +7,8 @@ export function HealthRing({ score }: { score: number }) {
       <svg width="80" height="80" viewBox="0 0 80 80" className="-rotate-90">
         <circle cx="40" cy="40" r={r} fill="none" stroke="var(--color-hairline-strong)" strokeWidth="6" />
         <circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="6" strokeLinecap="round"
-          strokeDasharray={`${dash} ${circ}`} />
+          className="draw-ring" strokeDasharray={circ} strokeDashoffset={circ - dash}
+          style={{ "--ring-length": circ } as React.CSSProperties} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-xl font-semibold leading-none num" style={{ color: "var(--color-text)" }}>{score}</span>
@@ -25,7 +26,7 @@ export function Sparkline({ values, color }: { values: number[]; color: string }
   const pts = values.map((v, i) => `${(i / (values.length - 1)) * W},${H - ((v - min) / range) * (H - 4) - 2}`).join(" ");
   return (
     <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
+      <polyline points={pts} pathLength={1} className="draw-line" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
     </svg>
   );
 }
@@ -38,7 +39,7 @@ export function MetricCard({ label, value, sub, color, barPct }: { label: string
       <p className="text-xl font-semibold num leading-none" style={{ color: "var(--color-text)" }}>{value}</p>
       {barPct !== undefined && (
         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--color-hairline-strong)" }}>
-          <div className="h-full rounded-full transition-[width] duration-500" style={{ background: color, width: `${Math.min(Math.max(barPct, 0), 100)}%` }} />
+          <div className="progress-fill h-full rounded-full" style={{ background: color, width: `${Math.min(Math.max(barPct, 0), 100)}%` }} />
         </div>
       )}
       <p className="text-xs" style={{ color: "var(--color-text-low)" }}>{sub}</p>
