@@ -52,6 +52,13 @@ function ThemeProviderBase({
     window.localStorage.setItem(storageKey, theme);
   }, [storageKey, theme]);
 
+  // Layers drawn outside this wrapper (toasts) read the theme from <html>.
+  useEffect(() => {
+    if (scopeClass !== "dashboard-theme") return;
+    document.documentElement.dataset.appTheme = theme;
+    return () => { delete document.documentElement.dataset.appTheme; };
+  }, [scopeClass, theme]);
+
   const setTheme = (nextTheme: ThemeMode) => {
     setThemeState(nextTheme);
   };

@@ -130,14 +130,14 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Toaster
-          position="top-right"
+          position="bottom-center"
+          containerClassName="toast-container"
+          gutter={10}
           toastOptions={{
-            style: {
-              borderRadius: 12,
-              padding: "12px 16px",
-              fontFamily: "Inter, sans-serif",
-            },
-            success: { iconTheme: { primary: "#22C55E", secondary: "white" } },
+            className: "toast-glass",
+            duration: 3200,
+            success: { iconTheme: { primary: "#16a34a", secondary: "white" } },
+            error: { iconTheme: { primary: "#dc2626", secondary: "white" }, duration: 4500 },
           }}
         />
         <Suspense fallback={<FullScreenLoader />}>
