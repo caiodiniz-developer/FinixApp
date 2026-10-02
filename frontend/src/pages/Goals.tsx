@@ -93,12 +93,12 @@ export default function Goals() {
 
   return (
     <div className="space-y-6" data-testid="goals-page">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-display font-semibold tracking-tight">
+          <h1 className="page-title">
             Metas
           </h1>
-          <p className="text-muted dark:text-muted mt-1">
+          <p className="page-subtitle">
             Defina objetivos e acompanhe seu progresso
           </p>
         </div>

@@ -421,6 +421,36 @@
     color: var(--color-text);
   }
 
+  /* ── Page header ────────────────────────────────────────────────────────
+     Every screen opens the same way: title, one line of context, and the
+     main action on the right (below the text on a phone). */
+  .page-header {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4;
+  }
+
+  .page-title {
+    @apply text-2xl font-semibold tracking-tight;
+    color: var(--color-text);
+  }
+
+  .page-subtitle {
+    @apply text-sm mt-1;
+    color: var(--color-text-low);
+  }
+
+  /* Shown when a list has nothing in it yet: what goes here + how to start. */
+  .empty-state {
+    @apply flex flex-col items-center justify-center text-center gap-2 rounded-card px-6 py-14;
+    border: 1px dashed var(--color-border-strong);
+    color: var(--color-text-low);
+  }
+
+  .empty-state-title {
+    @apply text-base font-semibold;
+    font-family: "Sora", "Inter", system-ui, sans-serif;
+    color: var(--color-text);
+  }
+
   /* ── Chips / badges ─────────────────────────────────────────────────────
      `chip` is the shape; add a tone for meaning. */
   .chip {

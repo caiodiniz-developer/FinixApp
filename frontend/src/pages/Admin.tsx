@@ -91,10 +91,10 @@ export default function Admin() {
         <div className="chip bg-warning/10 text-warning border border-warning/30 mb-2">
           <Shield className="w-3.5 h-3.5" /> Painel administrativo
         </div>
-        <h1 className="text-3xl font-display font-semibold tracking-tight">
+        <h1 className="page-title">
           Gestão Global
         </h1>
-        <p className="text-muted mt-1">
+        <p className="page-subtitle">
           Gerencie usuários e visualize estatísticas
         </p>
       </div>

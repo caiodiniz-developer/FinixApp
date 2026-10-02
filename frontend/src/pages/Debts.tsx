@@ -59,12 +59,12 @@ export default function Debts() {
 
   return (
     <div className="space-y-6" data-testid="debts-page">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
+          <h1 className="page-title flex items-center gap-2">
             <Landmark className="w-7 h-7 text-primary" /> Dívidas
           </h1>
-          <p className="text-muted mt-1">Priorize por quem cobra mais juros ou por quem está mais perto de quitar.</p>
+          <p className="page-subtitle">Priorize por quem cobra mais juros ou por quem está mais perto de quitar.</p>
         </div>
         <button onClick={() => setOpen(true)} className="btn-primary">
           <Plus className="w-4 h-4" /> Nova dívida

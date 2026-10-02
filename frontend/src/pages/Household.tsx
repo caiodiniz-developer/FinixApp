@@ -63,10 +63,10 @@ export default function Household() {
   return (
     <div className="space-y-6" data-testid="household-page">
       <div>
-        <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
+        <h1 className="page-title flex items-center gap-2">
           <Users className="w-7 h-7 text-primary" /> Modo Casal / Família
         </h1>
-        <p className="text-muted mt-1">
+        <p className="page-subtitle">
           Veja o total combinado de renda e gastos da família, sem juntar as contas bancárias de ninguém.
         </p>
       </div>

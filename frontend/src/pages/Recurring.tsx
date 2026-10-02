@@ -59,10 +59,10 @@ export default function Recurring() {
 
   return (
     <div className="space-y-6" data-testid="recurring-page">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-display font-semibold tracking-tight">Recorrências</h1>
-          <p className="text-muted mt-1">
+          <h1 className="page-title">Recorrências</h1>
+          <p className="page-subtitle">
             Transações que se repetem sozinhas — aluguel, assinatura, salário. O Finix cria a transação automaticamente em cada ciclo.
           </p>
         </div>

@@ -235,12 +235,12 @@ export default function Transactions() {
 
   return (
     <div className="space-y-6" data-testid="transactions-page">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-semibold tracking-tight">
+          <h1 className="page-title">
             Transações
           </h1>
-          <p className="text-sm md:text-base text-muted dark:text-muted mt-1">
+          <p className="page-subtitle">
             Organize seus ganhos e gastos
           </p>
         </div>

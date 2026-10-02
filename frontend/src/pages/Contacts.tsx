@@ -135,10 +135,10 @@ export default function Contacts() {
 
   return (
     <div className="space-y-6" data-testid="contacts-page">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-display font-semibold tracking-tight">Contatos</h1>
-          <p className="text-muted dark:text-muted mt-1">
+          <h1 className="page-title">Contatos</h1>
+          <p className="page-subtitle">
             Divida despesas e acompanhe quem ainda te deve
           </p>
         </div>

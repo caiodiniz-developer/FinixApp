@@ -67,12 +67,12 @@ export default function NetWorthPage() {
 
   return (
     <div className="space-y-6" data-testid="networth-page">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
+          <h1 className="page-title flex items-center gap-2">
             <Wallet2 className="w-7 h-7 text-primary" /> Patrimônio
           </h1>
-          <p className="text-muted mt-1">Contas + investimentos − dívidas. Onde suas finanças realmente estão.</p>
+          <p className="page-subtitle">Contas + investimentos − dívidas. Onde suas finanças realmente estão.</p>
         </div>
         <button onClick={() => setOpen(true)} className="btn-primary">
           <Plus className="w-4 h-4" /> Novo investimento

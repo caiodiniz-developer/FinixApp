@@ -210,10 +210,10 @@ export default function Alerts() {
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-display font-semibold text-text dark:text-text">
+          <h1 className="page-title">
             Alertas Financeiros
           </h1>
-          <p className="mt-2 text-muted dark:text-muted">
+          <p className="page-subtitle">
             Acompanhe o uso dos seus orçamentos, prazos de vencimento e parcelas
             de crédito.
           </p>

@@ -327,10 +327,10 @@ export default function Calendar() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-semibold text-text dark:text-text">
+          <h1 className="page-title">
             Calendário Financeiro
           </h1>
-          <p className="mt-1 sm:mt-2 text-xs sm:text-sm md:text-base text-muted dark:text-muted">
+          <p className="page-subtitle">
             Visualize receitas, despesas e saldo diário com navegação mensal.
           </p>
         </div>

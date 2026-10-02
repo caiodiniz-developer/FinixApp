@@ -399,7 +399,7 @@ export default function Profile() {
                 <p className="text-sm text-muted">
                   Perfil
                 </p>
-                <h1 className="text-3xl font-display font-semibold text-text">
+                <h1 className="page-title">
                   Configurações pessoais
                 </h1>
               </div>

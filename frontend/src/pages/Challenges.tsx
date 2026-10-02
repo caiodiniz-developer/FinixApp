@@ -58,12 +58,12 @@ export default function Challenges() {
 
   return (
     <div className="space-y-6" data-testid="challenges-page">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
+          <h1 className="page-title flex items-center gap-2">
             <Trophy className="w-7 h-7 text-warning" /> Desafios em grupo
           </h1>
-          <p className="text-muted mt-1">Economize em equipe — quem chega mais perto da meta lidera o ranking.</p>
+          <p className="page-subtitle">Economize em equipe — quem chega mais perto da meta lidera o ranking.</p>
         </div>
         <button onClick={() => setOpen(true)} className="btn-primary">
           <Plus className="w-4 h-4" /> Novo desafio

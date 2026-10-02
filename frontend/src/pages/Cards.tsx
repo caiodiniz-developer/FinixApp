@@ -102,10 +102,10 @@ export default function Cards() {
 
   return (
     <div className="space-y-6" data-testid="cards-page">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-display font-semibold tracking-tight">Cartões</h1>
-          <p className="text-muted dark:text-muted mt-1">
+          <h1 className="page-title">Cartões</h1>
+          <p className="page-subtitle">
             Fatura calculada automaticamente a partir das suas compras no crédito
           </p>
         </div>

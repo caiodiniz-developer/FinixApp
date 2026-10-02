@@ -18,12 +18,12 @@ export default function YearReview() {
 
   return (
     <div className="space-y-6" data-testid="year-review-page">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
+          <h1 className="page-title flex items-center gap-2">
             <Sparkles className="w-7 h-7 text-warning" /> Seu ano em números
           </h1>
-          <p className="text-muted mt-1">Print e compartilhe se quiser se gabar (ou se cobrar no ano que vem).</p>
+          <p className="page-subtitle">Print e compartilhe se quiser se gabar (ou se cobrar no ano que vem).</p>
         </div>
         <select value={year} onChange={(e) => setYear(Number(e.target.value))} className="input !w-32">
           {[CURRENT_YEAR, CURRENT_YEAR - 1, CURRENT_YEAR - 2].map((y) => <option key={y} value={y}>{y}</option>)}

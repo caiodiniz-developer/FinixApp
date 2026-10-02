@@ -51,10 +51,10 @@ export default function Subscriptions() {
   return (
     <div className="space-y-6" data-testid="subscriptions-page">
       <div>
-        <h1 className="text-3xl font-display font-semibold tracking-tight flex items-center gap-2">
+        <h1 className="page-title flex items-center gap-2">
           <Ghost className="w-7 h-7 text-primary" /> Caça-fantasma de assinaturas
         </h1>
-        <p className="text-muted mt-1">
+        <p className="page-subtitle">
           Cobranças que se repetem no mesmo valor, todo mês, sem você ter marcado como recorrente. Pode ser uma assinatura que ninguém mais usa.
         </p>
       </div>

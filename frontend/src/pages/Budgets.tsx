@@ -47,12 +47,12 @@ export default function Budgets() {
 
   return (
     <div className="space-y-6" data-testid="budgets-page">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-display font-semibold tracking-tight">
+          <h1 className="page-title">
             Orçamentos
           </h1>
-          <p className="text-muted dark:text-muted mt-1">
+          <p className="page-subtitle">
             Defina limites mensais por categoria
           </p>
         </div>

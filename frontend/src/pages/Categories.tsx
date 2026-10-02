@@ -151,10 +151,10 @@ export default function Categories() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-display font-semibold">Categorias</h1>
-          <p className="mt-2 text-muted">
+          <h1 className="page-title">Categorias</h1>
+          <p className="page-subtitle">
             Organize e personalize suas categorias conforme o plano.
           </p>
         </div>
