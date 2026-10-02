@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import React, { useState } from "react";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
-import { MotionConfig } from "framer-motion";
+import { MotionConfig, LayoutGroup } from "framer-motion";
 import {
   LayoutDashboard, ArrowLeftRight, Target, Shield, LogOut,
   Menu, Sun, Moon, Wallet, Crown, Bell,
@@ -17,6 +17,7 @@ import { useUserPhoto } from "../hooks/useUserPhoto";
 import { useDashboardTheme } from "../contexts/ThemeContext";
 import { api, apiErrorMessage } from "../services/api";
 import { todayISO } from "../utils/format";
+import { ActivePill } from "../components/motion";
 
 interface NavItem { to: string; icon: LucideIcon; label: string; testid: string; badge?: number; }
 
@@ -148,20 +149,22 @@ export default function AppLayout() {
           isActive ? "" : "hover:bg-[var(--color-card-hover)]"
         }`
       }
-      style={({ isActive }) => isActive
-        ? { color: "var(--color-primary)", background: "var(--color-primary-soft)" }
-        : { color: "var(--color-text-muted)" }
-      }>
-      <div className={`flex items-center gap-2.5 ${collapsed ? "" : "min-w-0"}`}>
-        <l.icon className="w-4 h-4 shrink-0" />
-        {!collapsed && <span className="truncate">{l.label}</span>}
-      </div>
-      {l.badge ? (
-        <span className={`inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-semibold text-white ${collapsed ? "absolute -top-1 -right-1" : ""}`}
-          style={{ background: "var(--color-expense)" }}>
-          {l.badge}
-        </span>
-      ) : null}
+      style={({ isActive }) => ({ color: isActive ? "var(--color-primary)" : "var(--color-text-muted)" })}>
+      {({ isActive }) => (
+        <>
+          {isActive && <ActivePill group="nav-active" className="rounded-control" style={{ background: "var(--color-primary-soft)" }} />}
+          <div className={`relative z-10 flex items-center gap-2.5 ${collapsed ? "" : "min-w-0"}`}>
+            <l.icon className="w-4 h-4 shrink-0" />
+            {!collapsed && <span className="truncate">{l.label}</span>}
+          </div>
+          {l.badge ? (
+            <span className={`z-10 inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-semibold text-white ${collapsed ? "absolute -top-1 -right-1" : "relative"}`}
+              style={{ background: "var(--color-expense)" }}>
+              {l.badge}
+            </span>
+          ) : null}
+        </>
+      )}
     </NavLink>
   );
 
@@ -169,10 +172,15 @@ export default function AppLayout() {
 
   const renderTab = (l: NavItem) => (
     <NavLink key={l.to} to={l.to} data-testid={`tab-${l.testid}`}
-      className="flex flex-col items-center gap-0.5 py-1 text-2xs font-medium"
+      className="pressable relative flex flex-col items-center gap-0.5 py-1 text-2xs font-medium"
       style={({ isActive }) => ({ color: isActive ? "var(--color-primary)" : "var(--color-text-low)" })}>
-      <l.icon className="w-5 h-5" />
-      {l.label === "Dashboard" ? "Início" : l.label}
+      {({ isActive }) => (
+        <>
+          {isActive && <ActivePill group="tab-active" className="!inset-x-3 !-top-1.5 !bottom-auto h-0.5 rounded-full" style={{ background: "var(--color-primary)" }} />}
+          <l.icon className="w-5 h-5" />
+          {l.label === "Dashboard" ? "Início" : l.label}
+        </>
+      )}
     </NavLink>
   );
 
@@ -284,12 +292,15 @@ export default function AppLayout() {
   );
 
   return (
+    // Motion follows the system setting: with "reduce motion" on, framer keeps
+    // the fades and drops every slide, scale and layout animation.
+    <MotionConfig reducedMotion="user">
     <div className="app-backdrop min-h-screen flex">
-      <div className="hidden lg:block sticky top-0 h-screen z-20">{Sidebar}</div>
+      <div className="hidden lg:block sticky top-0 h-screen z-20"><LayoutGroup id="sidebar">{Sidebar}</LayoutGroup></div>
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0" style={{ background: "var(--color-overlay)" }} onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 left-0 w-64 h-full">{Sidebar}</div>
+          <div className="absolute inset-0 drawer-overlay" style={{ background: "var(--color-overlay)" }} onClick={() => setOpen(false)} />
+          <div className="absolute inset-y-0 left-0 w-64 h-full drawer-panel"><LayoutGroup id="drawer">{Sidebar}</LayoutGroup></div>
         </div>
       )}
       <div className="flex-1 min-w-0 flex flex-col">
@@ -304,11 +315,10 @@ export default function AppLayout() {
           </button>
         </header>
         <main className="flex-1 p-4 pb-28 sm:p-6 sm:pb-28 lg:p-8 max-w-7xl w-full mx-auto">
-          {/* Inside the app, motion is functional only: fades stay, sliding
-              and scaling entrances are switched off for every page at once. */}
-          <MotionConfig reducedMotion="always">
+          {/* Keyed by route so every page fades in as it arrives. */}
+          <div key={location.pathname} className="page-enter">
             <Outlet />
-          </MotionConfig>
+          </div>
         </main>
       </div>
 
@@ -321,14 +331,14 @@ export default function AppLayout() {
         {bottomItems.slice(0, 2).map(renderTab)}
         <div className="flex justify-center">
           <button onClick={() => setQuickAddOpen(true)} title="Nova transação" data-testid="bottom-quick-add"
-            className="-mt-5 w-12 h-12 rounded-full flex items-center justify-center"
+            className="pressable -mt-5 w-12 h-12 rounded-full flex items-center justify-center"
             style={{ background: "rgb(var(--c-primary-solid))", color: "var(--color-on-primary)", boxShadow: "var(--shadow-float)" }}>
             <Plus className="w-6 h-6" />
           </button>
         </div>
         {bottomItems.slice(2).map(renderTab)}
         <button data-testid="open-sidebar" onClick={() => setOpen(true)}
-          className="flex flex-col items-center gap-0.5 py-1 text-2xs font-medium"
+          className="pressable flex flex-col items-center gap-0.5 py-1 text-2xs font-medium"
           style={{ color: inMore || open ? "var(--color-primary)" : "var(--color-text-low)" }}>
           <Menu className="w-5 h-5" />
           Mais
@@ -337,10 +347,8 @@ export default function AppLayout() {
 
       {/* Quick add */}
       {quickAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "var(--color-overlay)" }}
-          onClick={() => setQuickAddOpen(false)}>
-          <div className="glass-strong w-full max-w-sm rounded-card p-6" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={() => setQuickAddOpen(false)}>
+          <div className="modal-panel w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="font-semibold text-base" style={{ color: "var(--color-text)" }}>Nova transação</h3>
@@ -381,5 +389,6 @@ export default function AppLayout() {
         </div>
       )}
     </div>
+    </MotionConfig>
   );
 }
