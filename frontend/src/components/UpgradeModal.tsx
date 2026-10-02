@@ -18,7 +18,7 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="w-full max-w-xl rounded-3xl bg-surface p-8 shadow-2xl"
+            className="w-full max-w-xl rounded-card bg-surface p-8 shadow-2xl"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
@@ -44,13 +44,13 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
                 "Este recurso está disponível somente nos planos pagos. Veja nossos planos e escolha a melhor opção para você."}
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl border border-border p-5">
+              <div className="rounded-card border border-border p-5">
                 <p className="text-sm font-semibold text-text">Plano Básico</p>
                 <p className="mt-2 text-sm text-muted">
                   Até 500 transações, exportar PDF, calendário e parcelamento.
                 </p>
               </div>
-              <div className="rounded-3xl border border-border p-5 bg-brand-blue/5">
+              <div className="rounded-card border border-border p-5 bg-brand-blue/5">
                 <p className="text-sm font-semibold text-text">Plano Pro</p>
                 <p className="mt-2 text-sm text-muted">
                   Transações ilimitadas, exportar Excel e PDF, alertas avançados

@@ -151,7 +151,7 @@ export default function Cards() {
                 data-testid={`card-tile-${c.id}`}
               >
                 <div
-                  className="rounded-2xl p-5 text-white relative overflow-hidden shadow-lg cursor-pointer"
+                  className="rounded-card p-5 text-white relative overflow-hidden shadow-lg cursor-pointer"
                   style={{ background: `linear-gradient(135deg, ${c.color || "#7c3aed"}, ${c.color || "#7c3aed"}cc 60%, #111827)` }}
                   onClick={() => toggleExpand(c)}
                 >
@@ -341,7 +341,7 @@ function CardModal({
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.95 }}
-        className="bg-surface dark:bg-surface-strong rounded-2xl shadow-2xl w-full max-w-md p-6"
+        className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-md p-6"
         onClick={(e) => e.stopPropagation()}
         data-testid="card-modal"
       >

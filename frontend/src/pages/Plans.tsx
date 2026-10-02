@@ -103,13 +103,13 @@ function DowngradeModal({ onConfirm, onClose, loading }: {
       onClick={onClose}>
       <motion.div initial={{ opacity: 0, scale: 0.94, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94 }}
-        className="relative w-full max-w-sm rounded-2xl p-7 shadow-2xl"
+        className="relative w-full max-w-sm rounded-card p-7 shadow-2xl"
         style={{ background: "#111113", border: "1px solid rgba(255,255,255,0.1)" }}
         onClick={e => e.stopPropagation()}>
         <button onClick={onClose} className="absolute right-4 top-4 rounded-lg p-1.5 transition-colors hover:bg-white/5" style={{ color: "rgba(255,255,255,0.3)" }}>
           <X className="w-4 h-4" />
         </button>
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)" }}>
+        <div className="w-12 h-12 rounded-card flex items-center justify-center mb-5" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)" }}>
           <AlertTriangle className="w-6 h-6 text-amber-400" />
         </div>
         <h2 className="text-lg font-black text-white mb-2">Fazer downgrade?</h2>
@@ -117,12 +117,12 @@ function DowngradeModal({ onConfirm, onClose, loading }: {
           Você perderá acesso à IA Fingu, relatórios avançados, centros de custo e suporte via WhatsApp.
         </p>
         <div className="flex gap-2.5">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-white/5"
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-control text-sm font-semibold transition-colors hover:bg-white/5"
             style={{ border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
             Manter Pro
           </button>
           <button onClick={onConfirm} disabled={loading}
-            className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-control text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
             style={{ background: "#f59e0b" }}>
             {loading ? "Processando..." : "Confirmar"}
           </button>
@@ -207,7 +207,7 @@ export default function Plans() {
 
         {/* ── HERO ────────────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          className="relative rounded-2xl overflow-hidden text-center py-10 px-6"
+          className="relative rounded-card overflow-hidden text-center py-10 px-6"
           style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="absolute inset-0 pointer-events-none"
             style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(245,158,11,0.08) 0%, transparent 60%)" }} />
@@ -295,7 +295,7 @@ export default function Plans() {
                   ? { boxShadow: { duration: 3, repeat: Infinity }, opacity: { duration: 0.5, delay: idx * 0.08 }, y: { duration: 0.5, delay: idx * 0.08 } }
                   : { delay: idx * 0.08, type: "spring", damping: 22 }
                 }
-                className={`relative rounded-2xl overflow-hidden flex flex-col ${plan.highlighted ? "md:-translate-y-1" : ""}`}
+                className={`relative rounded-card overflow-hidden flex flex-col ${plan.highlighted ? "md:-translate-y-1" : ""}`}
                 style={{
                   background: plan.highlighted
                     ? `radial-gradient(ellipse at 50% 0%, ${plan.glow} 0%, rgba(17,17,19,0) 65%), #111113`
@@ -321,7 +321,7 @@ export default function Plans() {
                 <div className={`flex-1 p-6 flex flex-col gap-5 ${plan.badge ? "pt-10" : ""}`}>
                   {/* Icon + name */}
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    <div className="w-10 h-10 rounded-control flex items-center justify-center"
                       style={{ background: `${plan.accent}18`, border: `1px solid ${plan.accent}30` }}>
                       <Icon className="w-5 h-5" style={{ color: plan.accent }} />
                     </div>
@@ -358,7 +358,7 @@ export default function Plans() {
 
                   {/* CTA */}
                   <button onClick={() => handleUpgrade(plan.id)} disabled={btnDisabled}
-                    className="w-full py-3 rounded-xl text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-default"
+                    className="w-full py-3 rounded-control text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-default"
                     style={
                       isCurrent ? { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.3)" }
                         : isDowngrade ? { background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)", color: "#fbbf24" }
@@ -397,7 +397,7 @@ export default function Plans() {
 
         {/* ── COMPARISON TABLE ────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="rounded-2xl overflow-hidden"
+          className="rounded-card overflow-hidden"
           style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="px-6 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}>
             <h2 className="font-black text-sm uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
@@ -453,9 +453,9 @@ export default function Plans() {
           ].map((t, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="flex items-start gap-3 rounded-2xl p-4"
+              className="flex items-start gap-3 rounded-card p-4"
               style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              <div className="w-9 h-9 rounded-control flex items-center justify-center shrink-0"
                 style={{ background: `${t.color}18`, border: `1px solid ${t.color}28` }}>
                 <t.icon className="w-4.5 h-4.5" style={{ color: t.color, width: 18, height: 18 }} />
               </div>
@@ -478,7 +478,7 @@ export default function Plans() {
               { q: "Há cobrança recorrente?", a: "Sim. Básico e Pro são cobrados mensalmente (ou anualmente com 20% de desconto) via Stripe. Cancele sem multa a qualquer momento." },
               { q: "Preciso de cartão para o trial grátis?", a: "Não. O plano Grátis funciona por 7 dias sem cartão. Cartão só é necessário para planos pagos." },
             ].map((item, i) => (
-              <details key={i} className="group rounded-2xl overflow-hidden cursor-pointer"
+              <details key={i} className="group rounded-card overflow-hidden cursor-pointer"
                 style={{ border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}>
                 <summary className="flex items-center justify-between p-4 font-semibold text-sm select-none"
                   style={{ color: "var(--color-text)" }}>
@@ -497,7 +497,7 @@ export default function Plans() {
         {/* ── CANCEL ZONE ─────────────────────────────────────────── */}
         {user?.plan !== "FREE" && (
           <motion.div initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="rounded-2xl p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+            className="rounded-card p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
             style={{ background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.12)" }}>
             <div className="max-w-md">
               <p className="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-1.5">Zona de cancelamento</p>
@@ -508,7 +508,7 @@ export default function Plans() {
               </p>
             </div>
             <button onClick={handleCancel} disabled={loading === "cancel"}
-              className="shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold text-rose-400 transition-all hover:bg-rose-500/10 disabled:opacity-50"
+              className="shrink-0 px-5 py-2.5 rounded-control text-sm font-bold text-rose-400 transition-all hover:bg-rose-500/10 disabled:opacity-50"
               style={{ border: "1px solid rgba(239,68,68,0.25)" }}>
               {loading === "cancel" ? "Cancelando..." : "Cancelar assinatura"}
             </button>

@@ -179,7 +179,7 @@ export default function Categories() {
             </div>
             <button
               onClick={fetchCategories}
-              className="btn-outline inline-flex items-center gap-2 rounded-3xl px-4 py-3 text-sm"
+              className="btn-outline inline-flex items-center gap-2 rounded-card px-4 py-3 text-sm"
             >
               <RefreshCcw className="w-4 h-4" /> Atualizar
             </button>
@@ -187,13 +187,13 @@ export default function Categories() {
           <p className="mt-4 text-sm text-muted">{defaultMessage}</p>
 
           <div className="mt-6 grid gap-3">
-            <div className="rounded-3xl bg-surface p-4 text-sm text-muted dark:bg-surface-strong dark:text-text">
+            <div className="rounded-card bg-surface p-4 text-sm text-muted dark:bg-surface-strong dark:text-text">
               {user?.plan !== "PRO"
                 ? "Para criar, editar e excluir categorias você precisa atualizar para o Plano Pro."
                 : "Use a área ao lado para adicionar ou editar categorias."}
             </div>
 
-            <div className="rounded-3xl bg-surface p-4 text-sm text-muted dark:bg-surface-strong/60 dark:text-text">
+            <div className="rounded-card bg-surface p-4 text-sm text-muted dark:bg-surface-strong/60 dark:text-text">
               <div
                 style={{
                   display: "flex",
@@ -314,7 +314,7 @@ export default function Categories() {
                       color: e.target.value,
                     }))
                   }
-                  className="mt-1 h-11 w-full rounded-xl border border-border bg-surface p-1 text-text dark:border-border dark:bg-surface-strong dark:text-text"
+                  className="mt-1 h-11 w-full rounded-control border border-border bg-surface p-1 text-text dark:border-border dark:bg-surface-strong dark:text-text"
                 />
               </div>
             </div>
@@ -385,11 +385,11 @@ export default function Categories() {
             categorias...
           </div>
         ) : error ? (
-          <div className="mt-6 rounded-3xl border border-rose-800 bg-rose-950 p-4 text-rose-400">
+          <div className="mt-6 rounded-card border border-rose-800 bg-rose-950 p-4 text-rose-400">
             {error}
           </div>
         ) : categories.length === 0 ? (
-          <div className="mt-6 rounded-3xl border border-dashed border-border-strong bg-surface p-8 text-center text-muted dark:border-border dark:bg-surface-strong/40 dark:text-muted">
+          <div className="mt-6 rounded-card border border-dashed border-border-strong bg-surface p-8 text-center text-muted dark:border-border dark:bg-surface-strong/40 dark:text-muted">
             Nenhuma categoria encontrada.
           </div>
         ) : (
@@ -399,13 +399,13 @@ export default function Categories() {
                 key={category.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-3xl border border-border bg-surface p-4 shadow-sm dark:border-border dark:bg-surface-strong/50"
+                className="rounded-card border border-border bg-surface p-4 shadow-sm dark:border-border dark:bg-surface-strong/50"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex items-center gap-3 text-text dark:text-text">
                       <span
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-3xl"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-card"
                         style={{ backgroundColor: category.color || "#E0E7FF" }}
                       >
                         <Tag className="w-5 h-5 text-white" />
@@ -435,14 +435,14 @@ export default function Categories() {
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => startEdit(category)}
-                      className="btn-outline flex items-center gap-2 rounded-3xl px-4 py-2 text-sm"
+                      className="btn-outline flex items-center gap-2 rounded-card px-4 py-2 text-sm"
                       disabled={!canManage}
                     >
                       <Edit2 className="w-4 h-4" /> Editar
                     </button>
                     <button
                       onClick={() => removeCategory(category)}
-                      className="btn-ghost flex items-center gap-2 rounded-3xl px-4 py-2 text-sm text-rose-400 hover:bg-rose-950"
+                      className="btn-ghost flex items-center gap-2 rounded-card px-4 py-2 text-sm text-rose-400 hover:bg-rose-950"
                       disabled={!canManage}
                     >
                       <Trash2 className="w-4 h-4" /> Excluir

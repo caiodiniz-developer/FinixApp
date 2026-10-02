@@ -130,7 +130,7 @@ export default function NetWorthPage() {
                 {investments.map((inv) => {
                   const gain = inv.currentValue - inv.investedAmount;
                   return (
-                    <div key={inv.id} className="flex items-center justify-between gap-2 rounded-xl bg-surface-strong p-3 text-sm">
+                    <div key={inv.id} className="flex items-center justify-between gap-2 rounded-control bg-surface-strong p-3 text-sm">
                       <div className="min-w-0">
                         <p className="font-semibold truncate">{inv.name}</p>
                         <p className="text-xs text-muted">{TYPE_LABELS[inv.type]}</p>
@@ -159,7 +159,7 @@ export default function NetWorthPage() {
           </h2>
           {fire ? (
             <div className="mt-4 space-y-3">
-              <div className="rounded-xl bg-surface-strong p-4">
+              <div className="rounded-control bg-surface-strong p-4">
                 <p className="text-xs text-muted">Seu "número FIRE" (25x gasto anual, regra dos 4%)</p>
                 <p className="text-xl font-bold mt-1">{currency(fire.fireNumber)}</p>
               </div>
@@ -174,11 +174,11 @@ export default function NetWorthPage() {
                 <span className="font-semibold">{currency(fire.currentNetWorth)}</span>
               </div>
               {fire.yearsToFire !== null ? (
-                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm">
+                <div className="rounded-control border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm">
                   No seu ritmo atual, você chega lá em <strong>{fire.yearsToFire} anos</strong>.
                 </div>
               ) : (
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-sm">
+                <div className="rounded-control border border-amber-500/30 bg-amber-500/5 p-3 text-sm">
                   No ritmo atual de poupança, esse número ainda não é alcançável — aumentar a poupança mensal muda essa conta.
                 </div>
               )}
@@ -219,7 +219,7 @@ function InvestmentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-        className="bg-surface dark:bg-surface-strong rounded-2xl shadow-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+        className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-bold">Novo investimento</h2>
           <button onClick={onClose} className="btn-ghost !p-2"><X className="w-4 h-4" /></button>

@@ -29,7 +29,7 @@ export function QuickAddModal({ open, onClose, onAdded, categories, accounts }: 
       onClick={onClose}>
       <motion.div initial={{ scale: 0.95, opacity: 0, y: 12 }} animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0 }} transition={{ type: "spring", damping: 26, stiffness: 340 }}
-        className="w-full max-w-md rounded-2xl overflow-hidden"
+        className="w-full max-w-md rounded-card overflow-hidden"
         style={{ background: "var(--color-surface)", border: "1px solid var(--color-hairline-strong)", boxShadow: "0 40px 80px rgba(0,0,0,0.7)" }}
         onClick={e => e.stopPropagation()}>
         {/* header strip */}
@@ -39,14 +39,14 @@ export function QuickAddModal({ open, onClose, onAdded, categories, accounts }: 
               <h2 className="font-bold text-base" style={{ color: "var(--color-text)" }}>Nova transação</h2>
               <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Adicione uma receita ou despesa</p>
             </div>
-            <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors hover:bg-[var(--color-hairline)]" style={{ color: "var(--color-text-low)" }}>
+            <button onClick={onClose} className="w-8 h-8 rounded-control flex items-center justify-center transition-colors hover:bg-[var(--color-hairline)]" style={{ color: "var(--color-text-low)" }}>
               <X className="w-4 h-4" />
             </button>
           </div>
         </div>
         <form onSubmit={submit} className="p-6 space-y-4">
           {/* type toggle */}
-          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl" style={{ background: "var(--color-surface-strong)" }}>
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-control" style={{ background: "var(--color-surface-strong)" }}>
             {(["EXPENSE", "INCOME"] as const).map(t => (
               <button key={t} type="button" onClick={() => setForm(f => ({ ...f, type: t }))}
                 className={`py-3 rounded-lg text-xs font-bold transition-all ${form.type === t ? t === "EXPENSE" ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20" : "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "opacity-40"}`}
@@ -70,7 +70,7 @@ export function QuickAddModal({ open, onClose, onAdded, categories, accounts }: 
             </select>
           )}
           <button type="submit" disabled={loading}
-            className="w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
+            className="w-full py-3 rounded-control text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
             style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 4px 20px rgba(16,185,129,0.3)" }}>
             {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Salvar transação"}
           </button>

@@ -120,7 +120,7 @@ export default function Goals() {
             <Users className="w-4 h-4" /> Convites de metas compartilhadas
           </p>
           {invites.map((inv) => (
-            <div key={inv.id} className="flex items-center justify-between gap-3 rounded-xl bg-surface-strong p-3 text-sm">
+            <div key={inv.id} className="flex items-center justify-between gap-3 rounded-control bg-surface-strong p-3 text-sm">
               <span>
                 <strong>{inv.sender?.name || inv.sender?.email}</strong> te convidou para "{inv.goal?.title}"
               </span>
@@ -297,7 +297,7 @@ function InviteModal({ goal, onClose }: { goal: Goal; onClose: () => void }) {
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.95 }}
-        className="bg-surface dark:bg-surface-strong rounded-2xl shadow-2xl w-full max-w-sm p-6"
+        className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-sm p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -382,7 +382,7 @@ function GoalModal({
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.95 }}
-        className="bg-surface dark:bg-surface-strong rounded-2xl shadow-2xl w-full max-w-lg p-6"
+        className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-lg p-6"
         onClick={(e) => e.stopPropagation()}
         data-testid="goal-modal"
       >

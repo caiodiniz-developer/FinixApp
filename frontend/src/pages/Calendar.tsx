@@ -334,7 +334,7 @@ export default function Calendar() {
             Visualize receitas, despesas e saldo diário com navegação mensal.
           </p>
         </div>
-        <div className="inline-flex self-start sm:self-auto items-center gap-2 rounded-3xl border border-border dark:border-border bg-surface dark:bg-surface px-3 py-2 shadow-sm">
+        <div className="inline-flex self-start sm:self-auto items-center gap-2 rounded-card border border-border dark:border-border bg-surface dark:bg-surface px-3 py-2 shadow-sm">
           <button
             onClick={handlePrevMonth}
             className="btn-ghost rounded-full p-1.5 sm:p-2"
@@ -437,7 +437,7 @@ export default function Calendar() {
                       return (
                         <div
                           key={`empty-${index}`}
-                          className="min-h-[60px] sm:min-h-[80px] md:min-h-[98px] rounded-xl sm:rounded-2xl md:rounded-3xl border border-border-strong bg-surface dark:bg-surface-strong/20"
+                          className="min-h-[60px] sm:min-h-[80px] md:min-h-[98px] rounded-control sm:rounded-card md:rounded-card border border-border-strong bg-surface dark:bg-surface-strong/20"
                         />
                       );
                     }
@@ -458,7 +458,7 @@ export default function Calendar() {
                             : undefined
                         }
                         className={[
-                          "group flex flex-col gap-1 sm:gap-2 rounded-xl sm:rounded-2xl md:rounded-3xl border p-1.5 sm:p-2 md:p-3 text-left transition-all min-h-[60px] sm:min-h-[80px] md:min-h-[98px]",
+                          "group flex flex-col gap-1 sm:gap-2 rounded-control sm:rounded-card md:rounded-card border p-1.5 sm:p-2 md:p-3 text-left transition-all min-h-[60px] sm:min-h-[80px] md:min-h-[98px]",
                           !past
                             ? "border-border-strong bg-surface dark:bg-surface-strong/20 opacity-35 cursor-not-allowed"
                             : isActive
@@ -557,7 +557,7 @@ export default function Calendar() {
                 </div>
                 {selectedDate && (
                   <div
-                    className={`rounded-xl sm:rounded-2xl px-2.5 sm:px-3 py-1 text-xs sm:text-sm font-semibold flex-shrink-0 ${
+                    className={`rounded-control sm:rounded-card px-2.5 sm:px-3 py-1 text-xs sm:text-sm font-semibold flex-shrink-0 ${
                       dayTotals.net >= 0
                         ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
                         : "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
@@ -571,7 +571,7 @@ export default function Calendar() {
               <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3">
                 {/* Revenue / Expense mini cards */}
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  <div className="rounded-xl sm:rounded-2xl md:rounded-3xl border border-border-strong dark:border-border bg-surface bg-surface-strong p-2.5 sm:p-3 md:p-4">
+                  <div className="rounded-control sm:rounded-card md:rounded-card border border-border-strong dark:border-border bg-surface bg-surface-strong p-2.5 sm:p-3 md:p-4">
                     <div className="text-[10px] sm:text-xs text-muted">
                       Receita
                     </div>
@@ -579,7 +579,7 @@ export default function Calendar() {
                       {formatCurrency(dayTotals.revenue)}
                     </div>
                   </div>
-                  <div className="rounded-xl sm:rounded-2xl md:rounded-3xl border border-border-strong dark:border-border bg-surface bg-surface-strong p-2.5 sm:p-3 md:p-4">
+                  <div className="rounded-control sm:rounded-card md:rounded-card border border-border-strong dark:border-border bg-surface bg-surface-strong p-2.5 sm:p-3 md:p-4">
                     <div className="text-[10px] sm:text-xs text-muted">
                       Despesa
                     </div>
@@ -590,7 +590,7 @@ export default function Calendar() {
                 </div>
 
                 {/* Net balance */}
-                <div className="rounded-xl sm:rounded-2xl md:rounded-3xl border border-border-strong dark:border-border bg-surface bg-surface-strong p-2.5 sm:p-3 md:p-4">
+                <div className="rounded-control sm:rounded-card md:rounded-card border border-border-strong dark:border-border bg-surface bg-surface-strong p-2.5 sm:p-3 md:p-4">
                   <div className="text-[10px] sm:text-xs text-muted">
                     Saldo do dia
                   </div>
@@ -606,7 +606,7 @@ export default function Calendar() {
                 </div>
 
                 {/* Transactions list */}
-                <div className="rounded-xl sm:rounded-2xl md:rounded-3xl border border-border dark:border-border bg-surface dark:bg-surface p-3 sm:p-4">
+                <div className="rounded-control sm:rounded-card md:rounded-card border border-border dark:border-border bg-surface dark:bg-surface p-3 sm:p-4">
                   <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
                     <p className="font-semibold text-sm sm:text-base text-text">
                       Transações
@@ -628,7 +628,7 @@ export default function Calendar() {
                         {[1, 2, 3].map((i) => (
                           <div
                             key={i}
-                            className="rounded-xl border border-border-strong dark:border-border bg-surface bg-surface-strong p-3 animate-pulse"
+                            className="rounded-control border border-border-strong dark:border-border bg-surface bg-surface-strong p-3 animate-pulse"
                           >
                             <div className="h-3 bg-surface-strong rounded w-3/4 mb-2" />
                             <div className="h-2 bg-surface-strong dark:bg-surface-strong rounded w-1/2" />
@@ -639,7 +639,7 @@ export default function Calendar() {
                       dayTransactions.map((tx) => (
                         <div
                           key={tx.id}
-                          className="rounded-xl sm:rounded-2xl border border-border-strong dark:border-border bg-surface bg-surface-strong p-2.5 sm:p-3 md:p-4"
+                          className="rounded-control sm:rounded-card border border-border-strong dark:border-border bg-surface bg-surface-strong p-2.5 sm:p-3 md:p-4"
                         >
                           <div className="flex items-start justify-between gap-2 sm:gap-3">
                             <div className="min-w-0 flex-1">
@@ -689,7 +689,7 @@ export default function Calendar() {
                         </div>
                       ))
                     ) : (
-                      <div className="rounded-xl sm:rounded-2xl border border-dashed border-border dark:border-border bg-surface dark:bg-surface-strong/30 p-4 sm:p-6 text-center text-muted text-xs sm:text-sm">
+                      <div className="rounded-control sm:rounded-card border border-dashed border-border dark:border-border bg-surface dark:bg-surface-strong/30 p-4 sm:p-6 text-center text-muted text-xs sm:text-sm">
                         {selectedDate
                           ? "Nenhuma transação registrada para este dia."
                           : "Selecione um dia para ver as transações."}

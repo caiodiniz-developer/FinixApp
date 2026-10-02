@@ -104,7 +104,7 @@ export default function Register() {
         </motion.div>
 
         {/* Bottom */}
-        <div className="relative z-10 flex items-center gap-2 rounded-2xl px-4 py-3"
+        <div className="relative z-10 flex items-center gap-2 rounded-card px-4 py-3"
           style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}>
           <span className="text-xl">🔒</span>
           <div>
@@ -137,7 +137,7 @@ export default function Register() {
           <div className="mt-7 space-y-4">
             {/* Google button */}
             <button onClick={handleGoogleSignup}
-              className="w-full flex items-center justify-center gap-3 py-3 rounded-xl font-semibold text-sm text-text transition-all hover:bg-surface-strong active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-3 py-3 rounded-control font-semibold text-sm text-text transition-all hover:bg-surface-strong active:scale-[0.98]"
               style={{ border: "1px solid var(--color-border)", background: "var(--color-surface)" }}>
               <GoogleIcon />
               Cadastrar com Google

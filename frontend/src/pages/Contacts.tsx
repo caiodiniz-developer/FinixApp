@@ -164,7 +164,7 @@ export default function Contacts() {
           {loans.filter((l) => !l.settled).length > 0 && (
             <div className="mt-4 space-y-2">
               {loans.filter((l) => !l.settled).map((l) => (
-                <div key={l.id} className="flex items-center justify-between gap-3 rounded-xl bg-surface-strong p-3 text-sm">
+                <div key={l.id} className="flex items-center justify-between gap-3 rounded-control bg-surface-strong p-3 text-sm">
                   <span>
                     {l.direction === "LENT" ? "Você emprestou pra" : "Você pegou emprestado de"} <strong>{l.contact?.name}</strong>
                   </span>
@@ -410,7 +410,7 @@ function ContactModal({
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.95 }}
-        className="bg-surface dark:bg-surface-strong rounded-2xl shadow-2xl w-full max-w-md p-6"
+        className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-md p-6"
         onClick={(e) => e.stopPropagation()}
         data-testid="contact-modal"
       >

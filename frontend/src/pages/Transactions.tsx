@@ -254,7 +254,7 @@ export default function Transactions() {
       </div>
 
       {isFree && (
-        <div className="rounded-3xl border border-brand-blue/10 bg-brand-blue/5 p-5 text-brand-blue">
+        <div className="rounded-card border border-brand-blue/10 bg-brand-blue/5 p-5 text-brand-blue">
           <h2 className="font-semibold">Plano Grátis: acesso básico</h2>
           <p className="mt-2 text-sm text-text">
             Você ainda não pode criar transações ou acessar recursos avançados.
@@ -267,14 +267,14 @@ export default function Transactions() {
       )}
 
       {impulseReview.length > 0 && (
-        <div className="rounded-3xl border border-amber-500/30 bg-amber-500/5 p-5">
+        <div className="rounded-card border border-amber-500/30 bg-amber-500/5 p-5">
           <h2 className="font-semibold text-text flex items-center gap-2">
             <HeartCrack className="w-4 h-4 text-amber-500" /> Vale a pena revisar
           </h2>
           <p className="mt-1 text-sm text-muted">Compras não planejadas e gastos fora do seu padrão habitual — dá uma olhada de novo com a cabeça fria.</p>
           <div className="mt-3 space-y-2">
             {impulseReview.map((t) => (
-              <div key={t.id} className="flex items-center justify-between gap-3 rounded-xl bg-surface p-3 text-sm">
+              <div key={t.id} className="flex items-center justify-between gap-3 rounded-control bg-surface p-3 text-sm">
                 <span>
                   {t.title} — <strong>{currency(t.amount)}</strong>{" "}
                   <span className="text-xs text-muted">({t.reviewReason === "anomaly" ? "fora do padrão" : "não planejada"})</span>
@@ -361,7 +361,7 @@ export default function Transactions() {
                   data-testid={`tx-row-${t.id}`}
                 >
                   <div
-                    className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center ${t.type === "INCOME" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300"}`}
+                    className={`w-11 h-11 shrink-0 rounded-control flex items-center justify-center ${t.type === "INCOME" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300"}`}
                   >
                     {t.type === "INCOME" ? (
                       <ArrowUpRight className="w-5 h-5" />
@@ -695,7 +695,7 @@ function TxModal({
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-surface dark:bg-surface-strong border border-border dark:border-border rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto"
+        className="bg-surface dark:bg-surface-strong border border-border dark:border-border rounded-card shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto"
         data-testid="tx-modal"
       >
         <div className="flex items-center justify-between">
@@ -923,7 +923,7 @@ function TxModal({
           )}
 
           {watchedPaymentMethod === "credito" && watchedInstallments > 1 && (
-            <div className="rounded-xl bg-surface dark:bg-surface-strong/60 border border-border dark:border-border p-3 space-y-1">
+            <div className="rounded-control bg-surface dark:bg-surface-strong/60 border border-border dark:border-border p-3 space-y-1">
               <div className="flex justify-between text-sm text-text dark:text-muted">
                 <span>Valor por parcela</span>
                 <span className="font-semibold">
@@ -942,7 +942,7 @@ function TxModal({
             </div>
           )}
 
-          <div className="rounded-xl bg-background dark:bg-surface-strong p-3">
+          <div className="rounded-control bg-background dark:bg-surface-strong p-3">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"

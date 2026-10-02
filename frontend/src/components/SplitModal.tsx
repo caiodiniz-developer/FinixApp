@@ -83,7 +83,7 @@ export function SplitModal({
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.95 }}
-        className="bg-surface dark:bg-surface-strong rounded-2xl shadow-2xl w-full max-w-md p-6"
+        className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-md p-6"
         onClick={(e) => e.stopPropagation()}
         data-testid="split-modal"
       >
@@ -105,7 +105,7 @@ export function SplitModal({
           {contacts.map((c) => (
             <div
               key={c.id}
-              className="flex items-center gap-3 p-2.5 rounded-xl border border-border"
+              className="flex items-center gap-3 p-2.5 rounded-control border border-border"
               data-testid={`split-contact-${c.id}`}
             >
               <input

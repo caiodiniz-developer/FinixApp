@@ -115,7 +115,7 @@ export default function Login() {
           <div className="grid grid-cols-3 gap-3 pt-2">
             {STATS.map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 + i * 0.1 }}
-                className="rounded-2xl p-4"
+                className="rounded-card p-4"
                 style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}>
                 <s.icon className="w-4 h-4 mb-2.5" style={{ color: s.color }} />
                 <div className="text-xl font-extrabold text-white leading-none mb-1">{s.value}</div>
@@ -161,7 +161,7 @@ export default function Login() {
 
           {pendingToken ? (
             <form onSubmit={onSubmitTwoFactor} className="mt-7 space-y-4" data-testid="twofactor-form">
-              <div className="p-4 rounded-xl flex items-start gap-3" style={{ background: "var(--color-background)", border: "1px solid var(--color-border)" }}>
+              <div className="p-4 rounded-control flex items-start gap-3" style={{ background: "var(--color-background)", border: "1px solid var(--color-border)" }}>
                 <KeyRound className="w-5 h-5 text-brand-blue shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-text">Verificação em duas etapas</p>
@@ -202,7 +202,7 @@ export default function Login() {
           <div className="mt-7 space-y-4">
             {/* Google button */}
             <button onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 py-3 rounded-xl font-semibold text-sm text-text transition-all hover:bg-surface-strong active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-3 py-3 rounded-control font-semibold text-sm text-text transition-all hover:bg-surface-strong active:scale-[0.98]"
               style={{ border: "1px solid var(--color-border)", background: "var(--color-surface)" }}>
               <GoogleIcon />
               Continuar com Google
@@ -258,7 +258,7 @@ export default function Login() {
             </form>
 
             {/* Support */}
-            <div className="p-4 rounded-xl text-sm text-text"
+            <div className="p-4 rounded-control text-sm text-text"
               style={{ background: "var(--color-background)", border: "1px solid var(--color-border)" }}>
               <p className="font-semibold">Suporte Finix</p>
               <p className="text-muted mt-1 text-xs">Precisa de ajuda? Fale conosco:</p>

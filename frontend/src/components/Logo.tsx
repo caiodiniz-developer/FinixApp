@@ -20,7 +20,7 @@ export const Logo: React.FC<Props> = ({
     data-testid="finix-logo"
   >
     <div
-      className="relative rounded-xl overflow-hidden shrink-0"
+      className="relative rounded-control overflow-hidden shrink-0"
       style={{ width: size, height: size }}
     >
       <img

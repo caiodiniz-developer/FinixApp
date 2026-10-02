@@ -36,7 +36,7 @@ export default function YearReview() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-3xl overflow-hidden p-8 sm:p-12 text-white relative"
+          className="rounded-card overflow-hidden p-8 sm:p-12 text-white relative"
           style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #4c1d95 45%, #7c3aed 100%)" }}
         >
           <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
@@ -52,18 +52,18 @@ export default function YearReview() {
             </p>
 
             <div className="grid sm:grid-cols-2 gap-4 mt-10">
-              <div className="rounded-2xl p-5 bg-white/10 backdrop-blur">
+              <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                 <TrendingUp className="w-5 h-5 text-emerald-300 mb-2" />
                 <p className="text-xs text-white/60 uppercase tracking-wide">Total recebido</p>
                 <p className="text-2xl font-bold mt-1">{currency(data.totalIncome)}</p>
               </div>
-              <div className="rounded-2xl p-5 bg-white/10 backdrop-blur">
+              <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                 <TrendingDown className="w-5 h-5 text-rose-300 mb-2" />
                 <p className="text-xs text-white/60 uppercase tracking-wide">Total gasto</p>
                 <p className="text-2xl font-bold mt-1">{currency(data.totalExpense)}</p>
               </div>
               {data.topCategory && (
-                <div className="rounded-2xl p-5 bg-white/10 backdrop-blur">
+                <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                   <Receipt className="w-5 h-5 text-amber-300 mb-2" />
                   <p className="text-xs text-white/60 uppercase tracking-wide">Categoria #1</p>
                   <p className="text-2xl font-bold mt-1">{data.topCategory.category}</p>
@@ -71,7 +71,7 @@ export default function YearReview() {
                 </div>
               )}
               {data.bestMonth && (
-                <div className="rounded-2xl p-5 bg-white/10 backdrop-blur">
+                <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                   <Calendar className="w-5 h-5 text-sky-300 mb-2" />
                   <p className="text-xs text-white/60 uppercase tracking-wide">Melhor mês</p>
                   <p className="text-2xl font-bold mt-1">{data.bestMonth.month}</p>
@@ -79,14 +79,14 @@ export default function YearReview() {
                 </div>
               )}
               {data.goalsCompleted > 0 && (
-                <div className="rounded-2xl p-5 bg-white/10 backdrop-blur">
+                <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                   <Trophy className="w-5 h-5 text-amber-300 mb-2" />
                   <p className="text-xs text-white/60 uppercase tracking-wide">Metas concluídas</p>
                   <p className="text-2xl font-bold mt-1">{data.goalsCompleted}</p>
                 </div>
               )}
               {data.biggestExpense && (
-                <div className="rounded-2xl p-5 bg-white/10 backdrop-blur">
+                <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                   <p className="text-xs text-white/60 uppercase tracking-wide">Maior gasto único</p>
                   <p className="text-lg font-bold mt-1 truncate">{data.biggestExpense.title}</p>
                   <p className="text-xs text-white/60 mt-1">{currency(data.biggestExpense.amount)}</p>

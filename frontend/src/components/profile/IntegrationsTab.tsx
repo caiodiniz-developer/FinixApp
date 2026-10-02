@@ -73,7 +73,7 @@ export function IntegrationsTab() {
   return (
     <section className="space-y-6">
       {/* Open Finance */}
-      <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
@@ -88,7 +88,7 @@ export function IntegrationsTab() {
         {connections.length > 0 ? (
           <div className="mt-4 space-y-2">
             {connections.map((c) => (
-              <div key={c.id} className="rounded-2xl bg-surface-strong p-3 text-sm text-text flex items-center justify-between">
+              <div key={c.id} className="rounded-card bg-surface-strong p-3 text-sm text-text flex items-center justify-between">
                 <span>{c.institution || c.provider} — {c.status}</span>
               </div>
             ))}
@@ -101,7 +101,7 @@ export function IntegrationsTab() {
       </div>
 
       {/* Webhooks */}
-      <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
         <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
           <Webhook className="w-5 h-5" /> Webhooks
         </h2>
@@ -114,14 +114,14 @@ export function IntegrationsTab() {
           <button onClick={createWebhook} className="btn-primary shrink-0">Adicionar</button>
         </div>
         {createdWebhookSecret && (
-          <div className="mt-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
+          <div className="mt-3 rounded-card border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
             <p className="font-semibold text-text">Segredo de assinatura (mostrado uma única vez):</p>
             <code className="block mt-1 font-mono break-all text-text">{createdWebhookSecret}</code>
           </div>
         )}
         <div className="mt-4 space-y-2">
           {webhooks.map((w) => (
-            <div key={w.id} className="rounded-2xl bg-surface-strong p-3 text-sm text-text flex items-center justify-between gap-2">
+            <div key={w.id} className="rounded-card bg-surface-strong p-3 text-sm text-text flex items-center justify-between gap-2">
               <span className="truncate">{w.url}</span>
               <button onClick={() => deleteWebhook(w.id)} className="text-muted hover:text-rose-500 shrink-0">
                 <Trash2 className="w-4 h-4" />
@@ -132,7 +132,7 @@ export function IntegrationsTab() {
       </div>
 
       {/* API Keys */}
-      <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
         <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
           <KeyRound className="w-5 h-5" /> Chaves de API
         </h2>
@@ -145,7 +145,7 @@ export function IntegrationsTab() {
           <button onClick={createApiKey} className="btn-primary shrink-0">Gerar</button>
         </div>
         {createdApiKey && (
-          <div className="mt-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
+          <div className="mt-3 rounded-card border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
             <p className="font-semibold text-text">Chave gerada (mostrada uma única vez):</p>
             <div className="flex items-center gap-2 mt-1">
               <code className="block font-mono break-all text-text flex-1">{createdApiKey}</code>
@@ -157,7 +157,7 @@ export function IntegrationsTab() {
         )}
         <div className="mt-4 space-y-2">
           {apiKeys.map((k) => (
-            <div key={k.id} className="rounded-2xl bg-surface-strong p-3 text-sm text-text flex items-center justify-between gap-2">
+            <div key={k.id} className="rounded-card bg-surface-strong p-3 text-sm text-text flex items-center justify-between gap-2">
               <span>{k.label} <span className="text-muted font-mono text-xs">({k.keyPrefix}…)</span></span>
               <button onClick={() => deleteApiKey(k.id)} className="text-muted hover:text-rose-500 shrink-0">
                 <Trash2 className="w-4 h-4" />

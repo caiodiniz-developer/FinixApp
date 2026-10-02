@@ -220,7 +220,7 @@ export default function Alerts() {
         </div>
         <button
           onClick={fetchAlerts}
-          className="btn-outline inline-flex items-center gap-2 rounded-3xl px-4 py-3 text-sm border border-border dark:border-border bg-surface dark:bg-surface text-text dark:text-muted hover:bg-surface dark:hover:bg-surface-strong transition"
+          className="btn-outline inline-flex items-center gap-2 rounded-card px-4 py-3 text-sm border border-border dark:border-border bg-surface dark:bg-surface text-text dark:text-muted hover:bg-surface dark:hover:bg-surface-strong transition"
         >
           <RefreshCcw className="w-4 h-4" /> Atualizar
         </button>
@@ -273,7 +273,7 @@ export default function Alerts() {
             {notices.map((n) => (
               <div
                 key={n.id}
-                className={`rounded-2xl border p-4 ${
+                className={`rounded-card border p-4 ${
                   n.severity === "danger"
                     ? "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200"
                     : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200"
@@ -301,11 +301,11 @@ export default function Alerts() {
             <Loader2 className="w-5 h-5 animate-spin" /> Carregando...
           </div>
         ) : error ? (
-          <div className="rounded-3xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 p-4 text-rose-700 dark:text-rose-300">
+          <div className="rounded-card bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 p-4 text-rose-700 dark:text-rose-300">
             {error}
           </div>
         ) : installmentGroups.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border-strong dark:border-border bg-surface dark:bg-surface-strong/30 p-8 text-center">
+          <div className="rounded-card border border-dashed border-border-strong dark:border-border bg-surface dark:bg-surface-strong/30 p-8 text-center">
             <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-400 mb-3" />
             <p className="text-muted dark:text-muted">
               Nenhuma compra parcelada em andamento.
@@ -324,7 +324,7 @@ export default function Alerts() {
               return (
                 <div
                   key={g.installmentGroupId}
-                  className={`rounded-2xl border p-4 transition-all ${
+                  className={`rounded-card border p-4 transition-all ${
                     isDanger
                       ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30"
                       : isWarning
@@ -402,7 +402,7 @@ export default function Alerts() {
                                 ? "Vence amanhã"
                                 : `Próxima em ${g.daysUntilNext} dias`}
                           </div>
-                          <span className="text-xs text-muted dark:text-muted rounded-xl bg-surface-strong dark:bg-surface-strong px-2 py-1">
+                          <span className="text-xs text-muted dark:text-muted rounded-control bg-surface-strong dark:bg-surface-strong px-2 py-1">
                             {dateBR(g.nextPaymentDate)}
                           </span>
                         </>
@@ -434,11 +434,11 @@ export default function Alerts() {
             <Loader2 className="w-5 h-5 animate-spin" /> Carregando...
           </div>
         ) : error ? (
-          <div className="rounded-3xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 p-4 text-rose-700 dark:text-rose-300">
+          <div className="rounded-card bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 p-4 text-rose-700 dark:text-rose-300">
             {error}
           </div>
         ) : budgetAlerts.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border-strong dark:border-border bg-surface dark:bg-surface-strong/30 p-8 text-center">
+          <div className="rounded-card border border-dashed border-border-strong dark:border-border bg-surface dark:bg-surface-strong/30 p-8 text-center">
             <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-400 mb-3" />
             <p className="text-muted dark:text-muted">
               Nenhum orçamento cadastrado ainda.
@@ -459,7 +459,7 @@ export default function Alerts() {
               return (
                 <div
                   key={b.id}
-                  className={`rounded-2xl border p-4 flex flex-col sm:flex-row sm:items-center gap-3 transition-all ${
+                  className={`rounded-card border p-4 flex flex-col sm:flex-row sm:items-center gap-3 transition-all ${
                     isDanger
                       ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30"
                       : isWarning
@@ -509,12 +509,12 @@ export default function Alerts() {
                               ? "Vence hoje"
                               : `Vence em ${b.diffDays} dia${b.diffDays! > 1 ? "s" : ""}`}
                         </div>
-                        <span className="text-xs text-muted dark:text-muted rounded-xl bg-surface-strong dark:bg-surface-strong px-2 py-1">
+                        <span className="text-xs text-muted dark:text-muted rounded-control bg-surface-strong dark:bg-surface-strong px-2 py-1">
                           {dateBR(b.dueDate)}
                         </span>
                       </>
                     ) : (
-                      <span className="text-xs text-muted dark:text-muted rounded-xl bg-surface-strong dark:bg-surface-strong px-2 py-1">
+                      <span className="text-xs text-muted dark:text-muted rounded-control bg-surface-strong dark:bg-surface-strong px-2 py-1">
                         Sem prazo
                       </span>
                     )}

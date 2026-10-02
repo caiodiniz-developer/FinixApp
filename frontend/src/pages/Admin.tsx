@@ -139,7 +139,7 @@ export default function Admin() {
                 className={`absolute -top-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br ${s.color} opacity-10 blur-xl`}
               />
               <div
-                className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center text-white mb-3`}
+                className={`w-10 h-10 rounded-control bg-gradient-to-br ${s.color} flex items-center justify-center text-white mb-3`}
               >
                 <s.icon className="w-5 h-5" />
               </div>
@@ -213,7 +213,7 @@ export default function Admin() {
                 className={`absolute -top-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br ${s.color} opacity-10 blur-xl`}
               />
               <div
-                className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center text-white mb-3`}
+                className={`w-10 h-10 rounded-control bg-gradient-to-br ${s.color} flex items-center justify-center text-white mb-3`}
               >
                 <s.icon className="w-5 h-5" />
               </div>
@@ -500,7 +500,7 @@ function UserDetail({
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.95 }}
-        className="bg-surface dark:bg-surface-strong rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-auto p-6"
+        className="bg-surface dark:bg-surface-strong rounded-card shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-auto p-6"
         onClick={(e) => e.stopPropagation()}
         data-testid="user-detail-modal"
       >
@@ -579,7 +579,7 @@ function UserDetail({
                       <button
                         key={plan}
                         onClick={() => setSelectedPlan(plan)}
-                        className={`p-4 rounded-xl border-2 transition-all ${
+                        className={`p-4 rounded-control border-2 transition-all ${
                           selectedPlan === plan
                             ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
                             : "border-border dark:border-border hover:border-border"
@@ -609,7 +609,7 @@ function UserDetail({
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r bg-background dark:bg-surface-strong">
+                <div className="flex items-center gap-3 p-4 rounded-control bg-gradient-to-r bg-background dark:bg-surface-strong">
                   <div
                     className={`inline-block px-4 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r ${planColors[(data.user.plan as "FREE" | "BASIC" | "PRO") || "FREE"]}`}
                   >
@@ -789,13 +789,13 @@ function UserDetail({
               ) : (
                 <div className="grid gap-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-xl border border-border dark:border-border p-4">
+                    <div className="rounded-control border border-border dark:border-border p-4">
                       <div className="text-xs text-muted uppercase tracking-wide">
                         Papel
                       </div>
                       <div className="mt-2 font-semibold">{data.user.role}</div>
                     </div>
-                    <div className="rounded-xl border border-border dark:border-border p-4">
+                    <div className="rounded-control border border-border dark:border-border p-4">
                       <div className="text-xs text-muted uppercase tracking-wide">
                         Onboarding
                       </div>
@@ -807,7 +807,7 @@ function UserDetail({
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-xl border border-border dark:border-border p-4">
+                    <div className="rounded-control border border-border dark:border-border p-4">
                       <div className="text-xs text-muted uppercase tracking-wide">
                         Uso
                       </div>
@@ -815,7 +815,7 @@ function UserDetail({
                         {data.user.usageType || "pessoal"}
                       </div>
                     </div>
-                    <div className="rounded-xl border border-border dark:border-border p-4">
+                    <div className="rounded-control border border-border dark:border-border p-4">
                       <div className="text-xs text-muted uppercase tracking-wide">
                         Empresa
                       </div>
@@ -825,7 +825,7 @@ function UserDetail({
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-xl border border-border dark:border-border p-4">
+                    <div className="rounded-control border border-border dark:border-border p-4">
                       <div className="text-xs text-muted uppercase tracking-wide">
                         Categoria principal
                       </div>
@@ -836,7 +836,7 @@ function UserDetail({
                           .join(", ") || "Sem categorias"}
                       </div>
                     </div>
-                    <div className="rounded-xl border border-border dark:border-border p-4">
+                    <div className="rounded-control border border-border dark:border-border p-4">
                       <div className="text-xs text-muted uppercase tracking-wide">
                         Cor
                       </div>
@@ -890,7 +890,7 @@ function UserDetail({
                   return (
                     <div
                       key={g.id}
-                      className="p-3 rounded-xl bg-background dark:bg-surface-strong"
+                      className="p-3 rounded-control bg-background dark:bg-surface-strong"
                     >
                       <div className="flex justify-between text-sm font-semibold">
                         <span>{g.title}</span>

@@ -75,7 +75,7 @@ export default function Household() {
         <div className="card space-y-2">
           <p className="text-sm font-semibold">Convites pendentes</p>
           {invites.map((inv) => (
-            <div key={inv.id} className="flex items-center justify-between gap-3 rounded-xl bg-surface-strong p-3 text-sm">
+            <div key={inv.id} className="flex items-center justify-between gap-3 rounded-control bg-surface-strong p-3 text-sm">
               <span><strong>{inv.sender?.name}</strong> te convidou pro household "{inv.household?.name}"</span>
               <div className="flex gap-2 shrink-0">
                 <button onClick={() => respond(inv, true)} className="btn-primary !py-1.5 !px-3 text-xs"><Check className="w-3.5 h-3.5" /> Aceitar</button>
@@ -121,7 +121,7 @@ export default function Household() {
             <h2 className="font-display font-bold text-lg">Membros — {household.name}</h2>
             <div className="mt-4 space-y-2">
               {household.members.map((m) => (
-                <motion.div key={m.userId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between rounded-xl bg-surface-strong p-3 text-sm">
+                <motion.div key={m.userId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between rounded-control bg-surface-strong p-3 text-sm">
                   <span className="font-semibold">{m.name}</span>
                   <span className="flex gap-4">
                     <span className="text-emerald-500">+{currency(m.income)}</span>

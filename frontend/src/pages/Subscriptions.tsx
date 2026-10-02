@@ -89,7 +89,7 @@ export default function Subscriptions() {
                 <p className="text-xs text-muted mt-1">
                   {item.occurrences}x cobrado, a cada ~{item.avgIntervalDays} dias, desde {dateBR(item.firstDate)}
                 </p>
-                <div className="mt-3 rounded-xl bg-surface-strong p-3 text-sm">
+                <div className="mt-3 rounded-control bg-surface-strong p-3 text-sm">
                   Já gastou <strong>{currency(item.totalSpent)}</strong> com isso até hoje.
                 </div>
                 <div className="flex gap-2 mt-4">

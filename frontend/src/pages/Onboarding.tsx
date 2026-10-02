@@ -196,15 +196,15 @@ export default function Onboarding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               onSubmit={handleSubmit(onSubmit)}
-              className="bg-surface rounded-2xl shadow-xl p-8"
+              className="bg-surface rounded-card shadow-xl p-8"
             >
               <div className="space-y-10">
-                <div className="rounded-3xl border border-border bg-background p-6 shadow-sm">
+                <div className="rounded-card border border-border bg-background p-6 shadow-sm">
                   <h2 className="text-xl font-semibold text-text mb-4">
                     Como você vai usar o Finix?
                   </h2>
                   <div className="grid gap-4">
-                    <label className="flex items-center p-4 border border-border rounded-3xl cursor-pointer hover:border-brand-blue transition-colors bg-background/80">
+                    <label className="flex items-center p-4 border border-border rounded-card cursor-pointer hover:border-brand-blue transition-colors bg-background/80">
                       <input
                         type="radio"
                         value="pessoal"
@@ -220,7 +220,7 @@ export default function Onboarding() {
                       </div>
                     </label>
 
-                    <label className="flex items-center p-4 border border-border rounded-3xl cursor-pointer hover:border-brand-blue transition-colors bg-background/80">
+                    <label className="flex items-center p-4 border border-border rounded-card cursor-pointer hover:border-brand-blue transition-colors bg-background/80">
                       <input
                         type="radio"
                         value="empresarial"
@@ -236,7 +236,7 @@ export default function Onboarding() {
                       </div>
                     </label>
 
-                    <label className="flex items-center p-4 border border-border rounded-3xl cursor-pointer hover:border-brand-blue transition-colors bg-background/80">
+                    <label className="flex items-center p-4 border border-border rounded-card cursor-pointer hover:border-brand-blue transition-colors bg-background/80">
                       <input
                         type="radio"
                         value="organizar"
@@ -373,7 +373,7 @@ export default function Onboarding() {
                         onClick={() => toggleCategory(cat)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`p-4 rounded-2xl border-2 transition-all flex items-center justify-between ${
+                        className={`p-4 rounded-card border-2 transition-all flex items-center justify-between ${
                           categories.includes(cat)
                             ? "border-brand-blue bg-brand-blue/10"
                             : "border-border bg-surface hover:border-brand-blue/50"
@@ -399,12 +399,12 @@ export default function Onboarding() {
                         onChange={(e) => setNewCategory(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="Digite uma nova categoria..."
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-card focus:ring-2 focus:ring-brand-blue focus:border-transparent"
                       />
                       <button
                         type="button"
                         onClick={addCategory}
-                        className="px-6 py-3 bg-brand-blue text-white rounded-2xl hover:bg-brand-blue/90 transition-colors font-medium"
+                        className="px-6 py-3 bg-brand-blue text-white rounded-card hover:bg-brand-blue/90 transition-colors font-medium"
                       >
                         +
                       </button>
@@ -421,7 +421,7 @@ export default function Onboarding() {
                               key={cat}
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
-                              className="flex items-center justify-between p-3 bg-background rounded-2xl border border-border"
+                              className="flex items-center justify-between p-3 bg-background rounded-card border border-border"
                             >
                               <span className="font-medium text-text">
                                 {cat}
@@ -449,7 +449,7 @@ export default function Onboarding() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-brand-blue text-white py-4 px-6 rounded-xl font-semibold hover:bg-brand-blue/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-brand-blue text-white py-4 px-6 rounded-control font-semibold hover:bg-brand-blue/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -466,7 +466,7 @@ export default function Onboarding() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="rounded-3xl border border-border bg-background p-6 shadow-sm"
+              className="rounded-card border border-border bg-background p-6 shadow-sm"
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -539,7 +539,7 @@ export default function Onboarding() {
               </div>
 
               <div className="mt-8 space-y-4">
-                <div className="rounded-2xl border border-brand-blue/10 bg-surface/80 p-4">
+                <div className="rounded-card border border-brand-blue/10 bg-surface/80 p-4">
                   <p className="text-sm text-muted">
                     Categorias padrão para todos os planos básicos:
                   </p>
@@ -558,7 +558,7 @@ export default function Onboarding() {
                     ))}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-border bg-surface p-4 text-sm text-text">
+                <div className="rounded-card border border-border bg-surface p-4 text-sm text-text">
                   <div className="font-semibold mb-2">Suporte direto</div>
                   <p>
                     Fale com a gente pelo WhatsApp ou envie uma mensagem para o
@@ -591,7 +591,7 @@ export default function Onboarding() {
             </motion.div>
           </div>
           <div className="mt-10">
-            <div className="rounded-3xl border border-border bg-background p-6 shadow-sm">
+            <div className="rounded-card border border-border bg-background p-6 shadow-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="text-sm font-semibold text-text">

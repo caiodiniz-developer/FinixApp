@@ -353,7 +353,7 @@ export default function Profile() {
     <div className="space-y-6" data-testid="profile-page">
       <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         {/* Sidebar */}
-        <aside className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+        <aside className="rounded-card border border-border bg-surface p-6 shadow-sm">
           <div className="flex items-center gap-4">
             <Avatar size={56} />
             <div>
@@ -379,7 +379,7 @@ export default function Profile() {
               <button
                 key={item}
                 onClick={() => setTab(item)}
-                className={`w-full rounded-3xl px-4 py-3 text-left text-sm font-medium transition ${
+                className={`w-full rounded-card px-4 py-3 text-left text-sm font-medium transition ${
                   tab === item
                     ? "bg-brand-blue/10 text-brand-blue"
                     : "bg-surface-strong text-muted hover:bg-surface-strong"
@@ -393,7 +393,7 @@ export default function Profile() {
 
         <main className="space-y-6">
           {/* Header card */}
-          <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+          <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm uppercase tracking-[0.3em] text-muted">
@@ -419,7 +419,7 @@ export default function Profile() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-3xl border border-border bg-surface p-6 shadow-sm"
+                  className="rounded-card border border-border bg-surface p-6 shadow-sm"
                 >
                   <h2 className="font-display font-bold text-lg text-text">
                     Dados de usuário
@@ -471,7 +471,7 @@ export default function Profile() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-3xl border border-border bg-surface p-6 shadow-sm"
+                  className="rounded-card border border-border bg-surface p-6 shadow-sm"
                 >
                   <h2 className="font-display font-bold text-lg text-text">
                     Foto de perfil
@@ -581,7 +581,7 @@ export default function Profile() {
 
           {/* Segurança tab */}
           {tab === "Segurança" && (
-            <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+            <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
               <h2 className="font-display font-bold text-lg text-text">
                 Segurança
               </h2>
@@ -658,9 +658,9 @@ export default function Profile() {
                 )}
 
                 {twoFactorSetup && (
-                  <div className="mt-4 rounded-3xl border border-border bg-surface-strong p-4 space-y-3">
+                  <div className="mt-4 rounded-card border border-border bg-surface-strong p-4 space-y-3">
                     <p className="text-sm text-text">1. Escaneie o QR code com seu app autenticador:</p>
-                    <img src={twoFactorSetup.qrCode} alt="QR code 2FA" className="w-40 h-40 rounded-xl border border-border" />
+                    <img src={twoFactorSetup.qrCode} alt="QR code 2FA" className="w-40 h-40 rounded-control border border-border" />
                     <p className="text-xs text-muted">Ou digite manualmente: <code className="font-mono">{twoFactorSetup.secret}</code></p>
                     <p className="text-sm text-text">2. Digite o código de 6 dígitos gerado:</p>
                     <input
@@ -677,7 +677,7 @@ export default function Profile() {
                 )}
 
                 {backupCodes && (
-                  <div className="mt-4 rounded-3xl border border-amber-500/30 bg-amber-500/5 p-4">
+                  <div className="mt-4 rounded-card border border-amber-500/30 bg-amber-500/5 p-4">
                     <p className="text-sm font-semibold text-text">Guarde seus códigos de backup</p>
                     <p className="text-xs text-muted mt-1">Cada um funciona uma vez, caso você perca acesso ao autenticador. Eles não serão mostrados novamente.</p>
                     <div className="mt-3 grid grid-cols-2 gap-2 font-mono text-xs">
@@ -690,7 +690,7 @@ export default function Profile() {
                 )}
 
                 {user.twoFactorEnabled && (
-                  <div className="mt-4 rounded-3xl border border-border bg-surface-strong p-4 space-y-3">
+                  <div className="mt-4 rounded-card border border-border bg-surface-strong p-4 space-y-3">
                     <p className="text-sm text-text">Para desativar, confirme sua senha e um código atual:</p>
                     <input type="password" value={disablePassword} onChange={(e) => setDisablePassword(e.target.value)}
                       className="input" placeholder="Senha atual" />
@@ -709,7 +709,7 @@ export default function Profile() {
           {/* Assinatura tab */}
           {tab === "Assinatura" && (
             <section className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+              <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm uppercase tracking-[0.3em] text-muted">
@@ -744,7 +744,7 @@ export default function Profile() {
                   </p>
                 </div>
                 <div className="mt-6 space-y-3">
-                  <div className="rounded-3xl bg-surface-strong p-4 text-sm text-muted">
+                  <div className="rounded-card bg-surface-strong p-4 text-sm text-muted">
                     Transações:{" "}
                     {transactionLimit === -1
                       ? "Ilimitadas"
@@ -752,11 +752,11 @@ export default function Profile() {
                         ? "Não disponível no plano Free"
                         : `${transactionLimit} por mês`}
                   </div>
-                  <div className="rounded-3xl bg-surface-strong p-4 text-sm text-muted">
+                  <div className="rounded-card bg-surface-strong p-4 text-sm text-muted">
                     Categoria personalizada:{" "}
                     {user.plan === "PRO" ? "Ativado" : "Bloqueado"}
                   </div>
-                  <div className="rounded-3xl bg-surface-strong p-4 text-sm text-muted">
+                  <div className="rounded-card bg-surface-strong p-4 text-sm text-muted">
                     Exportação:{" "}
                     {user.plan === "PRO"
                       ? "PDF e Excel"
@@ -766,7 +766,7 @@ export default function Profile() {
                   </div>
                 </div>
               </div>
-              <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+              <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
                 <h3 className="font-semibold text-text">Atualize seu plano</h3>
                 <p className="mt-2 text-sm text-muted">
                   Acesse recursos premium como gestão de categorias, IA e
@@ -784,7 +784,7 @@ export default function Profile() {
 
           {/* Notificações tab */}
           {tab === "Notificações" && (
-            <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+            <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
               <h2 className="font-display font-bold text-lg text-text">
                 Notificações
               </h2>
@@ -795,7 +795,7 @@ export default function Profile() {
                 {(["email", "push", "whatsapp"] as const).map((channel) => (
                   <label
                     key={channel}
-                    className="flex items-center justify-between rounded-3xl border border-border bg-surface-strong p-4"
+                    className="flex items-center justify-between rounded-card border border-border bg-surface-strong p-4"
                   >
                     <div>
                       <p className="font-semibold text-text">
@@ -844,7 +844,7 @@ export default function Profile() {
 
           {/* Empresa tab */}
           {tab === "Empresa" && (
-            <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+            <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
               <h2 className="font-display font-bold text-lg text-text">
                 Empresa
               </h2>
@@ -853,19 +853,19 @@ export default function Profile() {
               </p>
               {user.plan === "PRO" ? (
                 <div className="mt-6 grid gap-4">
-                  <div className="rounded-3xl border border-border bg-surface-strong p-4">
+                  <div className="rounded-card border border-border bg-surface-strong p-4">
                     <p className="text-sm text-muted">Razão social</p>
                     <p className="mt-2 text-text">
                       {user.companyName || "Não informada"}
                     </p>
                   </div>
-                  <div className="rounded-3xl border border-border bg-surface-strong p-4">
+                  <div className="rounded-card border border-border bg-surface-strong p-4">
                     <p className="text-sm text-muted">Logo</p>
                     {userPhoto.companyLogo ? (
                       <img
                         src={userPhoto.companyLogo}
                         alt="Logo da empresa"
-                        className="mt-3 h-20 w-20 rounded-3xl object-cover"
+                        className="mt-3 h-20 w-20 rounded-card object-cover"
                       />
                     ) : (
                       <p className="mt-2 text-muted">Nenhuma logo carregada.</p>
@@ -873,7 +873,7 @@ export default function Profile() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-6 rounded-3xl border border-border bg-surface-strong p-6 text-muted">
+                <div className="mt-6 rounded-card border border-border bg-surface-strong p-6 text-muted">
                   <p className="font-semibold text-text">
                     Recurso disponível apenas no plano Pro
                   </p>
@@ -894,7 +894,7 @@ export default function Profile() {
 
           {/* Exportação tab */}
           {tab === "Exportação" && (
-            <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+            <section className="rounded-card border border-border bg-surface p-6 shadow-sm">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h2 className="font-display font-bold text-lg text-text">

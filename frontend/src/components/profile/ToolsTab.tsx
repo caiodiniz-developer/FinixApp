@@ -91,7 +91,7 @@ export function ToolsTab() {
   return (
     <section className="space-y-6">
       {/* Round-up */}
-      <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
@@ -123,7 +123,7 @@ export function ToolsTab() {
       </div>
 
       {/* Modo Autônomo/MEI */}
-      <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
@@ -168,7 +168,7 @@ export function ToolsTab() {
 
         {taxData?.current && (
           <div className="mt-6 pt-6 border-t border-border">
-            <div className="rounded-2xl bg-surface-strong p-4">
+            <div className="rounded-card bg-surface-strong p-4">
               <p className="text-xs text-muted uppercase tracking-wide font-semibold">
                 Estimativa de {taxData.current.type === "DAS_MEI" ? "DAS-MEI" : "Carnê-Leão"} — {taxData.current.referenceMonth}
               </p>
@@ -193,7 +193,7 @@ export function ToolsTab() {
       </div>
 
       {/* CLT vs PJ */}
-      <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
         <h2 className="font-display font-bold text-lg text-text flex items-center gap-2">
           <Scale className="w-5 h-5" /> Calculadora CLT vs PJ
         </h2>
@@ -227,17 +227,17 @@ export function ToolsTab() {
 
         {cltVsPj && (
           <div className="mt-6 pt-6 border-t border-border grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl bg-surface-strong p-4">
+            <div className="rounded-card bg-surface-strong p-4">
               <p className="text-xs text-muted uppercase tracking-wide font-semibold">CLT — equivalente mensal</p>
               <p className="text-2xl font-display font-bold mt-1">R$ {cltVsPj.clt.totalMonthlyEquivalent.toFixed(2)}</p>
               <p className="text-xs text-muted mt-1">líquido R$ {cltVsPj.clt.netMonthly.toFixed(2)} + 13º/férias diluídos · FGTS à parte: R$ {cltVsPj.clt.fgtsMonthlyEquivalent.toFixed(2)}</p>
             </div>
-            <div className="rounded-2xl bg-surface-strong p-4">
+            <div className="rounded-card bg-surface-strong p-4">
               <p className="text-xs text-muted uppercase tracking-wide font-semibold">PJ — líquido mensal</p>
               <p className="text-2xl font-display font-bold mt-1">R$ {cltVsPj.pj.netMonthly.toFixed(2)}</p>
               <p className="text-xs text-muted mt-1">após R$ {cltVsPj.pj.estimatedTax.toFixed(2)} de imposto estimado</p>
             </div>
-            <div className={`sm:col-span-2 rounded-2xl p-4 ${cltVsPj.difference >= 0 ? "border border-emerald-500/30 bg-emerald-500/5" : "border border-amber-500/30 bg-amber-500/5"}`}>
+            <div className={`sm:col-span-2 rounded-card p-4 ${cltVsPj.difference >= 0 ? "border border-emerald-500/30 bg-emerald-500/5" : "border border-amber-500/30 bg-amber-500/5"}`}>
               <p className="text-sm font-semibold text-text">
                 {cltVsPj.difference >= 0
                   ? `PJ compensa R$ ${cltVsPj.difference.toFixed(2)} a mais por mês.`
