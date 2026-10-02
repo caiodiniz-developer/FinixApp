@@ -21,6 +21,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { SkeletonRows } from "../components/placeholders";
 import { SwipeRow, useTouchDevice } from "../components/SwipeRow";
 import { groupByDay } from "../utils/transactionGroups";
 import { categoryIcon, categoryColor } from "../utils/categoryIcons";
@@ -330,9 +331,7 @@ export default function Transactions() {
       {/* List */}
       <div className="card !p-0 overflow-hidden">
         {loading ? (
-          <div className="p-8">
-            <div className="skeleton h-16" />
-          </div>
+          <SkeletonRows rows={6} />
         ) : displayItems.length === 0 ? (
           <div className="p-12 text-center">
             <Filter className="w-10 h-10 mx-auto text-muted" />

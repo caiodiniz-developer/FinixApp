@@ -354,9 +354,10 @@ export default function Calendar() {
       </div>
 
       {loading && !calendar ? (
-        <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-8 text-center text-muted">
-          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
-          Carregando calendário...
+        <div className="card" aria-hidden="true">
+          <div className="grid grid-cols-7 gap-2">
+            {Array.from({ length: 35 }, (_, i) => <div key={i} className="skeleton h-16 sm:h-20" />)}
+          </div>
         </div>
       ) : error ? (
         <div className="card border border-expense/30 bg-expense/10 dark:bg-surface p-6 text-expense ">

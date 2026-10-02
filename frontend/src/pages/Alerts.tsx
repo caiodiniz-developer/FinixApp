@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  Loader2,
+
   RefreshCcw,
   CalendarClock,
   CheckCircle2,
@@ -8,6 +8,7 @@ import {
   BellRing,
 } from "lucide-react";
 import { api, apiErrorMessage } from "../services/api";
+import { SkeletonRows } from "../components/placeholders";
 import { useAuth } from "../contexts/AuthContext";
 import { Budget } from "../types";
 import { currency, dateBR } from "../utils/format";
@@ -280,9 +281,7 @@ export default function Alerts() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-3 text-muted py-8">
-            <Loader2 className="w-5 h-5 animate-spin" /> Carregando...
-          </div>
+          <SkeletonRows rows={3} />
         ) : error ? (
           <div className="rounded-card bg-expense/10 border border-expense/30 p-4 text-expense ">
             {error}
@@ -413,9 +412,7 @@ export default function Alerts() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-3 text-muted py-8">
-            <Loader2 className="w-5 h-5 animate-spin" /> Carregando...
-          </div>
+          <SkeletonRows rows={3} />
         ) : error ? (
           <div className="rounded-card bg-expense/10 border border-expense/30 p-4 text-expense ">
             {error}

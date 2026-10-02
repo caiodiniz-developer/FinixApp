@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Edit2, Trash2, RefreshCcw, Loader2, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { SkeletonRows } from "../components/placeholders";
 import { confirmDialog } from "../components/confirm";
 import { useAuth } from "../contexts/AuthContext";
 import { Category } from "../types";
@@ -381,10 +382,7 @@ export default function Categories() {
         </div>
 
         {loading ? (
-          <div className="mt-6 flex items-center justify-center gap-3 text-muted">
-            <Loader2 className="w-5 h-5 animate-spin" /> Carregando
-            categorias...
-          </div>
+          <div className="mt-4"><SkeletonRows rows={5} /></div>
         ) : error ? (
           <div className="mt-6 rounded-card border border-expense/30 bg-expense/15 p-4 text-expense">
             {error}
