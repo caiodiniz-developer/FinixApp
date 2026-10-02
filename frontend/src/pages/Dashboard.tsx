@@ -29,6 +29,7 @@ import { HealthRing, Sparkline, MetricCard } from "../components/dashboard/widge
 import { ChartTooltip } from "../components/dashboard/ChartTooltip";
 import { SpendingHeatmap } from "../components/dashboard/SpendingHeatmap";
 import { CategoryBars } from "../components/dashboard/CategoryBars";
+import { ActivePill, CountUp, ProgressBar, usePrefersReducedMotion } from "../components/motion";
 
 // Semantic colours come from the theme; charts need them as plain strings.
 const INCOME = "var(--color-income)";
@@ -78,14 +79,6 @@ function Empty({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode
   );
 }
 
-function ProgressBar({ pct, color }: { pct: number; color: string }) {
-  return (
-    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--color-hairline-strong)" }}>
-      <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${Math.min(Math.max(pct, 0), 100)}%`, background: color }} />
-    </div>
-  );
-}
-
 const insightTone = {
   info: { icon: Info, color: PRIMARY },
   warning: { icon: AlertTriangle, color: WARNING },
@@ -117,6 +110,9 @@ export default function Dashboard() {
   const [csvLoading, setCsvLoading] = useState(false);
   const [chartView, setChartView] = useState<"area" | "bar">("area");
   const exportRef = useRef<HTMLDivElement>(null);
+  // Charts draw themselves in, unless the system asks for less motion.
+  const animateCharts = !usePrefersReducedMotion();
+  const chartMotion = { isAnimationActive: animateCharts, animationDuration: 900, animationEasing: "ease-out" as const };
 
   const plan = activePlan(user);
   const isFree = plan === "FREE";
@@ -283,7 +279,7 @@ export default function Dashboard() {
               <ChevronDown className="w-3.5 h-3.5" />
             </button>
             {exportOpen && (
-              <div className="glass-strong absolute right-0 mt-2 w-44 rounded-control p-1 z-30" style={{ color: "var(--color-text)" }}>
+              <div className="glass-strong menu-pop absolute right-0 mt-2 w-44 rounded-control p-1 z-30" style={{ color: "var(--color-text)" }}>
                 <button onClick={() => handleExport("pdf")} className={`${menuItem} ${!canExportPdf ? "opacity-50" : ""}`} data-testid="export-pdf">
                   <FileDown className="w-4 h-4" /> PDF
                 </button>
@@ -308,11 +304,10 @@ export default function Dashboard() {
       <div className="inline-flex gap-1 p-1 rounded-control" style={{ background: "var(--color-hairline-strong)" }} role="tablist">
         {([["overview", "Visão geral"], ["analysis", "Análises"]] as const).map(([id, label]) => (
           <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)} data-testid={`tab-${id}`}
-            className="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors duration-150"
-            style={tab === id
-              ? { background: "var(--color-surface)", color: "var(--color-text)" }
-              : { color: "var(--color-text-muted)" }}>
-            {label}
+            className="relative px-4 py-1.5 rounded-lg text-sm font-medium transition-colors duration-150"
+            style={{ color: tab === id ? "var(--color-text)" : "var(--color-text-muted)" }}>
+            {tab === id && <ActivePill group="dashboard-tab" className="rounded-lg" style={{ background: "var(--color-surface)", boxShadow: "var(--shadow-control)" }} />}
+            <span className="relative z-10">{label}</span>
           </button>
         ))}
       </div>
@@ -320,17 +315,17 @@ export default function Dashboard() {
       {tab === "overview" ? (
         <>
           {/* ── 1. The numbers of the month ─────────────────────────────────── */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="stagger grid grid-cols-2 lg:grid-cols-4 gap-3">
             {stats.map(s => {
               const good = s.diff !== null && s.diff !== 0 && (s.inv ? s.diff < 0 : s.diff > 0);
               return (
-                <div key={s.label} className="glass rounded-card p-3.5 sm:p-4 min-w-0">
+                <div key={s.label} className="glass lift rounded-card p-3.5 sm:p-4 min-w-0">
                   <div className="flex items-center justify-between">
                     <span className="eyebrow">{s.label}</span>
                     <s.icon className="w-4 h-4" style={{ color: s.color }} />
                   </div>
                   <div className="text-lg sm:text-2xl font-semibold num tracking-tight mt-2 truncate" style={{ color: "var(--color-text)" }} data-testid={`stat-${s.label}`}>
-                    {currency(s.value)}
+                    <CountUp value={s.value} />
                   </div>
                   <div className="flex items-end justify-between mt-2 min-h-[1.75rem]">
                     {s.diff !== null ? (
@@ -360,7 +355,7 @@ export default function Dashboard() {
           )}
 
           {/* ── 2. Cash flow and where the money goes ───────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="stagger grid grid-cols-1 lg:grid-cols-3 gap-4">
             <Panel className="lg:col-span-2" title="Fluxo de caixa" subtitle="Receitas e despesas dos últimos 6 meses"
               action={
                 <div className="flex items-center gap-0.5 p-0.5 rounded-lg" style={{ background: "var(--color-hairline-strong)" }}>
@@ -381,8 +376,8 @@ export default function Dashboard() {
                       <XAxis dataKey="month" stroke="var(--color-text-low)" fontSize={11} tickLine={false} axisLine={false} />
                       <YAxis stroke="var(--color-text-low)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
                       <Tooltip content={<ChartTooltip />} />
-                      <Area type="monotone" dataKey="income" stroke={INCOME} fill={INCOME} fillOpacity={0.08} strokeWidth={2} name="Receitas" dot={false} isAnimationActive={false} />
-                      <Area type="monotone" dataKey="expense" stroke={EXPENSE} fill={EXPENSE} fillOpacity={0.08} strokeWidth={2} name="Despesas" dot={false} isAnimationActive={false} />
+                      <Area type="monotone" dataKey="income" stroke={INCOME} fill={INCOME} fillOpacity={0.08} strokeWidth={2} name="Receitas" dot={false} {...chartMotion} />
+                      <Area type="monotone" dataKey="expense" stroke={EXPENSE} fill={EXPENSE} fillOpacity={0.08} strokeWidth={2} name="Despesas" dot={false} {...chartMotion} />
                     </AreaChart>
                   ) : (
                     <BarChart data={data.monthly} margin={{ top: 4, right: 0, left: -18, bottom: 0 }}>
@@ -390,8 +385,8 @@ export default function Dashboard() {
                       <XAxis dataKey="month" stroke="var(--color-text-low)" fontSize={11} tickLine={false} axisLine={false} />
                       <YAxis stroke="var(--color-text-low)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
                       <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--color-card-hover)" }} />
-                      <Bar dataKey="income" fill={INCOME} name="Receitas" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-                      <Bar dataKey="expense" fill={EXPENSE} name="Despesas" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                      <Bar dataKey="income" fill={INCOME} name="Receitas" radius={[4, 4, 0, 0]} {...chartMotion} />
+                      <Bar dataKey="expense" fill={EXPENSE} name="Despesas" radius={[4, 4, 0, 0]} {...chartMotion} />
                     </BarChart>
                   )}
                 </ResponsiveContainer>
@@ -406,7 +401,7 @@ export default function Dashboard() {
                   <div className="h-36">
                     <ResponsiveContainer>
                       <PieChart>
-                        <Pie data={data.categories} dataKey="amount" nameKey="category" innerRadius={42} outerRadius={66} paddingAngle={2} strokeWidth={0} isAnimationActive={false}>
+                        <Pie data={data.categories} dataKey="amount" nameKey="category" innerRadius={42} outerRadius={66} paddingAngle={2} strokeWidth={0} {...chartMotion}>
                           {data.categories.map((c, i) => <Cell key={i} fill={CATEGORY_COLORS[c.category] || PIE_COLORS[i % PIE_COLORS.length]} />)}
                         </Pie>
                         <Tooltip formatter={(v: number) => currency(Number(v))} contentStyle={{ borderRadius: 12, border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text)", fontSize: 12 }} itemStyle={{ color: "var(--color-text)" }} />
@@ -431,14 +426,14 @@ export default function Dashboard() {
 
           {/* ── 3. Everything else ──────────────────────────────────────────── */}
           {data.insights.length > 0 && (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {data.insights.map((ins, i) => (
                 <div key={i} className="card !p-0"><InsightCard insight={ins} /></div>
               ))}
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="stagger grid grid-cols-1 md:grid-cols-2 gap-4">
             <Panel title="Recentes" subtitle="Últimas transações" action={<PanelLink to="/app/transactions">Ver todas</PanelLink>}>
               <div data-testid="recent-transactions">
                 {data.recent.length === 0 ? (
@@ -541,7 +536,7 @@ export default function Dashboard() {
       ) : (
         <>
           {/* ── ANÁLISES ────────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="stagger grid grid-cols-1 lg:grid-cols-3 gap-4">
             <section className="card !p-5 flex items-center gap-5">
               <div className="relative shrink-0 w-20 h-20"><HealthRing score={healthScore} /></div>
               <div className="min-w-0">
@@ -632,7 +627,7 @@ export default function Dashboard() {
                     contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, fontSize: 12 }}
                   />
                   <ReferenceLine y={0} stroke={EXPENSE} strokeDasharray="4 4" />
-                  <Line type="monotone" dataKey="balance" stroke={PRIMARY} strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="balance" stroke={PRIMARY} strokeWidth={2} dot={false} {...chartMotion} />
                 </LineChart>
               </ResponsiveContainer>
             </Panel>
