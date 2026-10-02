@@ -143,7 +143,7 @@ export default function Admin() {
               >
                 <s.icon className="w-5 h-5" />
               </div>
-              <div className="text-xs text-muted uppercase tracking-wider font-semibold">
+              <div className="text-xs text-muted font-semibold">
                 {s.label}
               </div>
               <div className="text-2xl font-display font-semibold mt-1">
@@ -217,7 +217,7 @@ export default function Admin() {
               >
                 <s.icon className="w-5 h-5" />
               </div>
-              <div className="text-xs text-muted uppercase tracking-wider font-semibold">
+              <div className="text-xs text-muted font-semibold">
                 {s.label}
               </div>
               <div className="text-2xl font-display font-semibold mt-1">
@@ -790,13 +790,13 @@ function UserDetail({
                 <div className="grid gap-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-control border border-border dark:border-border p-4">
-                      <div className="text-xs text-muted uppercase tracking-wide">
+                      <div className="text-xs text-muted">
                         Papel
                       </div>
                       <div className="mt-2 font-semibold">{data.user.role}</div>
                     </div>
                     <div className="rounded-control border border-border dark:border-border p-4">
-                      <div className="text-xs text-muted uppercase tracking-wide">
+                      <div className="text-xs text-muted">
                         Onboarding
                       </div>
                       <div className="mt-2 font-semibold">
@@ -808,7 +808,7 @@ function UserDetail({
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-control border border-border dark:border-border p-4">
-                      <div className="text-xs text-muted uppercase tracking-wide">
+                      <div className="text-xs text-muted">
                         Uso
                       </div>
                       <div className="mt-2 font-semibold">
@@ -816,7 +816,7 @@ function UserDetail({
                       </div>
                     </div>
                     <div className="rounded-control border border-border dark:border-border p-4">
-                      <div className="text-xs text-muted uppercase tracking-wide">
+                      <div className="text-xs text-muted">
                         Empresa
                       </div>
                       <div className="mt-2 font-semibold">
@@ -826,7 +826,7 @@ function UserDetail({
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-control border border-border dark:border-border p-4">
-                      <div className="text-xs text-muted uppercase tracking-wide">
+                      <div className="text-xs text-muted">
                         Categoria principal
                       </div>
                       <div className="mt-2 font-semibold">
@@ -837,7 +837,7 @@ function UserDetail({
                       </div>
                     </div>
                     <div className="rounded-control border border-border dark:border-border p-4">
-                      <div className="text-xs text-muted uppercase tracking-wide">
+                      <div className="text-xs text-muted">
                         Cor
                       </div>
                       <div className="mt-2 font-semibold">

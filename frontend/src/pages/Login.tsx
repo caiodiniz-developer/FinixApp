@@ -99,7 +99,7 @@ export default function Login() {
         {/* Content */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.65 }}
           className="relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-2xs font-semibold uppercase tracking-widest text-white/80"
+          <div className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-2xs font-semibold text-white/80"
             style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}>
             <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
             Plataforma ativa
@@ -176,7 +176,7 @@ export default function Login() {
                 value={twoFactorCode}
                 onChange={(e) => setTwoFactorCode(e.target.value)}
                 autoFocus
-                className="input text-center text-lg tracking-[0.3em] font-mono"
+                className="input text-center text-lg font-mono"
                 placeholder={useBackupCode ? "código de backup" : "000000"}
                 maxLength={useBackupCode ? 20 : 6}
               />

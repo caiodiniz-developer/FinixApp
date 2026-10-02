@@ -169,7 +169,7 @@ export function ToolsTab() {
         {taxData?.current && (
           <div className="mt-6 pt-6 border-t border-border">
             <div className="rounded-card bg-surface-strong p-4">
-              <p className="text-xs text-muted uppercase tracking-wide font-semibold">
+              <p className="text-xs text-muted font-semibold">
                 Estimativa de {taxData.current.type === "DAS_MEI" ? "DAS-MEI" : "Carnê-Leão"} — {taxData.current.referenceMonth}
               </p>
               <p className="text-2xl font-display font-semibold text-text mt-1">
@@ -228,12 +228,12 @@ export function ToolsTab() {
         {cltVsPj && (
           <div className="mt-6 pt-6 border-t border-border grid gap-4 sm:grid-cols-2">
             <div className="rounded-card bg-surface-strong p-4">
-              <p className="text-xs text-muted uppercase tracking-wide font-semibold">CLT — equivalente mensal</p>
+              <p className="text-xs text-muted font-semibold">CLT — equivalente mensal</p>
               <p className="text-2xl font-display font-semibold mt-1">R$ {cltVsPj.clt.totalMonthlyEquivalent.toFixed(2)}</p>
               <p className="text-xs text-muted mt-1">líquido R$ {cltVsPj.clt.netMonthly.toFixed(2)} + 13º/férias diluídos · FGTS à parte: R$ {cltVsPj.clt.fgtsMonthlyEquivalent.toFixed(2)}</p>
             </div>
             <div className="rounded-card bg-surface-strong p-4">
-              <p className="text-xs text-muted uppercase tracking-wide font-semibold">PJ — líquido mensal</p>
+              <p className="text-xs text-muted font-semibold">PJ — líquido mensal</p>
               <p className="text-2xl font-display font-semibold mt-1">R$ {cltVsPj.pj.netMonthly.toFixed(2)}</p>
               <p className="text-xs text-muted mt-1">após R$ {cltVsPj.pj.estimatedTax.toFixed(2)} de imposto estimado</p>
             </div>

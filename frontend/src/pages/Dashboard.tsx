@@ -260,7 +260,7 @@ export default function Dashboard() {
           <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "var(--color-text)" }}>
             {user.plan === "PRO" && user.companyName ? user.companyName : `Olá, ${user.name.split(" ")[0]}`}
           </h1>
-          <p className="text-sm mt-0.5 first-letter:uppercase" style={{ color: "var(--color-text-low)" }}>
+          <p className="text-sm mt-0.5 first-letter:" style={{ color: "var(--color-text-low)" }}>
             {now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
             {alerts.count > 0 && (
               <>

@@ -390,7 +390,7 @@ export default function Calendar() {
                 key={item.label}
                 className="card border border-border dark:border-border bg-surface dark:bg-surface p-3 sm:p-4 md:p-6 shadow-sm"
               >
-                <div className="text-2xs sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-muted truncate">
+                <div className="text-2xs sm:text-xs sm: text-muted truncate">
                   <span className="sm:hidden">{item.label}</span>
                   <span className="hidden sm:inline">
                     {item.label === "Saldo" ? "Saldo líquido" : item.label}
@@ -421,7 +421,7 @@ export default function Calendar() {
               )}
               <div className="grid gap-1 sm:gap-2">
                 {/* Weekday labels */}
-                <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-2xs sm:text-2xs uppercase tracking-[0.15em] sm:tracking-[0.25em] text-muted">
+                <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-2xs sm:text-2xs sm: text-muted">
                   {WEEKDAY_LABELS.map((label) => (
                     <div key={label} className="py-1 sm:py-2">
                       <span className="sm:hidden">{label.charAt(0)}</span>
@@ -466,7 +466,7 @@ export default function Calendar() {
                               : "border-border dark:border-border bg-surface dark:bg-surface hover:border-brand-blue/30 hover:bg-surface dark:hover:bg-surface-strong/60 cursor-pointer",
                         ].join(" ")}
                       >
-                        <span className="hidden md:block text-2xs uppercase tracking-[0.2em] text-muted">
+                        <span className="hidden md:block text-2xs text-muted">
                           {date.toLocaleDateString("pt-BR", {
                             weekday: "short",
                           })}
@@ -548,7 +548,7 @@ export default function Calendar() {
             <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-3 sm:p-4 md:p-6 shadow-sm">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-2xs sm:text-xs uppercase tracking-[0.3em] text-muted">
+                  <p className="text-2xs sm:text-xs text-muted">
                     Detalhes do dia
                   </p>
                   <h2 className="mt-1 sm:mt-2 text-base sm:text-lg md:text-xl font-semibold text-text">

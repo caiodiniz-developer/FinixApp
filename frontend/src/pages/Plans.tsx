@@ -232,7 +232,7 @@ export default function Plans() {
           {currentPlan && (
             <div className="inline-flex items-center gap-3 mt-5 px-4 py-2.5 rounded-full"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.3)" }}>Plano atual</span>
+              <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.3)" }}>Plano atual</span>
               <span className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>{currentPlan.name}</span>
               {user?.plan !== "FREE" && (
                 <button onClick={handleCancel} disabled={loading === "cancel"}
@@ -305,7 +305,7 @@ export default function Plans() {
 
                 {/* Popular badge */}
                 {plan.badge && (
-                  <div className="absolute top-0 left-0 right-0 text-center py-1.5 text-2xs font-semibold uppercase tracking-widest"
+                  <div className="absolute top-0 left-0 right-0 text-center py-1.5 text-2xs font-semibold"
                     style={{ background: `linear-gradient(90deg,${plan.accent},#fbbf24)`, color: "#000" }}>
                     {plan.badge}
                   </div>
@@ -327,7 +327,7 @@ export default function Plans() {
                     </div>
                     <div>
                       <div className="font-semibold text-base" style={{ color: "var(--color-text)" }}>{plan.name}</div>
-                      <div className="text-2xs font-semibold uppercase tracking-widest" style={{ color: plan.accent }}>{plan.label}</div>
+                      <div className="text-2xs font-semibold" style={{ color: plan.accent }}>{plan.label}</div>
                     </div>
                   </div>
 
@@ -400,7 +400,7 @@ export default function Plans() {
           className="rounded-card overflow-hidden"
           style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="px-6 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}>
-            <h2 className="font-semibold text-sm uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <h2 className="font-semibold text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
               Comparativo completo
             </h2>
           </div>
@@ -408,7 +408,7 @@ export default function Plans() {
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <th className="py-3 px-5 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.3)", width: "40%" }}>
+                  <th className="py-3 px-5 text-left text-xs font-semibold" style={{ color: "rgba(255,255,255,0.3)", width: "40%" }}>
                     Recurso
                   </th>
                   {["Grátis","Básico","Pro"].map((p, i) => (
@@ -500,7 +500,7 @@ export default function Plans() {
             className="rounded-card p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
             style={{ background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.12)" }}>
             <div className="max-w-md">
-              <p className="text-2xs font-semibold uppercase tracking-widest text-rose-500 mb-1.5">Zona de cancelamento</p>
+              <p className="text-2xs font-semibold text-rose-500 mb-1.5">Zona de cancelamento</p>
               <p className="text-sm font-semibold text-white mb-1">Cancelar assinatura</p>
               <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
                 Ao cancelar, você volta ao plano Grátis no final do período atual. Seus dados permanecem salvos por 30 dias.

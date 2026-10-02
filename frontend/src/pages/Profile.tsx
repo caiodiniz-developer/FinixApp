@@ -396,7 +396,7 @@ export default function Profile() {
           <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-muted">
+                <p className="text-sm text-muted">
                   Perfil
                 </p>
                 <h1 className="text-3xl font-display font-semibold text-text">
@@ -666,7 +666,7 @@ export default function Profile() {
                     <input
                       value={twoFactorCode}
                       onChange={(e) => setTwoFactorCode(e.target.value)}
-                      className="input text-center font-mono tracking-widest"
+                      className="input text-center font-mono"
                       placeholder="000000"
                       maxLength={6}
                     />
@@ -695,7 +695,7 @@ export default function Profile() {
                     <input type="password" value={disablePassword} onChange={(e) => setDisablePassword(e.target.value)}
                       className="input" placeholder="Senha atual" />
                     <input value={disableCode} onChange={(e) => setDisableCode(e.target.value)}
-                      className="input font-mono tracking-widest" placeholder="Código 2FA" maxLength={6} />
+                      className="input font-mono" placeholder="Código 2FA" maxLength={6} />
                     <button onClick={disableTwoFactor} disabled={twoFactorLoading || !disablePassword || !disableCode}
                       className="btn-outline w-full text-rose-500">
                       {twoFactorLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Desativar 2FA"}
@@ -712,7 +712,7 @@ export default function Profile() {
               <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm uppercase tracking-[0.3em] text-muted">
+                    <p className="text-sm text-muted">
                       Plano atual
                     </p>
                     <h2 className="mt-2 text-2xl font-semibold text-text">

@@ -229,7 +229,7 @@ export default function Alerts() {
       {/* Cards de resumo */}
       <div className="grid gap-4 md:grid-cols-4">
         <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
-          <div className="text-sm uppercase tracking-[0.3em] text-muted dark:text-muted">
+          <div className="text-sm text-muted dark:text-muted">
             Limite estourado
           </div>
           <div className="mt-4 text-3xl font-semibold text-rose-600 dark:text-rose-400">
@@ -237,7 +237,7 @@ export default function Alerts() {
           </div>
         </div>
         <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
-          <div className="text-sm uppercase tracking-[0.3em] text-muted dark:text-muted">
+          <div className="text-sm text-muted dark:text-muted">
             Próximo do limite
           </div>
           <div className="mt-4 text-3xl font-semibold text-amber-500 dark:text-amber-400">
@@ -245,7 +245,7 @@ export default function Alerts() {
           </div>
         </div>
         <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
-          <div className="text-sm uppercase tracking-[0.3em] text-muted dark:text-muted">
+          <div className="text-sm text-muted dark:text-muted">
             Vencem em 7 dias
           </div>
           <div className="mt-4 text-3xl font-semibold text-text">
@@ -253,7 +253,7 @@ export default function Alerts() {
           </div>
         </div>
         <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
-          <div className="text-sm uppercase tracking-[0.3em] text-muted dark:text-muted">
+          <div className="text-sm text-muted dark:text-muted">
             Parcelas próximas
           </div>
           <div className="mt-4 text-3xl font-semibold text-blue-600 dark:text-blue-400">

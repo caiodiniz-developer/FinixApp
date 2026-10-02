@@ -82,21 +82,21 @@ export default function NetWorthPage() {
       {netWorth && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="card">
-            <p className="text-xs text-muted uppercase tracking-wide font-semibold">Patrimônio líquido</p>
+            <p className="text-xs text-muted font-semibold">Patrimônio líquido</p>
             <p className={`text-2xl font-display font-semibold mt-1 ${netWorth.netWorth >= 0 ? "text-text" : "text-red-500"}`}>
               {currency(netWorth.netWorth)}
             </p>
           </div>
           <div className="card">
-            <p className="text-xs text-muted uppercase tracking-wide font-semibold">Caixa livre</p>
+            <p className="text-xs text-muted font-semibold">Caixa livre</p>
             <p className="text-2xl font-display font-semibold mt-1">{currency(netWorth.liquidCash)}</p>
           </div>
           <div className="card">
-            <p className="text-xs text-muted uppercase tracking-wide font-semibold">Em metas</p>
+            <p className="text-xs text-muted font-semibold">Em metas</p>
             <p className="text-2xl font-display font-semibold mt-1">{currency(netWorth.goalsSaved)}</p>
           </div>
           <div className="card">
-            <p className="text-xs text-muted uppercase tracking-wide font-semibold">Investido</p>
+            <p className="text-xs text-muted font-semibold">Investido</p>
             <p className="text-2xl font-display font-semibold mt-1 text-emerald-500">{currency(netWorth.investedTotal)}</p>
           </div>
         </div>

@@ -170,7 +170,7 @@ export default function Categories() {
         <section className="card border border-border dark:border-border bg-surface dark:bg-surface p-6 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-muted">
+              <p className="text-sm text-muted">
                 Gerenciamento
               </p>
               <h2 className="mt-2 text-xl font-semibold text-text dark:text-text">
@@ -251,7 +251,7 @@ export default function Categories() {
         <section className="card border border-border dark:border-border bg-surface dark:bg-surface p-6 shadow-sm">
           <div className="mb-6 flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-muted">
+              <p className="text-sm text-muted">
                 Nova categoria
               </p>
               <h2 className="mt-2 text-lg font-semibold text-text dark:text-text">

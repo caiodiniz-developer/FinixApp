@@ -102,15 +102,15 @@ export default function Household() {
         <>
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="card">
-              <p className="text-xs text-muted uppercase tracking-wide font-semibold">Renda combinada</p>
+              <p className="text-xs text-muted font-semibold">Renda combinada</p>
               <p className="text-2xl font-display font-semibold mt-1 text-emerald-500">{currency(household.combinedIncome)}</p>
             </div>
             <div className="card">
-              <p className="text-xs text-muted uppercase tracking-wide font-semibold">Gasto combinado</p>
+              <p className="text-xs text-muted font-semibold">Gasto combinado</p>
               <p className="text-2xl font-display font-semibold mt-1 text-red-500">{currency(household.combinedExpense)}</p>
             </div>
             <div className="card">
-              <p className="text-xs text-muted uppercase tracking-wide font-semibold">Saldo combinado</p>
+              <p className="text-xs text-muted font-semibold">Saldo combinado</p>
               <p className={`text-2xl font-display font-semibold mt-1 ${household.combinedBalance >= 0 ? "text-text" : "text-red-500"}`}>
                 {currency(household.combinedBalance)}
               </p>

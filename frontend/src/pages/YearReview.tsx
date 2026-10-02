@@ -43,7 +43,7 @@ export default function YearReview() {
           <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-amber-400/10 blur-3xl" />
 
           <div className="relative">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">Finix · {data.year}</p>
+            <p className="text-sm font-semibold text-white/60">Finix · {data.year}</p>
             <h2 className="text-4xl sm:text-5xl font-display font-semibold mt-2">
               {data.totalSaved >= 0 ? "Você economizou" : "Suas contas ficaram apertadas em"}
             </h2>
@@ -54,18 +54,18 @@ export default function YearReview() {
             <div className="grid sm:grid-cols-2 gap-4 mt-10">
               <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                 <TrendingUp className="w-5 h-5 text-emerald-300 mb-2" />
-                <p className="text-xs text-white/60 uppercase tracking-wide">Total recebido</p>
+                <p className="text-xs text-white/60">Total recebido</p>
                 <p className="text-2xl font-semibold mt-1">{currency(data.totalIncome)}</p>
               </div>
               <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                 <TrendingDown className="w-5 h-5 text-rose-300 mb-2" />
-                <p className="text-xs text-white/60 uppercase tracking-wide">Total gasto</p>
+                <p className="text-xs text-white/60">Total gasto</p>
                 <p className="text-2xl font-semibold mt-1">{currency(data.totalExpense)}</p>
               </div>
               {data.topCategory && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                   <Receipt className="w-5 h-5 text-amber-300 mb-2" />
-                  <p className="text-xs text-white/60 uppercase tracking-wide">Categoria #1</p>
+                  <p className="text-xs text-white/60">Categoria #1</p>
                   <p className="text-2xl font-semibold mt-1">{data.topCategory.category}</p>
                   <p className="text-xs text-white/60 mt-1">{currency(data.topCategory.amount)}</p>
                 </div>
@@ -73,7 +73,7 @@ export default function YearReview() {
               {data.bestMonth && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                   <Calendar className="w-5 h-5 text-sky-300 mb-2" />
-                  <p className="text-xs text-white/60 uppercase tracking-wide">Melhor mês</p>
+                  <p className="text-xs text-white/60">Melhor mês</p>
                   <p className="text-2xl font-semibold mt-1">{data.bestMonth.month}</p>
                   <p className="text-xs text-white/60 mt-1">{currency(data.bestMonth.net)}</p>
                 </div>
@@ -81,13 +81,13 @@ export default function YearReview() {
               {data.goalsCompleted > 0 && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
                   <Trophy className="w-5 h-5 text-amber-300 mb-2" />
-                  <p className="text-xs text-white/60 uppercase tracking-wide">Metas concluídas</p>
+                  <p className="text-xs text-white/60">Metas concluídas</p>
                   <p className="text-2xl font-semibold mt-1">{data.goalsCompleted}</p>
                 </div>
               )}
               {data.biggestExpense && (
                 <div className="rounded-card p-5 bg-white/10 backdrop-blur">
-                  <p className="text-xs text-white/60 uppercase tracking-wide">Maior gasto único</p>
+                  <p className="text-xs text-white/60">Maior gasto único</p>
                   <p className="text-lg font-semibold mt-1 truncate">{data.biggestExpense.title}</p>
                   <p className="text-xs text-white/60 mt-1">{currency(data.biggestExpense.amount)}</p>
                 </div>

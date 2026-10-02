@@ -470,7 +470,7 @@ export default function Onboarding() {
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-xs uppercase tracking-[0.3em] text-brand-blue font-semibold mb-2">
+                  <div className="text-xs text-brand-blue font-semibold mb-2">
                     Visão rápida
                   </div>
                   <h2 className="text-2xl font-display font-semibold text-text">

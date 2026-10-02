@@ -159,7 +159,7 @@ export default function Cards() {
                   <div className="absolute -right-2 -bottom-10 w-20 h-20 rounded-full bg-white/10" />
                   <div className="relative flex items-start justify-between">
                     <div>
-                      <p className="text-xs uppercase tracking-widest opacity-70">
+                      <p className="text-xs opacity-70">
                         {c.brand || "Cartão de crédito"}
                       </p>
                       <h3 className="text-lg font-semibold mt-0.5">{c.name}</h3>
