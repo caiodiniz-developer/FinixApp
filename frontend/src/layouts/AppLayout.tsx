@@ -16,9 +16,8 @@ import { useAuth, useAutoRefreshUser } from "../contexts/AuthContext";
 import { useUserPhoto } from "../hooks/useUserPhoto";
 import { useDashboardTheme } from "../contexts/ThemeContext";
 import { api, apiErrorMessage } from "../services/api";
-import { currency, todayISO } from "../utils/format";
+import { todayISO } from "../utils/format";
 
-interface SidebarStats { balance: number; income: number; expense: number; spendPct: number; }
 interface NavItem { to: string; icon: LucideIcon; label: string; testid: string; badge?: number; }
 
 const MORE_OPEN_KEY = "finix_sidebar_more_open";
@@ -42,7 +41,6 @@ export default function AppLayout() {
     return window.localStorage.getItem(MORE_OPEN_KEY) === "1";
   });
   const [alertCount, setAlertCount] = useState(0);
-  const [stats, setStats] = useState<SidebarStats | null>(null);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quickForm, setQuickForm] = useState({ title: "", amount: "", type: "EXPENSE" as "INCOME" | "EXPENSE", category: "Outros", accountId: "" });
   const [quickLoading, setQuickLoading] = useState(false);
@@ -59,19 +57,6 @@ export default function AppLayout() {
     if (!user) return;
     api.get("/api/accounts").then(r => setQuickAccounts(r.data || [])).catch(() => {});
   }, [user]);
-
-  const refreshStats = React.useCallback(() => {
-    api.get("/api/dashboard").then(r => {
-      const d = r.data;
-      const cur = d.monthly?.[d.monthly.length - 1] || { income: 0, expense: 0 };
-      const spendPct = cur.income > 0 ? Math.min((cur.expense / cur.income) * 100, 100) : 0;
-      setStats({ balance: d.balance, income: cur.income, expense: cur.expense, spendPct });
-    }).catch(() => {});
-  }, []);
-
-  React.useEffect(() => {
-    if (user) refreshStats();
-  }, [user, refreshStats]);
 
   React.useEffect(() => {
     // The Alerts page itself marks notices as read once it has shown them.
@@ -115,7 +100,8 @@ export default function AppLayout() {
       });
       setQuickAddOpen(false);
       setQuickForm({ title: "", amount: "", type: "EXPENSE", category: "Outros", accountId: "" });
-      refreshStats();
+      // Screens showing balances listen for this to reload.
+      window.dispatchEvent(new Event("finix-transaction-created"));
     } catch (e) {
       toast.error(apiErrorMessage(e));
     }
@@ -179,6 +165,17 @@ export default function AppLayout() {
     </NavLink>
   );
 
+  const bottomItems: NavItem[] = [mainItems[0], mainItems[1], mainItems[4]];
+
+  const renderTab = (l: NavItem) => (
+    <NavLink key={l.to} to={l.to} data-testid={`tab-${l.testid}`}
+      className="flex flex-col items-center gap-0.5 py-1 text-2xs font-medium"
+      style={({ isActive }) => ({ color: isActive ? "var(--color-primary)" : "var(--color-text-low)" })}>
+      <l.icon className="w-5 h-5" />
+      {l.label === "Dashboard" ? "Início" : l.label}
+    </NavLink>
+  );
+
   const sidebarWidth = collapsed ? "w-[76px]" : "w-64";
   const iconButton = "p-2 rounded-control transition-colors hover:bg-[var(--color-card-hover)]";
 
@@ -210,26 +207,8 @@ export default function AppLayout() {
         </div>
       </div>
 
-      {/* Balance — one number, one line of context */}
-      {stats && !collapsed && (
-        <div className="mx-3 rounded-card p-4" style={{ background: "var(--color-card-hover)" }}>
-          <span className="eyebrow">Saldo total</span>
-          <div className="text-2xl font-semibold leading-tight mt-1 num tracking-tight" style={{ color: stats.balance >= 0 ? "var(--color-text)" : "var(--color-expense)" }}>
-            {currency(stats.balance)}
-          </div>
-          <div className="flex items-center gap-3 mt-2 text-xs font-medium">
-            <span className="num" style={{ color: "var(--color-income)" }}>+{currency(stats.income)}</span>
-            <span className="num" style={{ color: "var(--color-expense)" }}>-{currency(stats.expense)}</span>
-          </div>
-          <div className="h-1 rounded-full overflow-hidden mt-3" style={{ background: "var(--color-hairline-strong)" }}>
-            <div className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${stats.spendPct}%`, background: stats.spendPct > 85 ? "var(--color-expense)" : stats.spendPct > 60 ? "var(--color-warning)" : "var(--color-primary)" }} />
-          </div>
-        </div>
-      )}
-
       {/* Quick add */}
-      <div className="px-3 mt-3">
+      <div className="px-3">
         <button onClick={() => setQuickAddOpen(true)} title="Nova transação"
           className="btn-primary w-full !py-2.5 text-sm">
           <Plus className="w-4 h-4 shrink-0" /> {!collapsed && "Nova transação"}
@@ -316,15 +295,15 @@ export default function AppLayout() {
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="glass lg:hidden sticky top-0 z-30 px-4 py-3 flex items-center justify-between"
           style={{ borderWidth: 0, borderBottomWidth: 1, borderColor: "var(--color-border)", boxShadow: "none" }}>
-          <button data-testid="open-sidebar" onClick={() => setOpen(true)} className={iconButton} style={{ color: "var(--color-text-muted)" }}>
-            <Menu className="w-5 h-5" />
-          </button>
           <Logo size={28} />
-          <button onClick={() => setQuickAddOpen(true)} title="Nova transação" className={iconButton} style={{ color: "var(--color-primary)" }}>
-            <Plus className="w-5 h-5" />
+          <button onClick={() => nav("/app/alerts")} title="Alertas" className={`relative ${iconButton}`} style={{ color: "var(--color-text-muted)" }}>
+            <Bell className="w-5 h-5" />
+            {alertCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: "var(--color-expense)" }} />
+            )}
           </button>
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 pb-28 sm:p-6 sm:pb-28 lg:p-8 max-w-7xl w-full mx-auto">
           {/* Inside the app, motion is functional only: fades stay, sliding
               and scaling entrances are switched off for every page at once. */}
           <MotionConfig reducedMotion="always">
@@ -332,6 +311,29 @@ export default function AppLayout() {
           </MotionConfig>
         </main>
       </div>
+
+      {/* Phone: bottom tab bar, like a banking app. The four most used
+          destinations around the "new transaction" button; "Mais" opens the
+          full menu. */}
+      <nav className="glass lg:hidden fixed bottom-0 inset-x-0 z-30 grid grid-cols-5 items-end px-2 pt-1.5"
+        style={{ borderWidth: 0, borderTopWidth: 1, borderColor: "var(--color-border)", boxShadow: "none", paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+        aria-label="Navegação principal">
+        {bottomItems.slice(0, 2).map(renderTab)}
+        <div className="flex justify-center">
+          <button onClick={() => setQuickAddOpen(true)} title="Nova transação" data-testid="bottom-quick-add"
+            className="-mt-5 w-12 h-12 rounded-full flex items-center justify-center"
+            style={{ background: "rgb(var(--c-primary-solid))", color: "var(--color-on-primary)", boxShadow: "var(--shadow-float)" }}>
+            <Plus className="w-6 h-6" />
+          </button>
+        </div>
+        {bottomItems.slice(2).map(renderTab)}
+        <button data-testid="open-sidebar" onClick={() => setOpen(true)}
+          className="flex flex-col items-center gap-0.5 py-1 text-2xs font-medium"
+          style={{ color: inMore || open ? "var(--color-primary)" : "var(--color-text-low)" }}>
+          <Menu className="w-5 h-5" />
+          Mais
+        </button>
+      </nav>
 
       {/* Quick add */}
       {quickAddOpen && (
