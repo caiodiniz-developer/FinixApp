@@ -37,7 +37,7 @@ export function QuickAddModal({ open, onClose, onAdded, categories, accounts }: 
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-semibold text-base" style={{ color: "var(--color-text)" }}>Nova transação</h2>
-              <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-low)" }}>Adicione uma receita ou despesa</p>
+              <p className="text-2xs mt-0.5" style={{ color: "var(--color-text-low)" }}>Adicione uma receita ou despesa</p>
             </div>
             <button onClick={onClose} className="w-8 h-8 rounded-control flex items-center justify-center transition-colors hover:bg-[var(--color-hairline)]" style={{ color: "var(--color-text-low)" }}>
               <X className="w-4 h-4" />

@@ -374,24 +374,24 @@ export default function Transactions() {
                     <div className="font-semibold truncate flex items-center gap-2 flex-wrap">
                       {t.title}
                       {t.recurring && (
-                        <span className="chip bg-brand-blue-strong/10 text-brand-blue-strong !py-0.5 text-[10px]">
+                        <span className="chip bg-brand-blue-strong/10 text-brand-blue-strong !py-0.5 text-2xs">
                           <RefreshCw className="w-3 h-3" />{" "}
                           {t.recurringFrequency || "recorrente"}
                         </span>
                       )}
                       {/* ── CORREÇÃO: chip único "Pago X de N" ── */}
                       {isInstallment && (
-                        <span className="chip bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 !py-0.5 text-[10px] font-semibold">
+                        <span className="chip bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 !py-0.5 text-2xs font-semibold">
                           Pago {paidCount} de {totalNum}
                         </span>
                       )}
                       {isInstallment &&
                         (allPaid ? (
-                          <span className="chip bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 !py-0.5 text-[10px] inline-flex items-center gap-1">
+                          <span className="chip bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 !py-0.5 text-2xs inline-flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" /> Quitado
                           </span>
                         ) : (
-                          <span className="chip bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 !py-0.5 text-[10px] inline-flex items-center gap-1">
+                          <span className="chip bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 !py-0.5 text-2xs inline-flex items-center gap-1">
                             <Clock className="w-3 h-3" /> {pendingCount}{" "}
                             restante{pendingCount > 1 ? "s" : ""}
                           </span>
@@ -424,7 +424,7 @@ export default function Transactions() {
                             }}
                           />
                         </div>
-                        <span className="text-[10px] text-muted">
+                        <span className="text-2xs text-muted">
                           {paidCount}/{totalNum} pagas
                         </span>
                       </div>
@@ -439,7 +439,7 @@ export default function Transactions() {
                       {currency(t.amount)}
                     </span>
                     {isInstallment && t.totalAmount && (
-                      <span className="text-[10px] text-muted font-normal">
+                      <span className="text-2xs text-muted font-normal">
                         total {currency(t.totalAmount)}
                       </span>
                     )}

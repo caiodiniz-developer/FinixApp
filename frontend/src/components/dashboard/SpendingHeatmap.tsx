@@ -20,7 +20,7 @@ export function SpendingHeatmap({ days }: { days: CalendarDay[] }) {
     <div>
       <div className="grid grid-cols-7 gap-1 mb-0.5">
         {["D","S","T","Q","Q","S","S"].map((d, i) => (
-          <div key={i} className="text-center text-[8px] font-semibold uppercase" style={{ color: "var(--color-text-low)" }}>{d}</div>
+          <div key={i} className="text-center text-2xs font-semibold uppercase" style={{ color: "var(--color-text-low)" }}>{d}</div>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1">
@@ -29,7 +29,7 @@ export function SpendingHeatmap({ days }: { days: CalendarDay[] }) {
             style={{ background: day ? col(day.expense) : "transparent" }}
             onMouseEnter={() => day && setHovered(day)} onMouseLeave={() => setHovered(null)}>
             {day && (
-              <div className="w-full h-full flex items-center justify-center text-[8px] font-medium" style={{ color: "var(--color-text-low)" }}>
+              <div className="w-full h-full flex items-center justify-center text-2xs font-medium" style={{ color: "var(--color-text-low)" }}>
                 {new Date(day.date + "T12:00:00").getDate()}
               </div>
             )}

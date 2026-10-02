@@ -109,7 +109,7 @@ export default function Register() {
           <span className="text-xl">🔒</span>
           <div>
             <p className="text-xs font-semibold text-white">Dados protegidos</p>
-            <p className="text-[11px] text-white/45">Stripe · SSL 256-bit · LGPD</p>
+            <p className="text-2xs text-white/45">Stripe · SSL 256-bit · LGPD</p>
           </div>
         </div>
       </div>
@@ -192,7 +192,7 @@ export default function Register() {
                           style={{ background: i <= strength ? strengthColors[strength] : "var(--color-border)" }} />
                       ))}
                     </div>
-                    <span className="text-[10px] font-semibold" style={{ color: strengthColors[strength] }}>
+                    <span className="text-2xs font-semibold" style={{ color: strengthColors[strength] }}>
                       {strengthLabels[strength]}
                     </span>
                   </div>
@@ -209,7 +209,7 @@ export default function Register() {
               </button>
             </form>
 
-            <p className="text-[11px] text-center text-muted">
+            <p className="text-2xs text-center text-muted">
               Ao criar uma conta, você concorda com nossos{" "}
               <span className="font-semibold text-brand-blue cursor-pointer">Termos de Uso</span>{" "}
               e{" "}

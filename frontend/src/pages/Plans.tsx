@@ -236,7 +236,7 @@ export default function Plans() {
               <span className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>{currentPlan.name}</span>
               {user?.plan !== "FREE" && (
                 <button onClick={handleCancel} disabled={loading === "cancel"}
-                  className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 transition disabled:opacity-50 ml-1">
+                  className="text-2xs font-semibold text-rose-400 hover:text-rose-300 transition disabled:opacity-50 ml-1">
                   {loading === "cancel" ? "…" : "Cancelar"}
                 </button>
               )}
@@ -255,7 +255,7 @@ export default function Plans() {
             <span className="text-sm font-medium" style={{ color: annual ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.4)" }}>Anual</span>
             {annual && (
               <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                className="text-2xs font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "rgba(16,185,129,0.15)", color: "#34d399", border: "1px solid rgba(16,185,129,0.25)" }}>
                 ECONOMIZE 20%
               </motion.span>
@@ -305,14 +305,14 @@ export default function Plans() {
 
                 {/* Popular badge */}
                 {plan.badge && (
-                  <div className="absolute top-0 left-0 right-0 text-center py-1.5 text-[10px] font-semibold uppercase tracking-widest"
+                  <div className="absolute top-0 left-0 right-0 text-center py-1.5 text-2xs font-semibold uppercase tracking-widest"
                     style={{ background: `linear-gradient(90deg,${plan.accent},#fbbf24)`, color: "#000" }}>
                     {plan.badge}
                   </div>
                 )}
 
                 {isCurrent && (
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-semibold"
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-2xs font-semibold"
                     style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)", color: "#34d399" }}>
                     Ativo
                   </div>
@@ -327,7 +327,7 @@ export default function Plans() {
                     </div>
                     <div>
                       <div className="font-semibold text-base" style={{ color: "var(--color-text)" }}>{plan.name}</div>
-                      <div className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: plan.accent }}>{plan.label}</div>
+                      <div className="text-2xs font-semibold uppercase tracking-widest" style={{ color: plan.accent }}>{plan.label}</div>
                     </div>
                   </div>
 
@@ -349,7 +349,7 @@ export default function Plans() {
                       )}
                     </div>
                     {annual && plan.price > 0 && (
-                      <p className="text-[11px] mt-0.5" style={{ color: "#34d399" }}>
+                      <p className="text-2xs mt-0.5" style={{ color: "#34d399" }}>
                         R$ {(displayPrice * 12).toFixed(2).replace(".", ",")} cobrado anualmente
                       </p>
                     )}
@@ -383,7 +383,7 @@ export default function Plans() {
                             ? <Check className="w-2.5 h-2.5" style={{ color: plan.accent }} />
                             : <X className="w-2.5 h-2.5" style={{ color: "rgba(255,255,255,0.2)" }} />}
                         </div>
-                        <span className="text-[13px]" style={{ color: f.ok ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.25)" }}>
+                        <span className="text-sm" style={{ color: f.ok ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.25)" }}>
                           {f.text}
                         </span>
                       </li>
@@ -461,7 +461,7 @@ export default function Plans() {
               </div>
               <div>
                 <div className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>{t.title}</div>
-                <div className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.35)" }}>{t.desc}</div>
+                <div className="text-2xs mt-0.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.35)" }}>{t.desc}</div>
               </div>
             </motion.div>
           ))}
@@ -500,7 +500,7 @@ export default function Plans() {
             className="rounded-card p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
             style={{ background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.12)" }}>
             <div className="max-w-md">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-rose-500 mb-1.5">Zona de cancelamento</p>
+              <p className="text-2xs font-semibold uppercase tracking-widest text-rose-500 mb-1.5">Zona de cancelamento</p>
               <p className="text-sm font-semibold text-white mb-1">Cancelar assinatura</p>
               <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
                 Ao cancelar, você volta ao plano Grátis no final do período atual. Seus dados permanecem salvos por 30 dias.

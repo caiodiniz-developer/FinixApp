@@ -102,7 +102,7 @@ export default function Challenges() {
                   {ranked.map((p, i) => (
                     <div key={p.id} className="flex items-center justify-between text-xs">
                       <span className="flex items-center gap-1.5">
-                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-semibold ${i === 0 ? "bg-amber-400 text-white" : "bg-surface-strong text-muted"}`}>{i + 1}</span>
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-2xs font-semibold ${i === 0 ? "bg-amber-400 text-white" : "bg-surface-strong text-muted"}`}>{i + 1}</span>
                         {p.user?.name || "Participante"} {p.userId === user?.id && "(você)"}
                       </span>
                       <span className="font-semibold">{currency(p.progressAmount)}</span>

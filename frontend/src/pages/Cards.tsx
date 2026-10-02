@@ -189,7 +189,7 @@ export default function Cards() {
                     </div>
                   </div>
                   <div className="relative mt-6">
-                    <p className="text-[11px] opacity-70">Fatura atual</p>
+                    <p className="text-2xs opacity-70">Fatura atual</p>
                     <p className="text-2xl font-display font-semibold">
                       {currency(c.currentStatement.total)}
                     </p>

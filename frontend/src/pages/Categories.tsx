@@ -231,7 +231,7 @@ export default function Categories() {
                       onClick={() => hideDefault(name)}
                       title={`Remover ${name}`}
                       type="button"
-                      className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-semibold"
+                      className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white text-2xs font-semibold"
                     >
                       ×
                     </button>

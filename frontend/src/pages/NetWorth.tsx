@@ -182,7 +182,7 @@ export default function NetWorthPage() {
                   No ritmo atual de poupança, esse número ainda não é alcançável — aumentar a poupança mensal muda essa conta.
                 </div>
               )}
-              <p className="text-[11px] text-muted">
+              <p className="text-2xs text-muted">
                 Cálculo conservador: não assume rendimento dos investimentos, só o que você guarda por mês.
               </p>
             </div>

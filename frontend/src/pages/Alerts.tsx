@@ -339,11 +339,11 @@ export default function Alerts() {
                         <span className="font-semibold text-text dark:text-text">
                           {g.title}
                         </span>
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                        <span className="text-2xs font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
                           {g.paidInstallments}/{g.totalInstallments}x
                         </span>
                         {g.paymentMethod && (
-                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-surface-strong dark:bg-surface-strong text-muted dark:text-muted">
+                          <span className="text-2xs font-medium px-1.5 py-0.5 rounded-full bg-surface-strong dark:bg-surface-strong text-muted dark:text-muted">
                             {g.paymentMethod}
                           </span>
                         )}
@@ -473,12 +473,12 @@ export default function Alerts() {
                         {b.category}
                       </span>
                       {b.usedPercent >= 100 && (
-                        <span className="chip bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 text-[10px]">
+                        <span className="chip bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 text-2xs">
                           Limite estourado
                         </span>
                       )}
                       {b.usedPercent >= 80 && b.usedPercent < 100 && (
-                        <span className="chip bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 text-[10px]">
+                        <span className="chip bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 text-2xs">
                           {b.usedPercent}% usado
                         </span>
                       )}
