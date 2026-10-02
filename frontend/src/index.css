@@ -932,3 +932,10 @@ html[data-app-theme="dark"] .toast-glass {
     0 0 0 1px var(--glass-outline),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
+
+/* Dialogs are usually rendered as the last child of a page whose children
+   are spaced with `space-y-*`; that margin would push the dimmed layer down
+   and leave a strip of the page uncovered at the top. */
+.modal-overlay {
+  margin: 0 !important;
+}
