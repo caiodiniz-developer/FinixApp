@@ -208,7 +208,7 @@ export default function Alerts() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="page-header">
         <div>
           <h1 className="page-title">
             Alertas Financeiros
@@ -220,60 +220,43 @@ export default function Alerts() {
         </div>
         <button
           onClick={fetchAlerts}
-          className="btn-outline inline-flex items-center gap-2 rounded-card px-4 py-3 text-sm border border-border dark:border-border bg-surface dark:bg-surface text-text dark:text-muted hover:bg-surface dark:hover:bg-surface-strong transition"
+          className="btn-outline"
         >
           <RefreshCcw className="w-4 h-4" /> Atualizar
         </button>
       </div>
 
-      {/* Cards de resumo */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
-          <div className="text-sm text-muted dark:text-muted">
-            Limite estourado
-          </div>
-          <div className="mt-4 text-3xl font-semibold text-expense ">
-            {overLimitCount}
-          </div>
-        </div>
-        <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
-          <div className="text-sm text-muted dark:text-muted">
-            Próximo do limite
-          </div>
-          <div className="mt-4 text-3xl font-semibold text-warning ">
-            {nearingCount}
-          </div>
-        </div>
-        <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
-          <div className="text-sm text-muted dark:text-muted">
-            Vencem em 7 dias
-          </div>
-          <div className="mt-4 text-3xl font-semibold text-text">
-            {dueSoonCount}
-          </div>
-        </div>
-        <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
-          <div className="text-sm text-muted dark:text-muted">
-            Parcelas próximas
-          </div>
-          <div className="mt-4 text-3xl font-semibold text-primary ">
-            {installmentDueSoon}
-          </div>
-        </div>
+      {/* Resumo: só o que pede atenção */}
+      <div className="flex flex-wrap gap-2">
+        {overLimitCount > 0 && (
+          <span className="chip chip-expense">{overLimitCount} {overLimitCount === 1 ? "limite estourado" : "limites estourados"}</span>
+        )}
+        {nearingCount > 0 && (
+          <span className="chip chip-warning">{nearingCount} perto do limite</span>
+        )}
+        {dueSoonCount > 0 && (
+          <span className="chip chip-warning">{dueSoonCount} {dueSoonCount === 1 ? "vence" : "vencem"} em 7 dias</span>
+        )}
+        {installmentDueSoon > 0 && (
+          <span className="chip chip-primary">{installmentDueSoon} {installmentDueSoon === 1 ? "parcela próxima" : "parcelas próximas"}</span>
+        )}
+        {overLimitCount + nearingCount + dueSoonCount + installmentDueSoon === 0 && !loading && (
+          <span className="chip chip-income">Tudo em dia</span>
+        )}
       </div>
 
       {/* ── SEÇÃO: Avisos ───────────────────────────────────────────────────── */}
       {notices.length > 0 && (
-        <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
+        <div className="card">
           <div className="flex items-center gap-3 mb-5">
             <BellRing className="w-5 h-5 text-warning" />
-            <h2 className="text-lg font-semibold text-text dark:text-text">Avisos</h2>
+            <h2 className="text-lg font-semibold text-text">Avisos</h2>
           </div>
           <div className="space-y-3">
             {notices.map((n) => (
               <div
                 key={n.id}
-                className={`rounded-card border p-4 ${
+                className={`rounded-control border p-4 ${
  n.severity === "danger"
                     ? "border-expense/30 bg-expense/10 text-expense   "
                     : "border-warning/30 bg-warning/10 text-warning   "
@@ -288,16 +271,16 @@ export default function Alerts() {
       )}
 
       {/* ── SEÇÃO: Parcelas de crédito ──────────────────────────────────────── */}
-      <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
+      <div className="card">
         <div className="flex items-center gap-3 mb-5">
           <CreditCard className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-semibold text-text dark:text-text">
+          <h2 className="text-lg font-semibold text-text">
             Compras parceladas em aberto
           </h2>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-3 text-muted dark:text-muted py-8">
+          <div className="flex items-center justify-center gap-3 text-muted py-8">
             <Loader2 className="w-5 h-5 animate-spin" /> Carregando...
           </div>
         ) : error ? (
@@ -305,9 +288,9 @@ export default function Alerts() {
             {error}
           </div>
         ) : installmentGroups.length === 0 ? (
-          <div className="rounded-card border border-dashed border-border-strong dark:border-border bg-surface dark:bg-surface-strong/30 p-8 text-center">
-            <CheckCircle2 className="w-10 h-10 mx-auto text-income mb-3" />
-            <p className="text-muted dark:text-muted">
+          <div className="flex items-center gap-2 text-sm text-muted">
+            <CheckCircle2 className="w-4 h-4 text-income" />
+            <p>
               Nenhuma compra parcelada em andamento.
             </p>
           </div>
@@ -324,26 +307,26 @@ export default function Alerts() {
               return (
                 <div
                   key={g.installmentGroupId}
-                  className={`rounded-card border p-4 transition-all ${
+                  className={`rounded-control border p-4 transition-all ${
  isDanger
  ? "border-expense/30  bg-expense/10 "
                       : isWarning
                         ? "border-warning/30  bg-warning/10 "
-                        : "border-border dark:border-border bg-surface dark:bg-surface"
+                        : "border-transparent bg-[var(--color-card-hover)]"
                   }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                     <div className="flex-1 min-w-0">
                       {/* Título + badges */}
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-text dark:text-text">
+                        <span className="font-semibold text-text">
                           {g.title}
                         </span>
                         <span className="text-2xs font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary ">
                           {g.paidInstallments}/{g.totalInstallments}x
                         </span>
                         {g.paymentMethod && (
-                          <span className="text-2xs font-medium px-1.5 py-0.5 rounded-full bg-surface-strong dark:bg-surface-strong text-muted dark:text-muted">
+                          <span className="text-2xs font-medium px-1.5 py-0.5 rounded-full bg-surface-strong text-muted">
                             {g.paymentMethod}
                           </span>
                         )}
@@ -359,7 +342,7 @@ export default function Alerts() {
                             style={{ width: `${progressPercent}%` }}
                           />
                         </div>
-                        <span className="text-xs text-muted dark:text-muted">
+                        <span className="text-xs text-muted">
                           {g.remainingInstallments} parcela
                           {g.remainingInstallments !== 1 ? "s" : ""} restante
                           {g.remainingInstallments !== 1 ? "s" : ""}
@@ -367,7 +350,7 @@ export default function Alerts() {
                       </div>
 
                       {/* Valores */}
-                      <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted dark:text-muted">
+                      <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted">
                         <span>
                           Por parcela:{" "}
                           <span className="font-semibold text-text">
@@ -393,7 +376,7 @@ export default function Alerts() {
  ? "text-expense "
                                 : isWarning
                                   ? "text-warning "
-                                  : "text-muted dark:text-muted"
+                                  : "text-muted"
                             }`}
                           >
                             {g.daysUntilNext === 0
@@ -402,7 +385,7 @@ export default function Alerts() {
                                 ? "Vence amanhã"
                                 : `Próxima em ${g.daysUntilNext} dias`}
                           </div>
-                          <span className="text-xs text-muted dark:text-muted rounded-control bg-surface-strong dark:bg-surface-strong px-2 py-1">
+                          <span className="text-xs text-muted rounded-control bg-surface-strong px-2 py-1">
                             {dateBR(g.nextPaymentDate)}
                           </span>
                         </>
@@ -421,16 +404,16 @@ export default function Alerts() {
       </div>
 
       {/* ── SEÇÃO: Orçamentos ───────────────────────────────────────────────── */}
-      <div className="card border border-border dark:border-border bg-surface dark:bg-surface p-6">
+      <div className="card">
         <div className="flex items-center gap-3 mb-5">
           <CalendarClock className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-semibold text-text dark:text-text">
+          <h2 className="text-lg font-semibold text-text">
             Seus orçamentos
           </h2>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-3 text-muted dark:text-muted py-8">
+          <div className="flex items-center justify-center gap-3 text-muted py-8">
             <Loader2 className="w-5 h-5 animate-spin" /> Carregando...
           </div>
         ) : error ? (
@@ -438,9 +421,9 @@ export default function Alerts() {
             {error}
           </div>
         ) : budgetAlerts.length === 0 ? (
-          <div className="rounded-card border border-dashed border-border-strong dark:border-border bg-surface dark:bg-surface-strong/30 p-8 text-center">
-            <CheckCircle2 className="w-10 h-10 mx-auto text-income mb-3" />
-            <p className="text-muted dark:text-muted">
+          <div className="flex items-center gap-2 text-sm text-muted">
+            <CheckCircle2 className="w-4 h-4 text-income" />
+            <p>
               Nenhum orçamento cadastrado ainda.
             </p>
           </div>
@@ -459,17 +442,17 @@ export default function Alerts() {
               return (
                 <div
                   key={b.id}
-                  className={`rounded-card border p-4 flex flex-col sm:flex-row sm:items-center gap-3 transition-all ${
+                  className={`rounded-control border p-4 flex flex-col sm:flex-row sm:items-center gap-3 transition-all ${
  isDanger
  ? "border-expense/30  bg-expense/10 "
                       : isWarning
                         ? "border-warning/30  bg-warning/10 "
-                        : "border-border dark:border-border bg-surface dark:bg-surface"
+                        : "border-transparent bg-[var(--color-card-hover)]"
                   }`}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-text dark:text-text">
+                      <span className="font-semibold text-text">
                         {b.category}
                       </span>
                       {b.usedPercent >= 100 && (
@@ -491,7 +474,7 @@ export default function Alerts() {
                           style={{ width: `${Math.min(100, b.usedPercent)}%` }}
                         />
                       </div>
-                      <span className="text-xs text-muted dark:text-muted">
+                      <span className="text-xs text-muted">
                         {currency(b.spent)} / {currency(b.limit)}
                       </span>
                     </div>
@@ -501,7 +484,7 @@ export default function Alerts() {
                     {b.dueDate ? (
                       <>
                         <div
-                          className={`text-sm font-semibold ${isDanger ? "text-expense " : isWarning ? "text-warning " : "text-muted dark:text-muted"}`}
+                          className={`text-sm font-semibold ${isDanger ? "text-expense " : isWarning ? "text-warning " : "text-muted"}`}
                         >
                           {isOverdue
                             ? `Venceu há ${Math.abs(b.diffDays!)} dia${Math.abs(b.diffDays!) > 1 ? "s" : ""}`
@@ -509,12 +492,12 @@ export default function Alerts() {
                               ? "Vence hoje"
                               : `Vence em ${b.diffDays} dia${b.diffDays! > 1 ? "s" : ""}`}
                         </div>
-                        <span className="text-xs text-muted dark:text-muted rounded-control bg-surface-strong dark:bg-surface-strong px-2 py-1">
+                        <span className="text-xs text-muted rounded-control bg-surface-strong px-2 py-1">
                           {dateBR(b.dueDate)}
                         </span>
                       </>
                     ) : (
-                      <span className="text-xs text-muted dark:text-muted rounded-control bg-surface-strong dark:bg-surface-strong px-2 py-1">
+                      <span className="text-xs text-muted rounded-control bg-surface-strong px-2 py-1">
                         Sem prazo
                       </span>
                     )}
