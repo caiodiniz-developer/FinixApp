@@ -23,6 +23,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast from "react-hot-toast";
 import { api, apiErrorMessage } from "../services/api";
+import { confirmDialog, deleteWithUndo } from "../components/confirm";
 import { Budget, Transaction, Contact } from "../types";
 import { currency, dateBR, dateISOForInput } from "../utils/format";
 import { useAuth } from "../contexts/AuthContext";
@@ -216,18 +217,14 @@ export default function Transactions() {
     const msg = isInstallment
       ? `Excluir todas as ${t.totalInstallments} parcelas de "${t.title}"?`
       : `Excluir "${t.title}"?`;
-    if (!window.confirm(msg)) return;
-    try {
-      if (isInstallment) {
-        await api.delete(`/api/transactions/${t.id}?deleteGroup=true`);
-      } else {
-        await api.delete(`/api/transactions/${t.id}`);
-      }
-      toast.success("Excluído");
-      fetchData();
-    } catch (e) {
-      toast.error(apiErrorMessage(e));
-    }
+    if (!(await confirmDialog({ title: msg, danger: true }))) return;
+    deleteWithUndo({
+      message: `"${t.title}" excluída`,
+      hide: () => setItems((list) => list.filter((i) =>
+        isInstallment ? i.installmentGroupId !== t.installmentGroupId : i.id !== t.id)),
+      commit: () => api.delete(`/api/transactions/${t.id}${isInstallment ? "?deleteGroup=true" : ""}`),
+      refresh: fetchData,
+    });
   };
 
   // Agrupa exibição de parceladas — cada grupo aparece como 1 linha
@@ -644,7 +641,12 @@ function TxModal({
       // (não em edição) acima de um piso razoável — o backend decide se ela
       // é "grande o bastante pra este usuário" comparando com a média dele.
       if (!editing && payload.type === "EXPENSE" && payload.amount >= 150) {
-        payload.plannedPurchase = window.confirm("Essa compra foi planejada?");
+        payload.plannedPurchase = await confirmDialog({
+          title: "Essa compra foi planejada?",
+          message: "Compras por impulso ficam marcadas para você rever com calma depois.",
+          confirmLabel: "Sim, foi planejada",
+          cancelLabel: "Não foi",
+        });
       }
 
       if (
@@ -652,9 +654,11 @@ function TxModal({
         selectedBudget &&
         currentSpent + payload.amount > selectedBudget.limit
       ) {
-        const confirmed = window.confirm(
-          `Você já chegou ao seu limite de ${currency(selectedBudget.limit)} para ${selectedBudget.category}. Tem certeza disso?`,
-        );
+        const confirmed = await confirmDialog({
+          title: `Limite de ${selectedBudget.category} ultrapassado`,
+          message: `Com este gasto você passa do limite de ${currency(selectedBudget.limit)} definido para a categoria. Registrar mesmo assim?`,
+          confirmLabel: "Registrar",
+        });
         if (!confirmed) return;
       }
 
